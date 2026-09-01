@@ -57,7 +57,7 @@ export function SidebarContent({
         </div>
         <div>
           <h1 className="text-lg font-semibold leading-tight text-foreground">
-            CheevoDash
+            Rarify
           </h1>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Dashboard

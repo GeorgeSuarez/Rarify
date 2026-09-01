@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { isString } from "./decode";
 import { env } from "./env";
 
-const SESSION_COOKIE = "cheevodash_session";
+const SESSION_COOKIE = "rarify_session";
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 export interface SessionPayload {

@@ -12,23 +12,23 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   ),
   title: {
-    default: "CheevoDash",
-    template: "%s | CheevoDash",
+    default: "Rarify",
+    template: "%s | Rarify",
   },
   description:
     "Track your achievements and compare your progress with other players.",
-  applicationName: "CheevoDash",
+  applicationName: "Rarify",
   icons: {},
   openGraph: {
-    title: "CheevoDash",
+    title: "Rarify",
     description:
       "Track your achievements and compare your progress with other players.",
     type: "website",
-    siteName: "CheevoDash",
+    siteName: "Rarify",
   },
   twitter: {
     card: "summary",
-    title: "CheevoDash",
+    title: "Rarify",
     description:
       "Track your achievements and compare your progress with other players.",
   },

@@ -1,4 +1,4 @@
-# CheevoDash
+# Rarify
 
 A Steam-style achievement dashboard built with Next.js, React 19, Tailwind CSS v4, and shadcn/ui. Track your Steam achievements, compare progress with friends, and monitor your gaming stats over time.
 
@@ -36,7 +36,7 @@ A Steam-style achievement dashboard built with Next.js, React 19, Tailwind CSS v
 
 ```bash
 git clone <repo>
-cd CheevoDash
+cd Rarify
 npm install
 ```
 

@@ -1,8 +1,8 @@
-# Cloudflare deployment plan for CheevoDash
+# Cloudflare deployment plan for Rarify
 
 ## Target architecture
 
-Deploy the existing Next.js 16 App Router application to **Cloudflare Workers via OpenNext**, using `https://cheevodash.georgejsuarez.com` as the assumed production hostname.
+Deploy the existing Next.js 16 App Router application to **Cloudflare Workers via OpenNext**, using `https://rarify.georgejsuarez.com` as the assumed production hostname.
 
 - Hosting: Cloudflare Workers + `@opennextjs/cloudflare`
 - Database: production Turso/libSQL database
@@ -13,7 +13,7 @@ Deploy the existing Next.js 16 App Router application to **Cloudflare Workers vi
 
 ## 1. Preflight
 
-- Confirm the exact subdomain; this plan assumes `cheevodash.georgejsuarez.com`.
+- Confirm the exact subdomain; this plan assumes `rarify.georgejsuarez.com`.
 - Confirm `georgejsuarez.com` is an active Cloudflare zone.
 - Identify/create the production Turso database.
 - Prepare Steam API, Turso, auth, and cron credentials.
@@ -57,7 +57,7 @@ The project uses `next/image` in dashboard components. Configure an `IMAGES` Clo
 Set `NEXT_PUBLIC_APP_URL` to:
 
 ```text
-https://cheevodash.georgejsuarez.com
+https://rarify.georgejsuarez.com
 ```
 
 Configure it as a build variable and runtime variable as appropriate. Configure these as runtime secrets, never in source control:
@@ -91,7 +91,7 @@ After the Worker first deploys:
 
 1. Open Workers & Pages in Cloudflare.
 2. Select the Worker.
-3. Add `cheevodash.georgejsuarez.com` under **Settings → Domains & Routes → Custom Domain**.
+3. Add `rarify.georgejsuarez.com` under **Settings → Domains & Routes → Custom Domain**.
 4. Let Cloudflare create the DNS record and certificate.
 5. Remove any conflicting existing CNAME before adding the Custom Domain.
 
