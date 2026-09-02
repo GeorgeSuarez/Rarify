@@ -4,6 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock, Trophy, Lock, Unlock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { GameAchievementsData } from "@/lib/dashboard";
 
 function timeAgo(unix: number): string {
@@ -29,11 +43,11 @@ function AchievementRow({
   return (
     <div
       className={
-        "flex items-center gap-4 border-t border-border/30 py-4 transition-colors hover:bg-white/2" +
+        "flex items-center gap-4 py-4 transition-colors hover:bg-white/[0.02]" +
         (achievement.achieved ? "" : " opacity-60")
       }
     >
-      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+      <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
         {achievement.achieved && achievement.icon ? (
           <Image
             src={achievement.icon}
@@ -51,8 +65,8 @@ function AchievementRow({
             sizes="48px"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Trophy className="h-6 w-6 text-muted-foreground" />
+          <div className="flex size-full items-center justify-center">
+            <Trophy className="size-6 text-muted-foreground" />
           </div>
         )}
       </div>
@@ -65,25 +79,32 @@ function AchievementRow({
             {achievement.description}
           </p>
         )}
-        <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             {achievement.achieved ? (
-              <Unlock className="h-3 w-3 text-green-400" />
+              <Unlock className="size-3 text-green-400" />
             ) : (
-              <Lock className="h-3 w-3 text-muted-foreground" />
+              <Lock className="size-3 text-muted-foreground" />
             )}
             {achievement.achieved ? "Unlocked" : "Locked"}
           </span>
           {achievement.achieved && achievement.unlocktime > 0 && (
-            <span>{timeAgo(achievement.unlocktime)}</span>
+            <Tooltip>
+              <TooltipTrigger>{timeAgo(achievement.unlocktime)}</TooltipTrigger>
+              <TooltipContent>
+                {new Date(achievement.unlocktime * 1000).toLocaleString()}
+              </TooltipContent>
+            </Tooltip>
           )}
-          <span>{achievement.globalPercent.toFixed(1)}% of players</span>
+          <Badge variant="secondary" className="text-[10px]">
+            {achievement.globalPercent.toFixed(1)}% of players
+          </Badge>
         </div>
       </div>
       {achievement.achieved && (
         <div className="shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500/20">
-            <Trophy className="h-4 w-4 text-green-400" />
+          <div className="flex size-8 items-center justify-center rounded-full bg-green-500/20">
+            <Trophy className="size-4 text-green-400" />
           </div>
         </div>
       )}
@@ -106,7 +127,7 @@ export function AchievementList({ data }: { data: GameAchievementsData }) {
             href="/games"
             className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="size-4" />
             Back to games
           </Link>
 
@@ -129,11 +150,11 @@ export function AchievementList({ data }: { data: GameAchievementsData }) {
               </h1>
               <div className="mt-2 flex items-center gap-4 text-sm text-white/80">
                 <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="size-4" />
                   {data.hours}h played
                 </span>
                 <span className="flex items-center gap-1">
-                  <Trophy className="h-4 w-4" />
+                  <Trophy className="size-4" />
                   {data.earnedAchievements}/{data.totalAchievements}
                 </span>
                 <span>{data.completion}%</span>
@@ -143,8 +164,18 @@ export function AchievementList({ data }: { data: GameAchievementsData }) {
 
           {achievements.length === 0 ? (
             <Card className="border-border/50 bg-card">
-              <CardContent className="py-12 text-center text-muted-foreground">
-                No achievement data available for this game.
+              <CardContent className="p-0">
+                <Empty className="py-12">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Trophy />
+                    </EmptyMedia>
+                    <EmptyTitle>No achievement data</EmptyTitle>
+                    <EmptyDescription>
+                      No achievement data available for this game.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </CardContent>
             </Card>
           ) : (
@@ -155,19 +186,22 @@ export function AchievementList({ data }: { data: GameAchievementsData }) {
                     {achievements.length} Achievement
                     {achievements.length !== 1 ? "s" : ""}
                   </CardTitle>
-                  <span className="text-xs text-muted-foreground">
+                  <Badge variant="secondary" className="text-xs">
                     {earned.length} unlocked &middot; {locked.length} locked
-                  </span>
+                  </Badge>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex flex-col">
                 {earned.length > 0 && (
                   <>
                     <h3 className="mb-2 mt-4 text-sm font-medium text-green-400">
                       Unlocked ({earned.length})
                     </h3>
-                    {earned.map((ach) => (
-                      <AchievementRow key={ach.apiname} achievement={ach} />
+                    {earned.map((ach, index) => (
+                      <div key={ach.apiname} className="flex flex-col">
+                        {index !== 0 && <Separator />}
+                        <AchievementRow achievement={ach} />
+                      </div>
                     ))}
                   </>
                 )}
@@ -176,8 +210,11 @@ export function AchievementList({ data }: { data: GameAchievementsData }) {
                     <h3 className="mb-2 mt-6 text-sm font-medium text-muted-foreground">
                       Locked ({locked.length})
                     </h3>
-                    {locked.map((ach) => (
-                      <AchievementRow key={ach.apiname} achievement={ach} />
+                    {locked.map((ach, index) => (
+                      <div key={ach.apiname} className="flex flex-col">
+                        {index !== 0 && <Separator />}
+                        <AchievementRow achievement={ach} />
+                      </div>
                     ))}
                   </>
                 )}

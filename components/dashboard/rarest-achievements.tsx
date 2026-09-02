@@ -1,6 +1,19 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Trophy, Award } from "lucide-react";
 import Image from "next/image";
 import type { RecentAchievement } from "@/lib/types";
@@ -33,27 +46,25 @@ export function RarestAchievements({
       </CardHeader>
       <CardContent className="pt-2">
         {achievements.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Award className="h-6 w-6 text-muted-foreground" aria-hidden />
-            </div>
-            <div>
-              <p className="font-medium text-foreground">
-                No rare achievements yet
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
+          <Empty className="py-8">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Award />
+              </EmptyMedia>
+              <EmptyTitle>No rare achievements yet</EmptyTitle>
+              <EmptyDescription>
                 Unlock achievements that few players have earned.
-              </p>
-            </div>
-          </div>
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
-          <ul className="divide-y divide-border/30">
+          <ul className="flex flex-col">
             {achievements.map((ach, i) => (
               <li
                 key={`${ach.appId}-${ach.name}-${i}`}
                 className="flex items-center gap-4 py-3"
               >
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
                   {ach.icon ? (
                     <Image
                       src={ach.icon}
@@ -63,8 +74,8 @@ export function RarestAchievements({
                       sizes="40px"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <Trophy className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex size-full items-center justify-center">
+                      <Trophy className="size-5 text-muted-foreground" />
                     </div>
                   )}
                 </div>
@@ -81,21 +92,21 @@ export function RarestAchievements({
                     </p>
                   )}
                 </div>
-                <div className="shrink-0 text-right">
+                <div className="flex shrink-0 flex-col items-end gap-1 text-right">
                   {ach.globalPercent != null && (
-                    <>
-                      <p className="font-semibold text-amber-400">
-                        {ach.globalPercent.toFixed(1)}%
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        of players
-                      </p>
-                    </>
+                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-400">
+                      {ach.globalPercent.toFixed(1)}% rare
+                    </Badge>
                   )}
                   {ach.unlocktime > 0 && (
-                    <p className="mt-1 text-[10px] text-muted-foreground/60">
-                      {timeAgo(ach.unlocktime)}
-                    </p>
+                    <Tooltip>
+                      <TooltipTrigger className="text-[10px] text-muted-foreground/60">
+                        {timeAgo(ach.unlocktime)}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {new Date(ach.unlocktime * 1000).toLocaleString()}
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </div>
               </li>

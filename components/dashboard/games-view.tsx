@@ -10,10 +10,24 @@ import { Search, Clock, Trophy, Bookmark, BookmarkCheck, Gamepad2 } from "lucide
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Progress } from "@/components/ui/progress";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import type { Game } from "@/lib/types";
 
 const SORT_KEYS = ["playtime", "completion", "achievements", "name"] as const;
@@ -126,12 +140,12 @@ function GameCard({ game: initialGame }: { game: Game }) {
           disabled={isPending}
           aria-label={tracked ? `Untrack ${initialGame.name}` : `Track ${initialGame.name}`}
           aria-pressed={tracked}
-          className="h-8 w-8 rounded-full bg-background/60 backdrop-blur-sm hover:bg-background/80"
+          className="size-8 rounded-full bg-background/60 backdrop-blur-sm hover:bg-background/80"
         >
           {tracked ? (
-            <BookmarkCheck className="h-4 w-4 fill-primary text-primary" />
+            <BookmarkCheck data-icon="inline-end" className="fill-primary text-primary" />
           ) : (
-            <Bookmark className="h-4 w-4 text-foreground" />
+            <Bookmark data-icon="inline-end" className="text-foreground" />
           )}
         </Button>
       </div>
@@ -146,12 +160,12 @@ function GameCard({ game: initialGame }: { game: Game }) {
             </h3>
             <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
+                <Clock className="size-3" />
                 {initialGame.hours}h
               </span>
               {initialGame.achievements.total > 0 && (
                 <span className="flex items-center gap-1">
-                  <Trophy className="h-3 w-3" />
+                  <Trophy className="size-3" />
                   {initialGame.achievements.earned}/{initialGame.achievements.total}
                 </span>
               )}
@@ -163,19 +177,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
         </div>
         {initialGame.achievements.total > 0 && (
           <div className="mt-3">
-            <div
-              className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
-              role="progressbar"
-              aria-valuenow={initialGame.completion}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={`${initialGame.completion}% completion`}
-            >
-              <div
-                className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
-                style={{ width: `${initialGame.completion}%` }}
-              />
-            </div>
+            <Progress value={initialGame.completion} aria-label={`${initialGame.completion}% completion`} />
           </div>
         )}
       </Link>
@@ -252,25 +254,27 @@ export function GamesView({
 
           {/* Controls */}
           <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
+            <InputGroup className="flex-1 bg-card">
+              <InputGroupAddon>
+                <Search />
+              </InputGroupAddon>
+              <InputGroupInput
                 placeholder="Search games..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-9 w-full rounded-lg border border-border/50 bg-card pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
               />
-            </div>
+            </InputGroup>
             <div className="flex items-center gap-3">
               <Select value={filter} onValueChange={(v) => v && setFilter(v)}>
                 <SelectTrigger className="h-9 w-36 border-border/50 bg-card text-xs">
                   <SelectValue placeholder="All Games" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Games</SelectItem>
-                  <SelectItem value="owned">Owned</SelectItem>
-                  <SelectItem value="tracked">Tracked</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="all">All Games</SelectItem>
+                    <SelectItem value="owned">Owned</SelectItem>
+                    <SelectItem value="tracked">Tracked</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               <Select
@@ -284,10 +288,12 @@ export function GamesView({
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="playtime">Most Played</SelectItem>
-                  <SelectItem value="completion">Completion</SelectItem>
-                  <SelectItem value="achievements">Achievements</SelectItem>
-                  <SelectItem value="name">Name</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="playtime">Most Played</SelectItem>
+                    <SelectItem value="completion">Completion</SelectItem>
+                    <SelectItem value="achievements">Achievements</SelectItem>
+                    <SelectItem value="name">Name</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
@@ -295,21 +301,21 @@ export function GamesView({
 
           {/* Game grid */}
           {filteredGames.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border/30 bg-card/50 p-12 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                <Gamepad2 className="h-7 w-7 text-muted-foreground" aria-hidden />
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">
+            <Empty className="border border-border/30 bg-card/50">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Gamepad2 />
+                </EmptyMedia>
+                <EmptyTitle>
                   {search ? "No games match your search" : "No games to show"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                </EmptyTitle>
+                <EmptyDescription>
                   {search
                     ? `Try a different search term`
                     : "Try changing the filter to see more games."}
-                </p>
-              </div>
-            </div>
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredGames.map((game) => (

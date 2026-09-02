@@ -32,7 +32,7 @@ export function MobileSidebar({
           />
         }
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="size-5" />
       </SheetTrigger>
       <SheetContent side="left" className="w-72 border-r border-sidebar-border bg-sidebar p-0">
         <SheetTitle className="sr-only">Navigation</SheetTitle>

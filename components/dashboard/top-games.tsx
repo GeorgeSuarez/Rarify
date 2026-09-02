@@ -4,6 +4,24 @@ import { useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Trophy,
   Clock,
   ArrowUp,
@@ -36,7 +54,7 @@ function GameHeader({ game }: { game: Game }) {
       <div>
         <p className="font-semibold text-foreground">{game.name}</p>
         <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-          <Clock className="h-3 w-3" /> {game.hours} hrs
+          <Clock className="size-3" /> {game.hours} hrs
         </p>
       </div>
     </Link>
@@ -45,23 +63,9 @@ function GameHeader({ game }: { game: Game }) {
 
 function CompletionBar({ game }: { game: Game }) {
   return (
-    <div className="w-32">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="font-semibold text-foreground">{game.completion}%</span>
-      </div>
-      <div
-        className="h-2 w-full overflow-hidden rounded-full bg-muted"
-        role="progressbar"
-        aria-valuenow={game.completion}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={`${game.completion}% completion`}
-      >
-        <div
-          className="h-full rounded-full bg-primary transition-all"
-          style={{ width: `${game.completion}%` }}
-        />
-      </div>
+    <div className="flex w-32 flex-col gap-1">
+      <span className="font-semibold text-foreground">{game.completion}%</span>
+      <Progress value={game.completion} aria-label={`${game.completion}% completion`} />
     </div>
   );
 }
@@ -69,7 +73,7 @@ function CompletionBar({ game }: { game: Game }) {
 function AchievementCount({ game }: { game: Game }) {
   return (
     <div className="flex items-center gap-2 text-foreground">
-      <Trophy className="h-4 w-4 text-muted-foreground" />
+      <Trophy className="size-4 text-muted-foreground" />
       <span className="font-semibold">{game.achievements.earned}</span>
       <span className="text-muted-foreground">/ {game.achievements.total}</span>
     </div>
@@ -80,9 +84,9 @@ function Comparison({ game }: { game: Game }) {
   return (
     <p className="flex items-center gap-1.5 text-foreground">
       {game.comparison.isPositive ? (
-        <ArrowUp className="h-4 w-4 text-green-400" aria-hidden />
+        <ArrowUp className="size-4 text-green-400" aria-hidden />
       ) : (
-        <ArrowDown className="h-4 w-4 text-red-400" aria-hidden />
+        <ArrowDown className="size-4 text-red-400" aria-hidden />
       )}
       <span>
         {game.comparison.text}{" "}
@@ -149,11 +153,11 @@ function TrackButton({
       }
     >
       {tracked ? (
-        <BookmarkCheck className="h-4 w-4" />
+        <BookmarkCheck data-icon="inline-start" />
       ) : (
-        <Bookmark className="h-4 w-4" />
+        <Bookmark data-icon="inline-start" />
       )}
-      <span className="ml-1.5 text-xs">{tracked ? "Tracked" : "Track"}</span>
+      {tracked ? "Tracked" : "Track"}
     </Button>
   );
 }
@@ -166,26 +170,23 @@ function TopGameTableRow({
   onTrackToggle?: (appId: number, tracked: boolean) => void;
 }) {
   return (
-    <tr
-      key={game.appId}
-      className="border-t border-border/30 transition-colors hover:bg-white/[0.02]"
-    >
-      <td className="py-4">
+    <TableRow key={game.appId} className="hover:bg-white/[0.02]">
+      <TableCell className="py-4">
         <GameHeader game={game} />
-      </td>
-      <td className="py-4">
+      </TableCell>
+      <TableCell className="py-4">
         <CompletionBar game={game} />
-      </td>
-      <td className="py-4">
+      </TableCell>
+      <TableCell className="py-4">
         <AchievementCount game={game} />
-      </td>
-      <td className="py-4">
+      </TableCell>
+      <TableCell className="py-4">
         <Comparison game={game} />
-      </td>
-      <td className="py-4">
+      </TableCell>
+      <TableCell className="py-4">
         <TrackButton game={game} onTrackToggle={onTrackToggle} />
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -197,7 +198,8 @@ function TopGameCard({
   onTrackToggle?: (appId: number, tracked: boolean) => void;
 }) {
   return (
-    <div className="border-t border-border/30 py-4">
+    <div className="py-4">
+      <Separator className="mb-4" />
       <div className="flex items-start justify-between gap-3">
         <GameHeader game={game} />
         <TrackButton game={game} onTrackToggle={onTrackToggle} />
@@ -229,35 +231,35 @@ export function TopGames({
       </CardHeader>
       <CardContent className="pt-2">
         {topGames.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Gamepad2 className="h-6 w-6 text-muted-foreground" aria-hidden />
-            </div>
-            <div>
-              <p className="font-medium text-foreground">No games to show</p>
-              <p className="mt-1 text-sm text-muted-foreground">
+          <Empty className="py-8">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Gamepad2 />
+              </EmptyMedia>
+              <EmptyTitle>No games to show</EmptyTitle>
+              <EmptyDescription>
                 Try changing the filter to see more games.
-              </p>
-            </div>
-          </div>
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="w-full">
-                <caption className="sr-only">
+            <div className="hidden lg:block">
+              <Table>
+                <TableCaption className="sr-only">
                   Top games by playtime with completion, achievements, and community
                   comparison
-                </caption>
-                <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-                    <th className="pb-3 font-medium">Game</th>
-                    <th className="pb-3 font-medium">Completion</th>
-                    <th className="pb-3 font-medium">Achievements</th>
-                    <th className="pb-3 font-medium">Compare</th>
-                    <th className="pb-3 font-medium">Track</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm">
+                </TableCaption>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Game</TableHead>
+                    <TableHead>Completion</TableHead>
+                    <TableHead>Achievements</TableHead>
+                    <TableHead>Compare</TableHead>
+                    <TableHead>Track</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {topGames.map((game) => (
                     <TopGameTableRow
                       key={game.appId}
@@ -265,8 +267,8 @@ export function TopGames({
                       onTrackToggle={onTrackToggle}
                     />
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
             <div className="lg:hidden">
               {topGames.map((game) => (

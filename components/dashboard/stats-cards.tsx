@@ -66,7 +66,7 @@ function StatCard({ icon, iconBg, label, value, subtext }: StatCardProps) {
   return (
     <Card className="border-border/50 bg-card">
       <CardContent className="flex items-center gap-4 p-5">
-        <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl", iconBg)}>
+        <div className={cn("flex size-12 shrink-0 items-center justify-center rounded-xl", iconBg)}>
           {icon}
         </div>
         <div className="min-w-0 flex-1">
@@ -86,14 +86,14 @@ export function StatsCards({ stats }: { stats: Stats }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
-        icon={<Trophy className="h-6 w-6 text-blue-400" />}
+        icon={<Trophy className="size-6 text-blue-400" />}
         iconBg="bg-blue-500/10"
         label="Achievements Earned"
         value={(stats.achievementsEarned || 0).toLocaleString()}
         subtext={
           stats.achievementsEarnedDelta != null ? (
             <span className={cn("flex items-center gap-1", stats.achievementsEarnedDelta >= 0 ? "text-green-400" : "text-red-400")}>
-              {stats.achievementsEarnedDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />} 
+              {stats.achievementsEarnedDelta >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />} 
               {Math.abs(stats.achievementsEarnedDelta)} this month
             </span>
           ) : (
@@ -114,7 +114,7 @@ export function StatsCards({ stats }: { stats: Stats }) {
             </p>
             {stats.avgCompletionDelta != null ? (
               <span className={cn("mt-1 flex items-center gap-1 text-xs", stats.avgCompletionDelta >= 0 ? "text-green-400" : "text-red-400")}>
-                {stats.avgCompletionDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />} 
+                {stats.avgCompletionDelta >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />} 
                 {Math.abs(stats.avgCompletionDelta)}% vs last month
               </span>
             ) : (
@@ -127,7 +127,7 @@ export function StatsCards({ stats }: { stats: Stats }) {
       </Card>
 
       <StatCard
-        icon={<Users className="h-6 w-6 text-amber-400" />}
+        icon={<Users className="size-6 text-amber-400" />}
         iconBg="bg-amber-500/10"
         label="Games Owned"
         value={String(stats.gamesOwned || 0)}
@@ -145,7 +145,7 @@ export function StatsCards({ stats }: { stats: Stats }) {
       />
 
       <StatCard
-        icon={<Gamepad2 className="h-6 w-6 text-green-400" />}
+        icon={<Gamepad2 className="size-6 text-green-400" />}
         iconBg="bg-green-500/10"
         label="Games Tracked"
         value={String(stats.gamesTracked || 0)}

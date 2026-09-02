@@ -5,6 +5,8 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Save, CheckCircle2 } from "lucide-react";
 import type { UserPreferences } from "@/lib/settings";
 import type { GameFilter } from "@/lib/types";
@@ -72,47 +74,47 @@ export function SettingsView({
                 Dashboard Defaults
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-5 pt-0">
-              <fieldset>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Default Game Filter
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {FILTER_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() =>
-                        setPrefs((p) => ({ ...p, defaultFilter: opt.value }))
+            <CardContent className="pt-0">
+              <FieldGroup>
+                <Field>
+                  <FieldLabel className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Default Game Filter
+                  </FieldLabel>
+                  <ToggleGroup
+                    value={[prefs.defaultFilter]}
+                    onValueChange={(value) => {
+                      const next = value[0];
+                      if (next) {
+                        // SAFETY: ToggleGroup values are constrained to GameFilter strings via FILTER_OPTIONS.
+                        setPrefs((p) => ({
+                          ...p,
+                          defaultFilter: next as GameFilter,
+                        }));
                       }
-                      className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
-                        prefs.defaultFilter === opt.value
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
+                    }}
+                    variant="outline"
+                  >
+                    {FILTER_OPTIONS.map((opt) => (
+                      <ToggleGroupItem key={opt.value} value={opt.value} aria-label={opt.label}>
+                        {opt.label}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </Field>
 
-              <div className="flex items-center gap-3 pt-2">
-                <Button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  {saving ? "Saving..." : "Save Preferences"}
-                </Button>
-                {saved && (
-                  <span className="flex items-center gap-1.5 text-sm text-green-400">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Saved
-                  </span>
-                )}
-              </div>
+                <div className="flex items-center gap-3">
+                  <Button onClick={handleSave} disabled={saving}>
+                    <Save data-icon="inline-start" />
+                    {saving ? "Saving..." : "Save Preferences"}
+                  </Button>
+                  {saved && (
+                    <span className="flex items-center gap-1.5 text-sm text-green-400">
+                      <CheckCircle2 data-icon="inline-start" />
+                      Saved
+                    </span>
+                  )}
+                </div>
+              </FieldGroup>
             </CardContent>
           </Card>
         </div>

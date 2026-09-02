@@ -52,8 +52,8 @@ export function SidebarContent({
   return (
     <div className="flex flex-col px-4 py-6">
       <div className="flex items-center gap-3 px-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-          <Gamepad2 className="h-5 w-5 text-primary-foreground" />
+        <div className="flex size-10 items-center justify-center rounded-full bg-primary">
+          <Gamepad2 className="size-5 text-primary-foreground" />
         </div>
         <div>
           <h1 className="text-lg font-semibold leading-tight text-foreground">
@@ -76,7 +76,7 @@ export function SidebarContent({
               title="Coming soon"
             >
               <span className="flex items-center gap-3">
-                <item.icon className="h-5 w-5" />
+                <item.icon className="size-5" />
                 {item.label}
               </span>
               <span className="rounded bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-accent-foreground">
@@ -95,7 +95,7 @@ export function SidebarContent({
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
               )}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className="size-5" />
               {item.label}
             </Link>
           );
@@ -108,13 +108,13 @@ export function SidebarContent({
             type="submit"
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
-            <LogOut className="h-5 w-5" />
+            <LogOut className="size-5" />
             Logout
           </button>
         </form>
         {user && (
           <div className="flex items-center gap-3 px-2 py-5">
-            <Avatar className="h-9 w-9 border border-sidebar-border">
+            <Avatar className="size-9 border border-sidebar-border">
               <AvatarImage src={user.avatar} />
               <AvatarFallback>
                 {user.personaName.slice(0, 2).toUpperCase()}

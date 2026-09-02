@@ -1,6 +1,19 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Trophy } from "lucide-react";
 import Image from "next/image";
 import type { RecentAchievement } from "@/lib/types";
@@ -33,27 +46,25 @@ export function RecentAchievements({
       </CardHeader>
       <CardContent className="pt-2">
         {achievements.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-              <Trophy className="h-6 w-6 text-muted-foreground" aria-hidden />
-            </div>
-            <div>
-              <p className="font-medium text-foreground">
-                No recent achievements
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
+          <Empty className="py-8">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Trophy />
+              </EmptyMedia>
+              <EmptyTitle>No recent achievements</EmptyTitle>
+              <EmptyDescription>
                 Achievements you earn will appear here.
-              </p>
-            </div>
-          </div>
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : (
-          <ul className="divide-y divide-border/30">
+          <ul className="flex flex-col">
             {achievements.map((ach, i) => (
               <li
                 key={`${ach.appId}-${ach.name}-${i}`}
                 className="flex items-center gap-4 py-3"
               >
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
                   {ach.icon ? (
                     <Image
                       src={ach.icon}
@@ -63,8 +74,8 @@ export function RecentAchievements({
                       sizes="40px"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <Trophy className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex size-full items-center justify-center">
+                      <Trophy className="size-5 text-muted-foreground" />
                     </div>
                   )}
                 </div>
@@ -81,14 +92,19 @@ export function RecentAchievements({
                     </p>
                   )}
                 </div>
-                <div className="shrink-0 text-right">
-                  <span className="text-xs text-muted-foreground">
-                    {timeAgo(ach.unlocktime)}
-                  </span>
+                <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+                  <Tooltip>
+                    <TooltipTrigger className="text-xs text-muted-foreground">
+                      {timeAgo(ach.unlocktime)}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {new Date(ach.unlocktime * 1000).toLocaleString()}
+                    </TooltipContent>
+                  </Tooltip>
                   {ach.globalPercent != null && (
-                    <p className="text-[10px] text-muted-foreground/60">
+                    <Badge variant="secondary" className="text-[10px]">
                       {ach.globalPercent.toFixed(1)}% of players
-                    </p>
+                    </Badge>
                   )}
                 </div>
               </li>

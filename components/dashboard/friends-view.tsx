@@ -4,6 +4,15 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Users, GitCompare, ExternalLink, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { FriendSummary } from "@/lib/dashboard";
@@ -45,73 +54,65 @@ export function FriendsView({
           </div>
 
           {error ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-              <AlertTriangle className="h-8 w-8 text-destructive" />
-              <p className="font-semibold text-foreground">
-                Couldn&apos;t fetch your friends list
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Make sure your Steam friends list is set to public.
-              </p>
-            </div>
+            <Alert variant="destructive" className="flex flex-col items-center gap-3 py-8 text-center">
+              <AlertTriangle className="size-8" />
+              <AlertTitle>Couldn&apos;t fetch your friends list</AlertTitle>
+              <AlertDescription>Make sure your Steam friends list is set to public.</AlertDescription>
+            </Alert>
           ) : friends.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border/30 bg-card/50 p-12 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                <Users className="h-7 w-7 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">
+            <Empty className="border border-border/30 bg-card/50">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Users />
+                </EmptyMedia>
+                <EmptyTitle>
                   {hiddenCount > 0 ? "No friends with public stats" : "No friends found"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                </EmptyTitle>
+                <EmptyDescription>
                   {hiddenCount > 0
                     ? `All ${hiddenCount} friend${hiddenCount !== 1 ? "s" : ""} have private profiles.`
                     : "Add friends on Steam to see them here."}
-                </p>
-              </div>
-            </div>
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {friends.map((friend) => (
-                <div
+                <Card
                   key={friend.steamId}
-                  className="flex flex-col gap-4 rounded-xl border border-border/50 bg-card p-4 transition-colors hover:border-border"
+                  className="flex flex-col gap-4 border-border/50 p-4 transition-colors hover:border-border"
                 >
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border border-border/50">
-                      <AvatarImage src={friend.avatar} />
-                      <AvatarFallback>
-                        {friend.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-foreground">
-                        {friend.name}
-                      </p>
-                      <a
-                        href={friend.profileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        View profile
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                  <CardContent className="flex flex-col gap-4 p-0">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="size-12 border border-border/50">
+                        <AvatarImage src={friend.avatar} />
+                        <AvatarFallback>
+                          {friend.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-foreground">
+                          {friend.name}
+                        </p>
+                        <a
+                          href={friend.profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                          View profile
+                          <ExternalLink className="size-3" />
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                  <Link
-                    href={`/friends/${friend.steamId}`}
-                    className="w-full"
-                  >
-                    <Button
-                      variant="secondary"
-                      className="w-full gap-2 text-xs"
-                    >
-                      <GitCompare className="h-4 w-4" />
-                      Compare stats
-                    </Button>
-                  </Link>
-                </div>
+                    <Link href={`/friends/${friend.steamId}`} className="w-full">
+                      <Button variant="secondary" className="w-full text-xs">
+                        <GitCompare data-icon="inline-start" />
+                        Compare stats
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}

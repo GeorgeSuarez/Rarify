@@ -11,10 +11,12 @@ import { TopGames } from "@/components/dashboard/top-games";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Lightbulb, AlertTriangle, EyeOff } from "lucide-react";
 import type { DashboardData, GameFilter } from "@/lib/types";
 
@@ -80,58 +82,52 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
                   <SelectValue placeholder="All Games" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Games</SelectItem>
-                  <SelectItem value="owned">Owned Games</SelectItem>
-                  <SelectItem value="tracked">Tracked Games</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="all">All Games</SelectItem>
+                    <SelectItem value="owned">Owned Games</SelectItem>
+                    <SelectItem value="tracked">Tracked Games</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           {/* Notification banner */}
-          <div className="mb-6 flex items-start gap-4 rounded-xl border border-primary/20 bg-primary/10 p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20">
-              <Lightbulb className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">
-                {data.stats.achievementsEarnedDelta != null &&
-                data.stats.achievementsEarnedDelta > 0
-                  ? `Great job! You've earned ${data.stats.achievementsEarnedDelta} more achievements this month.`
-                  : `You've earned ${data.stats.achievementsEarned.toLocaleString()} achievements total.`}
-              </p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Keep playing to beat your community average!
-              </p>
-            </div>
-          </div>
+          <Alert className="mb-6 border-primary/20 bg-primary/10">
+            <Lightbulb />
+            <AlertTitle>
+              {data.stats.achievementsEarnedDelta != null &&
+              data.stats.achievementsEarnedDelta > 0
+                ? `Great job! You've earned ${data.stats.achievementsEarnedDelta} more achievements this month.`
+                : `You've earned ${data.stats.achievementsEarned.toLocaleString()} achievements total.`}
+            </AlertTitle>
+            <AlertDescription>
+              Keep playing to beat your community average!
+            </AlertDescription>
+          </Alert>
 
           {/* Dashboard content */}
           {data.error ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/20">
-                {data.error.type === "private_profile" ? (
-                  <EyeOff className="h-6 w-6 text-destructive" aria-hidden />
-                ) : (
-                  <AlertTriangle
-                    className="h-6 w-6 text-destructive"
-                    aria-hidden
-                  />
-                )}
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">
-                  {data.error.type === "private_profile"
-                    ? "Your Steam profile is private"
-                    : "Couldn't fetch your Steam data"}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {data.error.type === "private_profile"
-                    ? "Set your profile and game details to public in Steam privacy settings, then refresh."
-                    : `Steam API returned status ${data.error.status ?? "(network error)"}. Ensure your STEAM_API_KEY is correct and set in Vercel env vars for Production.`}
-                </p>
-              </div>
-            </div>
+            <Alert
+              variant="destructive"
+              className="flex flex-col items-center gap-3 py-8 text-center"
+            >
+              {data.error.type === "private_profile" ? (
+                <EyeOff className="size-6" aria-hidden />
+              ) : (
+                <AlertTriangle className="size-6" aria-hidden />
+              )}
+              <AlertTitle>
+                {data.error.type === "private_profile"
+                  ? "Your Steam profile is private"
+                  : "Couldn't fetch your Steam data"}
+              </AlertTitle>
+              <AlertDescription>
+                {data.error.type === "private_profile"
+                  ? "Set your profile and game details to public in Steam privacy settings, then refresh."
+                  : `Steam API returned status ${data.error.status ?? "(network error)"}. Ensure your STEAM_API_KEY is correct and set in Vercel env vars for Production.`}
+              </AlertDescription>
+            </Alert>
           ) : (
             <div className="relative">
               {isPending && (

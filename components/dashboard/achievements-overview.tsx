@@ -6,6 +6,29 @@ import { Trophy, Award, Gamepad2, AlertTriangle, EyeOff } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { AchievementsOverviewData } from "@/lib/dashboard";
 
 function timeAgo(unix: number): string {
@@ -25,11 +48,13 @@ function timeAgo(unix: number): string {
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card p-5">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-    </div>
+    <Card className="border-border/50 bg-card">
+      <CardContent className="p-5">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
+        {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -43,8 +68,9 @@ function AchievementRow({
   showPercent?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-4 border-t border-border/30 py-3 transition-colors hover:bg-white/[0.02]">
-      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+    <div className="flex items-center gap-4 py-3 transition-colors hover:bg-white/[0.02]">
+      <Separator orientation="horizontal" className="sr-only" />
+      <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
         {achievement.icon ? (
           <Image
             src={achievement.icon}
@@ -54,8 +80,8 @@ function AchievementRow({
             sizes="40px"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <Trophy className="h-5 w-5 text-muted-foreground" />
+          <div className="flex size-full items-center justify-center">
+            <Trophy className="size-5 text-muted-foreground" />
           </div>
         )}
       </div>
@@ -64,15 +90,28 @@ function AchievementRow({
         <p className="truncate text-xs text-muted-foreground">
           {showGame && achievement.gameName}
           {showGame && showPercent && achievement.globalPercent != null && " · "}
-          {showPercent && achievement.globalPercent != null && `${achievement.globalPercent.toFixed(1)}% of players`}
-          {!showGame && achievement.globalPercent != null && `${achievement.globalPercent.toFixed(1)}% of players`}
+          {showPercent && achievement.globalPercent != null && (
+            <Badge variant="secondary" className="ml-1 text-[10px]">
+              {achievement.globalPercent.toFixed(1)}% of players
+            </Badge>
+          )}
+          {!showGame && achievement.globalPercent != null && (
+            <Badge variant="secondary" className="text-[10px]">
+              {achievement.globalPercent.toFixed(1)}% of players
+            </Badge>
+          )}
         </p>
         {achievement.description && (
           <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground/70">{achievement.description}</p>
         )}
       </div>
       {achievement.unlocktime > 0 && (
-        <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(achievement.unlocktime)}</span>
+        <Tooltip>
+          <TooltipTrigger className="shrink-0 text-xs text-muted-foreground">
+            {timeAgo(achievement.unlocktime)}
+          </TooltipTrigger>
+          <TooltipContent>{new Date(achievement.unlocktime * 1000).toLocaleString()}</TooltipContent>
+        </Tooltip>
       )}
     </div>
   );
@@ -106,20 +145,23 @@ export function AchievementsOverview({ data }: { data: AchievementsOverviewData 
           </div>
 
           {data.error ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/20">
-                {data.error.type === "private_profile" ? (
-                  <EyeOff className="h-6 w-6 text-destructive" />
-                ) : (
-                  <AlertTriangle className="h-6 w-6 text-destructive" />
-                )}
-              </div>
-              <p className="font-semibold text-foreground">
+            <Alert variant="destructive" className="flex flex-col items-center gap-3 py-8 text-center">
+              {data.error.type === "private_profile" ? (
+                <EyeOff className="size-6" aria-hidden />
+              ) : (
+                <AlertTriangle className="size-6" aria-hidden />
+              )}
+              <AlertTitle>
                 {data.error.type === "private_profile"
                   ? "Your Steam profile is private"
                   : "Couldn't fetch your Steam data"}
-              </p>
-            </div>
+              </AlertTitle>
+              <AlertDescription>
+                {data.error.type === "private_profile"
+                  ? "Set your profile and game details to public in Steam privacy settings, then refresh."
+                  : `Steam API returned status ${data.error.status ?? "(network error)"}.`}
+              </AlertDescription>
+            </Alert>
           ) : (
             <>
               {/* Stats cards */}
@@ -138,14 +180,22 @@ export function AchievementsOverview({ data }: { data: AchievementsOverviewData 
                       Recently Unlocked
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="flex flex-col pt-0">
                     {recentAchievements.length === 0 ? (
-                      <p className="py-8 text-center text-sm text-muted-foreground">
-                        No achievements unlocked yet.
-                      </p>
+                      <Empty className="py-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">
+                            <Trophy />
+                          </EmptyMedia>
+                          <EmptyTitle>No achievements unlocked yet</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
                     ) : (
                       recentAchievements.map((ach, i) => (
-                        <AchievementRow key={`recent-${ach.appId}-${ach.name}-${i}`} achievement={ach} showPercent />
+                        <div key={`recent-${ach.appId}-${ach.name}-${i}`} className="flex flex-col">
+                          {i !== 0 && <Separator />}
+                          <AchievementRow achievement={ach} showPercent />
+                        </div>
                       ))
                     )}
                   </CardContent>
@@ -157,14 +207,22 @@ export function AchievementsOverview({ data }: { data: AchievementsOverviewData 
                       Rarest Gems
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-0">
+                  <CardContent className="flex flex-col pt-0">
                     {rarestAchievements.length === 0 ? (
-                      <p className="py-8 text-center text-sm text-muted-foreground">
-                        No rare achievements unlocked yet.
-                      </p>
+                      <Empty className="py-8">
+                        <EmptyHeader>
+                          <EmptyMedia variant="icon">
+                            <Award />
+                          </EmptyMedia>
+                          <EmptyTitle>No rare achievements yet</EmptyTitle>
+                        </EmptyHeader>
+                      </Empty>
                     ) : (
                       rarestAchievements.map((ach, i) => (
-                        <AchievementRow key={`rare-${ach.appId}-${ach.name}-${i}`} achievement={ach} showPercent />
+                        <div key={`rare-${ach.appId}-${ach.name}-${i}`} className="flex flex-col">
+                          {i !== 0 && <Separator />}
+                          <AchievementRow achievement={ach} showPercent />
+                        </div>
                       ))
                     )}
                   </CardContent>
@@ -180,93 +238,90 @@ export function AchievementsOverview({ data }: { data: AchievementsOverviewData 
                 </CardHeader>
                 <CardContent className="pt-0">
                   {gamesWithAch.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                      <Gamepad2 className="h-8 w-8 text-muted-foreground" />
-                      <p className="font-medium text-foreground">No games with achievements</p>
-                    </div>
+                    <Empty className="py-8">
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <Gamepad2 />
+                        </EmptyMedia>
+                        <EmptyTitle>No games with achievements</EmptyTitle>
+                      </EmptyHeader>
+                    </Empty>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-border/30 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                            <th className="pb-3 font-medium">Game</th>
-                            <th className="pb-3 font-medium">Achievements</th>
-                            <th className="pb-3 font-medium">Completion</th>
-                            <th className="pb-3 font-medium">Rarest</th>
-                          </tr>
-                        </thead>
-                        <tbody className="text-sm">
-                          {gamesWithAch.sort((a, b) => b.hours - a.hours).map((game) => {
-                            const rarest = rarestPerGame.find((r) => r.appId === game.appId);
-                            return (
-                              <tr key={game.appId} className="border-b border-border/20 transition-colors hover:bg-white/[0.02] last:border-b-0">
-                                <td className="py-3 pr-4">
-                                  <Link href={`/games/${game.appId}`} className="flex items-center gap-3">
-                                    <div className="relative h-10 w-16 shrink-0 overflow-hidden rounded-lg">
-                                      <Image
-                                        src={game.image}
-                                        alt={game.name}
-                                        fill
-                                        className="object-cover"
-                                        sizes="64px"
-                                      />
-                                    </div>
-                                    <span className="truncate font-medium text-foreground hover:text-primary">
-                                      {game.name}
-                                    </span>
-                                  </Link>
-                                </td>
-                                <td className="py-3 pr-4">
-                                  <span className="flex items-center gap-1.5">
-                                    <Trophy className="h-3.5 w-3.5 text-muted-foreground" />
-                                    <span className="font-semibold text-foreground">{game.achievements.earned}</span>
-                                    <span className="text-muted-foreground">/ {game.achievements.total}</span>
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead>Game</TableHead>
+                          <TableHead>Achievements</TableHead>
+                          <TableHead>Completion</TableHead>
+                          <TableHead>Rarest</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {gamesWithAch.sort((a, b) => b.hours - a.hours).map((game) => {
+                          const rarest = rarestPerGame.find((r) => r.appId === game.appId);
+                          return (
+                            <TableRow key={game.appId} className="hover:bg-white/[0.02]">
+                              <TableCell className="py-3 pr-4">
+                                <Link href={`/games/${game.appId}`} className="flex items-center gap-3">
+                                  <div className="relative h-10 w-16 shrink-0 overflow-hidden rounded-lg">
+                                    <Image
+                                      src={game.image}
+                                      alt={game.name}
+                                      fill
+                                      className="object-cover"
+                                      sizes="64px"
+                                    />
+                                  </div>
+                                  <span className="truncate font-medium text-foreground hover:text-primary">
+                                    {game.name}
                                   </span>
-                                </td>
-                                <td className="py-3 pr-4">
-                                  <div className="flex items-center gap-3">
-                                    <span className="w-10 text-right font-semibold text-foreground">{game.completion}%</span>
-                                    <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
-                                      <div
-                                        className="h-full rounded-full bg-primary transition-all"
-                                        style={{ width: `${game.completion}%` }}
-                                      />
+                                </Link>
+                              </TableCell>
+                              <TableCell className="py-3 pr-4">
+                                <span className="flex items-center gap-1.5">
+                                  <Trophy className="size-3.5 text-muted-foreground" />
+                                  <span className="font-semibold text-foreground">{game.achievements.earned}</span>
+                                  <span className="text-muted-foreground">/ {game.achievements.total}</span>
+                                </span>
+                              </TableCell>
+                              <TableCell className="py-3 pr-4">
+                                <div className="flex items-center gap-3">
+                                  <span className="w-10 text-right font-semibold text-foreground">{game.completion}%</span>
+                                  <Progress value={game.completion} className="w-20" />
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-3">
+                                {rarest ? (
+                                  <div className="flex items-center gap-2">
+                                    <div className="relative size-6 shrink-0 overflow-hidden rounded bg-muted">
+                                      {rarest.achievement.icon ? (
+                                        <Image
+                                          src={rarest.achievement.icon}
+                                          alt={rarest.achievement.name}
+                                          fill
+                                          className="object-cover"
+                                          sizes="24px"
+                                        />
+                                      ) : (
+                                        <Award className="size-3.5 text-muted-foreground" />
+                                      )}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="truncate text-xs text-foreground">{rarest.achievement.name}</p>
+                                      <Badge variant="secondary" className="text-[10px]">
+                                        {rarest.achievement.globalPercent?.toFixed(1)}% of players
+                                      </Badge>
                                     </div>
                                   </div>
-                                </td>
-                                <td className="py-3">
-                                  {rarest ? (
-                                    <div className="flex items-center gap-2">
-                                      <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded bg-muted">
-                                        {rarest.achievement.icon ? (
-                                          <Image
-                                            src={rarest.achievement.icon}
-                                            alt={rarest.achievement.name}
-                                            fill
-                                            className="object-cover"
-                                            sizes="24px"
-                                          />
-                                        ) : (
-                                          <Award className="h-3.5 w-3.5 text-muted-foreground" />
-                                        )}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <p className="truncate text-xs text-foreground">{rarest.achievement.name}</p>
-                                        <p className="text-[10px] text-muted-foreground">
-                                          {rarest.achievement.globalPercent?.toFixed(1)}% of players
-                                        </p>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <span className="text-xs text-muted-foreground">—</span>
-                                  )}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">—</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
                   )}
                 </CardContent>
               </Card>

@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { InsightsCards } from "@/components/dashboard/insights-cards";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { DashboardData } from "@/lib/types";
 
 export function InsightsView({ initialData }: { initialData: DashboardData }) {
@@ -31,14 +32,12 @@ export function InsightsView({ initialData }: { initialData: DashboardData }) {
           </div>
 
           {data.error ? (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
-              <p className="font-semibold text-foreground">
-                Couldn&apos;t fetch your Steam data
-              </p>
-              <p className="text-sm text-muted-foreground">
+            <Alert variant="destructive" className="flex flex-col items-center gap-2 py-8 text-center">
+              <AlertTitle>Couldn&apos;t fetch your Steam data</AlertTitle>
+              <AlertDescription>
                 Steam API returned status {data.error.status ?? "(network error)"}.
-              </p>
-            </div>
+              </AlertDescription>
+            </Alert>
           ) : (
             <>
               <StatsCards stats={data.stats} />

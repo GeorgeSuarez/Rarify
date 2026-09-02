@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Clock, Gamepad2, Trophy, TrendingUp } from "lucide-react";
 import type { DashboardData } from "@/lib/types";
 
@@ -14,14 +15,12 @@ function MiniBar({
   max: number;
   color: string;
 }) {
+  void color;
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-      <div
-        className="h-full rounded-full transition-all"
-        style={{ width: `${pct}%`, backgroundColor: color }}
-      />
-    </div>
+    <Progress value={pct} className="gap-0">
+      <span className="sr-only">{pct}%</span>
+    </Progress>
   );
 }
 
@@ -48,7 +47,7 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <Clock className="h-4 w-4 text-muted-foreground" />
+          <Clock className="size-4 text-muted-foreground" />
           Playtime Overview
         </CardTitle>
       </CardHeader>
@@ -111,7 +110,7 @@ function RaritySection({ data }: { data: DashboardData }) {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <Trophy className="h-4 w-4 text-muted-foreground" />
+          <Trophy className="size-4 text-muted-foreground" />
           Rarity Distribution
         </CardTitle>
       </CardHeader>
@@ -180,7 +179,7 @@ function CompletionSection({ data }: { data: DashboardData }) {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <Gamepad2 className="h-4 w-4 text-muted-foreground" />
+          <Gamepad2 className="size-4 text-muted-foreground" />
           Completion Overview
         </CardTitle>
       </CardHeader>
@@ -245,7 +244,7 @@ function VelocitySection({ data }: { data: DashboardData }) {
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <TrendingUp className="size-4 text-muted-foreground" />
           Unlock Velocity
         </CardTitle>
       </CardHeader>
