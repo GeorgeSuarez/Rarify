@@ -36,7 +36,7 @@ import type { Game } from "@/lib/types";
 
 const TOP_GAMES_LIMIT = 4;
 
-function GameHeader({ game }: { game: Game }) {
+function GameHeader({ game, priority }: { game: Game; priority?: boolean }) {
   return (
     <Link
       href={`/games/${game.appId}`}
@@ -47,6 +47,8 @@ function GameHeader({ game }: { game: Game }) {
           src={game.image}
           alt={game.name}
           fill
+          priority={priority}
+          fetchPriority={priority ? "high" : undefined}
           className="object-cover"
           sizes="(max-width: 1024px) 96px, 96px"
         />
@@ -165,14 +167,16 @@ function TrackButton({
 function TopGameTableRow({
   game,
   onTrackToggle,
+  priority,
 }: {
   game: Game;
   onTrackToggle?: (appId: number, tracked: boolean) => void;
+  priority?: boolean;
 }) {
   return (
     <TableRow key={game.appId} className="hover:bg-white/[0.02]">
       <TableCell className="py-4">
-        <GameHeader game={game} />
+        <GameHeader game={game} priority={priority} />
       </TableCell>
       <TableCell className="py-4">
         <CompletionBar game={game} />
@@ -193,15 +197,17 @@ function TopGameTableRow({
 function TopGameCard({
   game,
   onTrackToggle,
+  priority,
 }: {
   game: Game;
   onTrackToggle?: (appId: number, tracked: boolean) => void;
+  priority?: boolean;
 }) {
   return (
     <div className="py-4">
       <Separator className="mb-4" />
       <div className="flex items-start justify-between gap-3">
-        <GameHeader game={game} />
+        <GameHeader game={game} priority={priority} />
         <TrackButton game={game} onTrackToggle={onTrackToggle} />
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3">
@@ -260,22 +266,24 @@ export function TopGames({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {topGames.map((game) => (
+                  {topGames.map((game, index) => (
                     <TopGameTableRow
                       key={game.appId}
                       game={game}
                       onTrackToggle={onTrackToggle}
+                      priority={index < 2}
                     />
                   ))}
                 </TableBody>
               </Table>
             </div>
             <div className="lg:hidden">
-              {topGames.map((game) => (
+              {topGames.map((game, index) => (
                 <TopGameCard
                   key={game.appId}
                   game={game}
                   onTrackToggle={onTrackToggle}
+                  priority={index < 2}
                 />
               ))}
             </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { Flame, Lock, Star, Target, Trophy, Zap } from "lucide-react";
 import { getSession } from "@/lib/auth";
 import { SignInButton } from "@/components/dashboard/sign-in-button";
@@ -106,8 +107,13 @@ export default async function LoginPage({
             {/* left card — BG3 */}
             <div className="hidden sm:flex w-[176px] shrink-0 -rotate-[4deg] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl translate-y-3">
               <div className="relative h-[98px] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ROWS[2]!.header} alt="" className="h-full w-full object-cover" />
+                <Image
+                  src={ROWS[2]!.header}
+                  alt="Baldur's Gate 3 header art"
+                  fill
+                  sizes="176px"
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/60 to-transparent" />
               </div>
               <div className="p-3">
@@ -124,8 +130,15 @@ export default async function LoginPage({
                 ★ Perfect
               </div>
               <div className="relative h-[136px] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ROWS[1]!.header} alt="" className="h-full w-full object-cover" />
+                <Image
+                  src={ROWS[1]!.header}
+                  alt="Hades header art"
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 240px, 240px"
+                  fetchPriority="high"
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/20 to-transparent" />
                 <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur border border-white/15">
                   <Trophy className="h-3 w-3 text-amber-300" /> 49/49
@@ -145,8 +158,13 @@ export default async function LoginPage({
             {/* right card — Elden Ring */}
             <div className="hidden sm:flex w-[176px] shrink-0 rotate-[4deg] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl translate-y-3">
               <div className="relative h-[98px] overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={ROWS[0]!.header} alt="" className="h-full w-full object-cover" />
+                <Image
+                  src={ROWS[0]!.header}
+                  alt="Elden Ring header art"
+                  fill
+                  sizes="176px"
+                  className="object-cover"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/60 to-transparent" />
               </div>
               <div className="p-3">

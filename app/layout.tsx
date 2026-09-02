@@ -42,6 +42,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} dark h-full antialiased`}>
+      <head>
+        <link rel="preconnect" href="https://cdn.cloudflare.steamstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://steamcdn-a.akamaihd.net" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://avatars.cloudflare.steamstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://cdn.cloudflare.steamstatic.com" />
+        <link rel="dns-prefetch" href="https://steamcdn-a.akamaihd.net" />
+      </head>
       <body className="min-h-full flex bg-background text-foreground">
         <TooltipProvider>{children}</TooltipProvider>
       </body>

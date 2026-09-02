@@ -28,8 +28,13 @@ const nextConfig: NextConfig = {
         hostname: "api.dicebear.com",
       },
     ],
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 31536000,
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+  experimental: {
+    optimizePackageImports: ["lucide-react", "@base-ui/react"],
   },
 };
 
