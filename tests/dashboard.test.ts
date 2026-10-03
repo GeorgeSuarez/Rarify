@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
+  buildAlphabetIndex,
   computeStats as computeStatsAt,
   filterGames,
+  indexLetterOfName,
   meanGlobalPercent,
 } from "@/src/domain/dashboard-calculations";
 import { DASHBOARD_FILTERS } from "@/lib/types";
@@ -250,5 +252,60 @@ describe("computeStats with fixture-derived games", () => {
     expect(stats.perfectGames).toBe(1);
     // 3 of 4 fixture unlocktimes fall within the last 30 days (the 40-day one is outside)
     expect(stats.achievementsEarnedDelta).toBe(3);
+  });
+});
+
+// --- indexLetterOfName ---
+
+describe("indexLetterOfName", () => {
+  it("uppercases alphabetic initials", () => {
+    expect(indexLetterOfName("portal")).toBe("P");
+    expect(indexLetterOfName("Half-Life")).toBe("H");
+  });
+
+  it("groups non-alphabetic initials under #", () => {
+    expect(indexLetterOfName("7 Days to Die")).toBe("#");
+    expect(indexLetterOfName("")).toBe("#");
+    expect(indexLetterOfName("  ")).toBe("#");
+  });
+});
+
+// --- buildAlphabetIndex ---
+
+describe("buildAlphabetIndex", () => {
+  it("sorts trophy games by name and groups them by first letter", () => {
+    const games = [
+      makeGame({ appId: 2, name: "Portal" }),
+      makeGame({ appId: 1, name: "Half-Life" }),
+      makeGame({ appId: 3, name: "Half-Life 2" }),
+    ];
+    expect(buildAlphabetIndex(games)).toStrictEqual([
+      {
+        letter: "H",
+        games: [
+          expect.objectContaining({ name: "Half-Life" }),
+          expect.objectContaining({ name: "Half-Life 2" }),
+        ],
+      },
+      { letter: "P", games: [expect.objectContaining({ name: "Portal" })] },
+    ]);
+  });
+
+  it("leaves games without achievements off the index", () => {
+    const games = [
+      makeGame({ name: "No Trophies", achievements: { earned: 0, total: 0 } }),
+      makeGame({ name: "Portal" }),
+    ];
+    const index = buildAlphabetIndex(games);
+    expect(index).toHaveLength(1);
+    expect(index[0]?.letter).toBe("P");
+  });
+
+  it("returns an empty index when no game has achievements", () => {
+    expect(
+      buildAlphabetIndex([
+        makeGame({ achievements: { earned: 0, total: 0 } }),
+      ]),
+    ).toStrictEqual([]);
   });
 });
