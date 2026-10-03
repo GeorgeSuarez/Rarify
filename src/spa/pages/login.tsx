@@ -89,7 +89,7 @@ export function LoginPage() {
               <Lock className="h-3 w-3" /> We never see your password. Profile must be public.
             </p>
           </div>
-          <p className="text-xs text-white/30">Takes ~10 seconds · Free forever</p>
+          <p className="text-xs text-white/30">Takes ~10 seconds · Free forever · preview demo</p>
         </div>
 
         {/* floating card stack — real Steam header art */}
