@@ -13,7 +13,6 @@ import {
   RouteErrorPage,
   SettingsPage,
 } from "./spa/pages/index.tsx";
-import { PrototypeFontsPage } from "./spa/pages/prototype-fonts.tsx";
 
 /**
  * Route table for the Rarify single-page application.
@@ -25,8 +24,6 @@ export function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        {/* PROTOTYPE (throwaway): font directions, no session needed. */}
-        <Route path="/prototype/fonts" element={<PrototypeFontsPage />} />
         <Route element={<RequireSession />} errorElement={<RouteErrorPage />}>
           <Route path="/" element={<OverviewPage />} />
           <Route path="/games" element={<GamesPage />} />
