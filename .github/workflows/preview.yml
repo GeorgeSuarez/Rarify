@@ -14,8 +14,6 @@ concurrency:
 
 jobs:
   preview:
-    # Fork PRs don't receive secrets; CI still runs, the deploy skips.
-    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -42,7 +40,9 @@ jobs:
           ENRICH_BATCH_SIZE=20
           EOF
 
+      # Fork PRs have no secrets and can't deploy; everything else can.
       - name: Deploy preview stage
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
         run: npm run alchemy:preview -- --yes
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

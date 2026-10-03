@@ -13,7 +13,6 @@ concurrency:
 
 jobs:
   release:
-    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
