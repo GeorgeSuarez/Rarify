@@ -1,0 +1,49 @@
+name: Preview
+
+# Deploys pull requests to the shared preview stage
+# (https://preview-rarify.georgejsuarez.com). Pushes to main deploy
+# production instead — see release.yml.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    # Fork PRs don't receive secrets; CI still runs, the deploy skips.
+    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run build
+
+      - name: Write env file
+        run: |
+          cat > .env.local <<'EOF'
+          STEAM_API_KEY=${{ secrets.STEAM_API_KEY }}
+          AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+          PUBLIC_APP_URL=https://preview-rarify.georgejsuarez.com
+          ENRICH_BATCH_SIZE=20
+          EOF
+
+      - name: Deploy preview stage
+        run: npm run alchemy:preview -- --yes
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

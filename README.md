@@ -150,6 +150,30 @@ npm run alchemy:release                     # rarify.georgejsuarez.com (stage: p
 
 Each stage gets its own D1 database (`preview` and `prod` are fully separate). Use a first-level subdomain for preview/production (`preview-rarify.georgejsuarez.com`) — Universal SSL does not cover second-level subdomains such as `preview.rarify.georgejsuarez.com`.
 
+### CI/CD (GitHub Actions)
+
+- **CI** (`.github/workflows/ci.yml`) — lint, typecheck, tests, and build on every push (except `main`) and pull request.
+- **Preview** (`.github/workflows/preview.yml`) — deploys PRs to the shared `preview` stage. Pushes to `main` deploy production (`.github/workflows/release.yml`). Both verify first and skip gracefully until the secrets below exist.
+
+Required repository secrets (`Settings → Secrets and variables → Actions`):
+
+| Secret | Source |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Minted by `stacks/github.ts` (see below) |
+| `CLOUDFLARE_ACCOUNT_ID` | Minted by `stacks/github.ts` (or `CLOUDFLARE_ACCOUNT_ID` in your shell) |
+| `STEAM_API_KEY` | Your Steam Web API key |
+| `AUTH_SECRET` | Random secret (`openssl rand -base64 32`) |
+
+`stacks/github.ts` is a one-shot bootstrap stack that mints the scoped CI token and pushes the Cloudflare secrets to GitHub. It needs an `admin` profile that can create tokens (Global API Key + email). Run once from your laptop:
+
+```bash
+npx alchemy profile create admin
+npx alchemy profile edit --profile admin --add Cloudflare
+npx alchemy deploy --config stacks/github.ts --profile admin --yes
+```
+
+Re-run it to rotate the token or change its permissions.
+
 ### Troubleshooting
 
 - **Library loads but achievements are all zero** — the Steam account's **Game details** privacy must be Public (Steam → Profile → Edit Profile → Privacy Settings). The API returns `403 Profile is not public` otherwise, and the app keeps a basic row for each affected game.

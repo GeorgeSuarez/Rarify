@@ -1,0 +1,47 @@
+name: Release
+
+# Deploys pushes to main to production (https://rarify.georgejsuarez.com).
+# Pull requests deploy the preview stage instead — see preview.yml.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run build
+
+      - name: Write env file
+        run: |
+          cat > .env.local <<'EOF'
+          STEAM_API_KEY=${{ secrets.STEAM_API_KEY }}
+          AUTH_SECRET=${{ secrets.AUTH_SECRET }}
+          PUBLIC_APP_URL=https://rarify.georgejsuarez.com
+          ENRICH_BATCH_SIZE=20
+          EOF
+
+      - name: Deploy production stage
+        run: npm run alchemy:release -- --yes
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
