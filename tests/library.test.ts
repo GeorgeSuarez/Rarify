@@ -136,6 +136,7 @@ interface StoreState {
   cached: Option.Option<PersistedSnapshot>;
   snapshots: ReadonlyArray<{ readonly date: string; readonly stats: Stats }>;
   profile: Option.Option<{ personaName: string; avatar: string }>;
+  schemas: ReadonlyMap<number, RarifyStore.GameSchemaCacheRead>;
 }
 
 /** Faithful in-memory implementation of the Rarify persistence contract. */
@@ -247,16 +248,42 @@ const makeStoreLayer = (
             return next;
           }),
         ),
+        getGameSchemaCache: Effect.fn("TestStore.getGameSchemaCache")((appIds) =>
+          Effect.map(read, (state) => {
+            const result = new Map<number, RarifyStore.GameSchemaCacheRead>();
+            for (const appId of appIds) {
+              const cached = state.schemas.get(appId);
+              if (cached !== undefined) result.set(appId, cached);
+            }
+            return result;
+          }),
+        ),
+        saveGameSchemaCache: Effect.fn("TestStore.saveGameSchemaCache")((entries) =>
+          update(state, (current) => {
+            const schemas = new Map(current.schemas);
+            for (const { appId, schema, fetchedAtMs } of entries) {
+              schemas.set(appId, { schema, fetchedAtMs });
+            }
+            return { ...current, schemas };
+          }),
+        ),
       });
     }),
   );
 
-/** Steam client whose responses are scripted per test. */
+/**
+ * Steam client whose responses are scripted per test.
+ *
+ * @param config - Scripted owned-games payload with a recorded call log.
+ * @param schemaFailures - Game IDs whose schema fetch fails like Steam's
+ *   HTTP 400 for titles without achievement stats.
+ */
 const makeSteamLayer = (
   config: Ref.Ref<{
     ownedGames: SteamClient.OwnedGamesResult;
     calls: ReadonlyArray<string>;
   }>,
+  schemaFailures: ReadonlySet<number> = new Set(),
 ): Layer.Layer<SteamClient.Service> =>
   Layer.effect(
     SteamClient.Service,
@@ -303,7 +330,24 @@ const makeSteamLayer = (
           Effect.succeed([OTHER_STEAM_ID]),
         ),
         getGameAchievementSchema: Effect.fn("TestSteam.getGameAchievementSchema")(
-          () => Effect.succeed(SCHEMAS),
+          function* (appId) {
+            yield* Ref.update(config, (current) => ({
+              ...current,
+              calls: [...current.calls, `getGameAchievementSchema:${appId}`],
+            }));
+            if (schemaFailures.has(appId)) {
+              return yield* Effect.fail(
+                new SteamClient.SteamApiError({
+                  operation: "getGameAchievementSchema",
+                  message:
+                    "Steam API returned HTTP 400 during getGameAchievementSchema",
+                  status: 400,
+                  cause: new Error("Steam API returned HTTP 400"),
+                }),
+              );
+            }
+            return SCHEMAS;
+          },
         ),
       }),
     ),
@@ -315,6 +359,7 @@ const initialState: StoreState = {
   cached: Option.none(),
   snapshots: [],
   profile: Option.none(),
+  schemas: new Map(),
 };
 
 const runWithServices = <A, E>(
@@ -327,13 +372,17 @@ const runWithServices = <A, E>(
   achievementCache: Ref.Ref<
     ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>
   >,
+  schemaFailures: ReadonlySet<number> = new Set(),
 ) =>
   TestClock.setTime(NOW).pipe(
     Effect.andThen(effect),
     Effect.provide(
       dashboardLayer.pipe(
         Layer.provide(
-          Layer.mergeAll(makeSteamLayer(config), makeStoreLayer(state, achievementCache)),
+          Layer.mergeAll(
+            makeSteamLayer(config, schemaFailures),
+            makeStoreLayer(state, achievementCache),
+          ),
         ),
       ),
     ),
@@ -791,4 +840,121 @@ describe("DashboardService progressive enrichment", () => {
     expect(cacheAfterSecond.size).toBe(25);
   });
 });
+});
+describe("DashboardService schema resilience", () => {
+  it("serves the dashboard when one game's schema fetch fails", async () => {
+    const state = await Effect.runPromise(Ref.make(initialState));
+    const achievementCache = await Effect.runPromise(
+      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+    );
+    const config = await Effect.runPromise(
+      Ref.make<{
+        ownedGames: SteamClient.OwnedGamesResult;
+        calls: ReadonlyArray<string>;
+      }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
+    );
+
+    const result = await Effect.runPromise(
+      runWithServices(
+        Effect.gen(function* () {
+          const dashboard = yield* DashboardService.Service;
+          return yield* dashboard.getDashboard(STEAM_ID, "all");
+        }),
+        state,
+        config,
+        achievementCache,
+        new Set([292030]),
+      ),
+    );
+
+    expect(result.error).toBeNull();
+    // The healthy game's achievements keep their Steam display metadata.
+    expect(result.recentAchievements.map((entry) => entry.name)).toContain(
+      "Elden Lord",
+    );
+    expect(
+      result.recentAchievements.find((entry) => entry.name === "Elden Lord"),
+    ).toMatchObject({ description: "Elden Lord description" });
+    // The failed game's achievements fall back to their Steam API names.
+    const witcher = result.recentAchievements.find(
+      (entry) => entry.gameName === "The Witcher 3: Wild Hunt",
+    );
+    expect(witcher?.name).toBe("W3_1");
+    expect(witcher).not.toHaveProperty("description");
+    // The miss is cached as an empty schema so it is not refetched.
+    const schemas = (await Effect.runPromise(Ref.get(state))).schemas;
+    expect(schemas.get(292030)?.schema).toEqual({});
+    expect(Object.keys(schemas.get(1245620)?.schema ?? {})).toContain("ELD_1");
+  });
+
+  it("serves schemas from the cache without calling Steam again", async () => {
+    const state = await Effect.runPromise(Ref.make(initialState));
+    const achievementCache = await Effect.runPromise(
+      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+    );
+    const config = await Effect.runPromise(
+      Ref.make<{
+        ownedGames: SteamClient.OwnedGamesResult;
+        calls: ReadonlyArray<string>;
+      }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
+    );
+
+    await Effect.runPromise(
+      runWithServices(
+        Effect.gen(function* () {
+          const dashboard = yield* DashboardService.Service;
+          yield* dashboard.getDashboard(STEAM_ID, "all");
+          // The library snapshot TTL is short but the schema cache lives a
+          // full day, so the second load must not touch Steam for schemas.
+          yield* dashboard.getDashboard(STEAM_ID, "all");
+        }),
+        state,
+        config,
+        achievementCache,
+      ),
+    );
+
+    const calls = (await Effect.runPromise(Ref.get(config))).calls.filter(
+      (call) => call.startsWith("getGameAchievementSchema"),
+    );
+    expect(calls).toHaveLength(2);
+    expect(new Set(calls).size).toBe(2);
+  });
+
+  it("serves the game page when its schema fetch fails", async () => {
+    const state = await Effect.runPromise(Ref.make(initialState));
+    const achievementCache = await Effect.runPromise(
+      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+    );
+    const config = await Effect.runPromise(
+      Ref.make<{
+        ownedGames: SteamClient.OwnedGamesResult;
+        calls: ReadonlyArray<string>;
+      }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
+    );
+
+    const result = await Effect.runPromise(
+      runWithServices(
+        Effect.gen(function* () {
+          const dashboard = yield* DashboardService.Service;
+          return yield* dashboard.getGameAchievements(
+            STEAM_ID,
+            Schema.decodeUnknownSync(AppIdSchema)(292030),
+          );
+        }),
+        state,
+        config,
+        achievementCache,
+        new Set([292030]),
+      ),
+    );
+
+    expect(result.error).toBeNull();
+    expect(result.earnedAchievements).toBe(3);
+    expect(result.achievements[0]).toMatchObject({
+      apiname: "W3_1",
+      name: "W3_1",
+      achieved: true,
+    });
+  });
 });

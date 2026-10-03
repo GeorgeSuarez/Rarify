@@ -26,6 +26,33 @@ export const GameAchievementCacheEntrySchema = Schema.Struct({
   globalPercentages: Schema.Array(SteamGlobalAchievementSchema),
 });
 
+/** Runtime schema for one cached achievement display-metadata record. */
+export const GameAchievementSchemaValueSchema = Schema.Struct({
+  displayName: Schema.String,
+  description: Schema.String,
+  icon: Schema.String,
+  icongray: Schema.String,
+});
+
+/** Display metadata cached for one achievement API name. */
+export type GameAchievementSchemaValue =
+  typeof GameAchievementSchemaValueSchema.Type;
+
+/**
+ * Runtime schema for a game's achievement display metadata keyed by API name.
+ *
+ * An empty map is a valid cached value meaning Steam has no schema for the
+ * game, so failed lookups are cached too and never refetched within the TTL.
+ */
+export const GameAchievementSchemaMapSchema = Schema.Record(
+  Schema.String,
+  GameAchievementSchemaValueSchema,
+);
+
+/** Achievement display metadata cached for one game. */
+export type GameAchievementSchemaMap =
+  typeof GameAchievementSchemaMapSchema.Type;
+
 /** Achievement data cached for one Steam account and game. */
 export type GameAchievementCacheEntry = typeof GameAchievementCacheEntrySchema.Type;
 
