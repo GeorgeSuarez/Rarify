@@ -564,38 +564,53 @@ export const make: Effect.Effect<
     const games = read.persisted.games;
     const nowMs = yield* Clock.currentTimeMillis;
     const stats = computeStats(games, nowMs);
-    const [recentAchievements, rarestAchievements] = yield* Effect.all(
-      [
-        enrichEntries(resolveGameSchemas, read.persisted.earnedEntries, { sort: "recent", limit: 20 }),
-        enrichEntries(resolveGameSchemas, read.persisted.earnedEntries, { sort: "rarest", limit: 10 }),
-      ],
-      { concurrency: "unbounded" },
-    );
 
-    const rarestPerGame = (yield* Effect.forEach(
-      games.filter((game) => game.achievements.total > 0),
-      (game) =>
-        Effect.gen(function* () {
-          const gameEntries = read.persisted.earnedEntries.filter(
-            (entry) => entry.appId === game.appId && entry.globalPercent > 0,
-          );
-          const rarest = [...gameEntries].sort(
-            (a, b) => a.globalPercent - b.globalPercent,
-          )[0];
-          if (rarest === undefined) return Option.none();
-          const enriched = yield* enrichEntries(resolveGameSchemas, [rarest], {
-            sort: "as-is",
-            limit: 1,
-          });
-          const achievement = enriched[0];
-          if (achievement === undefined) return Option.none();
-          return Option.some({
-            appId: game.appId,
-            gameName: game.name,
-            achievement,
-          });
-        }),
-    )).filter(Option.isSome).map((result) => result.value);
+    // Select everything this page renders before touching I/O: the per-game
+    // rarest entries come from a single in-memory index, and every selection
+    // shares one batched schema resolution instead of one round-trip per game.
+    const recentSelection = selectEntries(read.persisted.earnedEntries, {
+      sort: "recent",
+      limit: 20,
+    });
+    const rarestSelection = selectEntries(read.persisted.earnedEntries, {
+      sort: "rarest",
+      limit: 10,
+    });
+    const entriesByAppId = indexEntriesByAppId(read.persisted.earnedEntries);
+    const perGameRarest: Array<{ readonly game: Game; readonly rarest: EarnedEntry }> = [];
+    for (const game of games) {
+      if (game.achievements.total === 0) continue;
+      const candidates = entriesByAppId.get(game.appId) ?? [];
+      let rarest: EarnedEntry | undefined;
+      for (const entry of candidates) {
+        if (
+          entry.globalPercent > 0 &&
+          (rarest === undefined || entry.globalPercent < rarest.globalPercent)
+        ) {
+          rarest = entry;
+        }
+      }
+      if (rarest !== undefined) perGameRarest.push({ game, rarest });
+    }
+    const perGameAppIds = perGameRarest
+      .map(({ rarest }) => parseAppId(rarest.appId))
+      .filter((appId): appId is AppId => appId !== null);
+    const schemaByAppId = yield* resolveGameSchemas([
+      ...new Set([
+        ...recentSelection.appIds,
+        ...rarestSelection.appIds,
+        ...perGameAppIds,
+      ]),
+    ]);
+
+    const recentAchievements = renderEntries(schemaByAppId, recentSelection.top);
+    const rarestAchievements = renderEntries(schemaByAppId, rarestSelection.top);
+    const rarestPerGame = perGameRarest.flatMap(({ game, rarest }) => {
+      const [achievement] = renderEntries(schemaByAppId, [rarest]);
+      return achievement === undefined
+        ? []
+        : [{ appId: game.appId, gameName: game.name, achievement }];
+    });
 
     const user = profileOf(steamId, profile);
     return user === undefined
@@ -779,16 +794,19 @@ interface EnrichmentOptions {
   readonly limit: number;
 }
 
-function enrichEntries(
-  resolveSchemas: (
-    appIds: ReadonlyArray<AppId>,
-  ) => Effect.Effect<
-    ReadonlyMap<number, ReadonlyMap<string, GameAchievementSchemaValue>>,
-    never
-  >,
+interface SelectedEntries {
+  readonly top: ReadonlyArray<EarnedEntry>;
+  readonly appIds: ReadonlyArray<AppId>;
+}
+
+/**
+ * Select display entries and their game IDs without performing any I/O, so
+ * callers can union the IDs from several selections into one batched fetch.
+ */
+function selectEntries(
   entries: ReadonlyArray<EarnedEntry>,
   options: EnrichmentOptions,
-): Effect.Effect<ReadonlyArray<RecentAchievement>, never> {
+): SelectedEntries {
   const selected =
     options.sort === "rarest"
       ? [...entries]
@@ -801,28 +819,64 @@ function enrichEntries(
   const appIds = [...new Set(top.map((entry) => entry.appId))]
     .map(parseAppId)
     .filter((appId): appId is AppId => appId !== null);
+  return { top, appIds };
+}
 
-  return Effect.gen(function* () {
-    const schemaByAppId = yield* resolveSchemas(appIds);
-    return top.map((entry) => {
-      const schema = schemaByAppId.get(entry.appId)?.get(entry.apiname);
-      const base = {
-        appId: entry.appId,
-        gameName: entry.gameName,
-        gameImage: getGameHeaderImage(entry.appId),
-        name: schema?.displayName ?? entry.apiname,
-        unlocktime: entry.unlocktime,
-        globalPercent: entry.globalPercent,
-      };
-      return schema === undefined
-        ? (base satisfies RecentAchievement)
-        : ({
-            ...base,
-            description: schema.description,
-            icon: schema.icon,
-          } satisfies RecentAchievement);
-    });
+/** Render selected entries against already-resolved schemas (pure). */
+function renderEntries(
+  schemaByAppId: ReadonlyMap<
+    number,
+    ReadonlyMap<string, GameAchievementSchemaValue>
+  >,
+  top: ReadonlyArray<EarnedEntry>,
+): ReadonlyArray<RecentAchievement> {
+  return top.map((entry) => {
+    const schema = schemaByAppId.get(entry.appId)?.get(entry.apiname);
+    const base = {
+      appId: entry.appId,
+      gameName: entry.gameName,
+      gameImage: getGameHeaderImage(entry.appId),
+      name: schema?.displayName ?? entry.apiname,
+      unlocktime: entry.unlocktime,
+      globalPercent: entry.globalPercent,
+    };
+    return schema === undefined
+      ? (base satisfies RecentAchievement)
+      : ({
+          ...base,
+          description: schema.description,
+          icon: schema.icon,
+        } satisfies RecentAchievement);
   });
+}
+
+/** Group earned entries by game in one pass for per-game selections. */
+function indexEntriesByAppId(
+  entries: ReadonlyArray<EarnedEntry>,
+): ReadonlyMap<number, ReadonlyArray<EarnedEntry>> {
+  const index = new Map<number, Array<EarnedEntry>>();
+  for (const entry of entries) {
+    const list = index.get(entry.appId);
+    if (list === undefined) index.set(entry.appId, [entry]);
+    else list.push(entry);
+  }
+  return index;
+}
+
+function enrichEntries(
+  resolveSchemas: (
+    appIds: ReadonlyArray<AppId>,
+  ) => Effect.Effect<
+    ReadonlyMap<number, ReadonlyMap<string, GameAchievementSchemaValue>>,
+    never
+  >,
+  entries: ReadonlyArray<EarnedEntry>,
+  options: EnrichmentOptions,
+): Effect.Effect<ReadonlyArray<RecentAchievement>, never> {
+  const { top, appIds } = selectEntries(entries, options);
+  return Effect.map(resolveSchemas(appIds), (schemaByAppId) =>
+    renderEntries(schemaByAppId, top),
+  );
 }
 
 /** Layer for the dashboard read model over Steam and D1 capabilities. */
