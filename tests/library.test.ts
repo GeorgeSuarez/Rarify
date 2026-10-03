@@ -958,3 +958,96 @@ describe("DashboardService schema resilience", () => {
     });
   });
 });
+describe("DashboardService achievements overview batching", () => {
+  it("resolves each game's schema at most once across all sections", async () => {
+    const state = await Effect.runPromise(Ref.make(initialState));
+    const achievementCache = await Effect.runPromise(
+      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+    );
+    const config = await Effect.runPromise(
+      Ref.make<{
+        ownedGames: SteamClient.OwnedGamesResult;
+        calls: ReadonlyArray<string>;
+      }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
+    );
+
+    const result = await Effect.runPromise(
+      runWithServices(
+        Effect.gen(function* () {
+          const dashboard = yield* DashboardService.Service;
+          return yield* dashboard.getAchievementsOverview(STEAM_ID);
+        }),
+        state,
+        config,
+        achievementCache,
+      ),
+    );
+
+    expect(result.error).toBeNull();
+    expect(result.recentAchievements).toHaveLength(5);
+    expect(result.rarestAchievements.length).toBeGreaterThan(0);
+    // Only Elden Ring and The Witcher 3 have cached achievement data, so the
+    // per-game table covers exactly those two games.
+    expect(result.rarestPerGame.map((row) => row.appId).sort()).toEqual([
+      1245620, 292030,
+    ]);
+    expect(
+      result.rarestPerGame.find((row) => row.appId === 1245620)?.achievement.name,
+    ).toBe("Age of Stars");
+    // Recent, rarest, and per-game sections share one batched resolution:
+    // two games, two Steam schema fetches, no duplicates.
+    const schemaCalls = (await Effect.runPromise(Ref.get(config))).calls.filter(
+      (call) => call.startsWith("getGameAchievementSchema"),
+    );
+    expect(schemaCalls).toHaveLength(2);
+    expect(new Set(schemaCalls).size).toBe(2);
+  });
+
+  it("serves a large library with one schema fetch per game", async () => {
+    const generatedGames = Array.from({ length: 25 }, (_, index) => {
+      const appId = 1000 + index;
+      return {
+        appid: appId,
+        name: `Generated Game ${appId}`,
+        playtime_forever: 600,
+        img_icon_url: "",
+        img_logo_url: "",
+        has_community_visible_stats: true,
+      };
+    });
+    const state = await Effect.runPromise(Ref.make(initialState));
+    const achievementCache = await Effect.runPromise(
+      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+    );
+    const config = await Effect.runPromise(
+      Ref.make<{
+        ownedGames: SteamClient.OwnedGamesResult;
+        calls: ReadonlyArray<string>;
+      }>({ ownedGames: { ok: true, games: generatedGames }, calls: [] }),
+    );
+
+    const result = await Effect.runPromise(
+      runWithServices(
+        Effect.gen(function* () {
+          const dashboard = yield* DashboardService.Service;
+          return yield* dashboard.getAchievementsOverview(STEAM_ID);
+        }),
+        state,
+        config,
+        achievementCache,
+      ),
+    );
+
+    expect(result.error).toBeNull();
+    // The per-invocation enrichment batch covers 20 of the 25 games, so only
+    // those reach the per-game table on the first load.
+    expect(result.rarestPerGame).toHaveLength(20);
+    // One batched resolution for recent (20) + rarest (10) + per-game (20):
+    // every game fetched exactly once, regardless of section overlap.
+    const schemaCalls = (await Effect.runPromise(Ref.get(config))).calls.filter(
+      (call) => call.startsWith("getGameAchievementSchema"),
+    );
+    expect(schemaCalls).toHaveLength(20);
+    expect(new Set(schemaCalls).size).toBe(20);
+  });
+});
