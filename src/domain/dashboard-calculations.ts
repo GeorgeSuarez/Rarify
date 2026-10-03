@@ -170,6 +170,45 @@ export function buildGame(
   };
 }
 
+/** First index letter for a game name; non A–Z initials group under `#`. */
+export function indexLetterOfName(name: string): string {
+  const first = name.trim().charAt(0).toUpperCase();
+  return first >= "A" && first <= "Z" ? first : "#";
+}
+
+/** One letter group in the achievements A–Z index. */
+export interface AlphabetIndexGroup {
+  /** Group key: `A`–`Z`, or `#` for non-alphabetic initials. */
+  readonly letter: string;
+  /** Trophy games in this group, sorted by name. */
+  readonly games: ReadonlyArray<Game>;
+}
+
+/**
+ * Build the achievements A–Z index: trophy games sorted by name and grouped
+ * by first letter. Games without achievements stay off the index.
+ *
+ * @param games - Library games from the achievements overview read model.
+ * @returns Letter groups sorted alphabetically, each holding sorted games.
+ */
+export function buildAlphabetIndex(
+  games: ReadonlyArray<Game>,
+): ReadonlyArray<AlphabetIndexGroup> {
+  const sorted = [...games]
+    .filter((game) => game.achievements.total > 0)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const groups = new Map<string, Array<Game>>();
+  for (const game of sorted) {
+    const letter = indexLetterOfName(game.name);
+    const list = groups.get(letter) ?? [];
+    list.push(game);
+    groups.set(letter, list);
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([letter, list]) => ({ letter, games: list }));
+}
+
 const RARITY_TIERS = [
   { tier: "Common", min: 50, max: 100.1, color: "var(--muted-foreground)" },
   { tier: "Uncommon", min: 25, max: 50, color: "#4ade80" },
