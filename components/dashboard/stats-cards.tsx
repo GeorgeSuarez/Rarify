@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Gamepad2, TrendingUp, TrendingDown } from "lucide-react";
+import { completionTierOf } from "@/lib/completion-tiers";
 import { cn } from "@/lib/utils";
 import type { Stats } from "@/lib/types";
 
@@ -12,6 +13,7 @@ function CircularProgress({
   size?: number;
   strokeWidth?: number;
 }) {
+  const tier = completionTierOf(value);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
@@ -44,7 +46,10 @@ function CircularProgress({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className="text-primary transition-all duration-1000 ease-out"
+          className={cn(
+            "transition-all duration-1000 ease-out",
+            tier.textClassName,
+          )}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">

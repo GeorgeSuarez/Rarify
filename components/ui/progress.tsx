@@ -8,8 +8,15 @@ function Progress({
   className,
   children,
   value,
+  indicatorClassName,
+  indicatorStyle,
   ...props
-}: ProgressPrimitive.Root.Props) {
+}: ProgressPrimitive.Root.Props & {
+  /** Color class for the filled indicator, e.g. a completion tier's `barClassName`. */
+  indicatorClassName?: string
+  /** Inline color for the filled indicator when the color is data-driven. */
+  indicatorStyle?: React.CSSProperties
+}) {
   return (
     <ProgressPrimitive.Root
       value={value}
@@ -19,7 +26,10 @@ function Progress({
     >
       {children}
       <ProgressTrack>
-        <ProgressIndicator />
+        <ProgressIndicator
+          className={indicatorClassName}
+          style={indicatorStyle}
+        />
       </ProgressTrack>
     </ProgressPrimitive.Root>
   )

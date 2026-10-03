@@ -14,6 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { Trophy, Clock, BookmarkCheck } from "lucide-react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
+import { completionTierOf } from "@/lib/completion-tiers";
+import { cn } from "@/lib/utils";
 import type { Game } from "@/lib/types";
 
 export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
@@ -80,14 +82,25 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
                           <Trophy className="size-3" />
                           {game.achievements.earned}/{game.achievements.total}
                         </span>
-                        <span className="ml-auto font-semibold text-foreground">
+                        <span
+                          className={cn(
+                            "ml-auto font-semibold",
+                            completionTierOf(game.completion).textClassName,
+                          )}
+                        >
                           {game.completion}%
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="mt-2 px-4">
-                    <Progress value={game.completion} aria-label={`${game.completion}% completion`} />
+                    <Progress
+                      value={game.completion}
+                      indicatorClassName={
+                        completionTierOf(game.completion).barClassName
+                      }
+                      aria-label={`${game.completion}% completion`}
+                    />
                   </div>
                 </Link>
               </div>

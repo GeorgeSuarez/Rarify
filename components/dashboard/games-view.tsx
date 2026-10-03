@@ -28,6 +28,8 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { completionTierOf } from "@/lib/completion-tiers";
+import { cn } from "@/lib/utils";
 import type { Game } from "@/lib/types";
 
 const SORT_KEYS = ["playtime", "completion", "achievements", "name"] as const;
@@ -43,6 +45,7 @@ function CompletionRing({
   size?: number;
   strokeWidth?: number;
 }) {
+  const tier = completionTierOf(value);
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (value / 100) * circumference;
@@ -75,11 +78,19 @@ function CompletionRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className="text-primary transition-all duration-500 ease-out"
+          className={cn(
+            "transition-all duration-500 ease-out",
+            tier.textClassName,
+          )}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-[10px] font-semibold tabular-nums text-foreground">
+        <span
+          className={cn(
+            "text-[10px] font-semibold tabular-nums",
+            tier.textClassName,
+          )}
+        >
           {value}%
         </span>
       </div>
@@ -177,7 +188,13 @@ function GameCard({ game: initialGame }: { game: Game }) {
         </div>
         {initialGame.achievements.total > 0 && (
           <div className="mt-3">
-            <Progress value={initialGame.completion} aria-label={`${initialGame.completion}% completion`} />
+            <Progress
+              value={initialGame.completion}
+              indicatorClassName={
+                completionTierOf(initialGame.completion).barClassName
+              }
+              aria-label={`${initialGame.completion}% completion`}
+            />
           </div>
         )}
       </Link>

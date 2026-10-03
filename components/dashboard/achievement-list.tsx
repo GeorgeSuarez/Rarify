@@ -18,6 +18,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { completionTierOf } from "@/lib/completion-tiers";
+import { cn } from "@/lib/utils";
 import type { GameAchievements } from "@/src/domain/dashboard";
 
 function timeAgo(unix: number): string {
@@ -157,7 +159,14 @@ export function AchievementList({ data }: { data: GameAchievements }) {
                   <Trophy className="size-4" />
                   {data.earnedAchievements}/{data.totalAchievements}
                 </span>
-                <span>{data.completion}%</span>
+                <span
+                  className={cn(
+                    "font-semibold",
+                    completionTierOf(data.completion).textClassName,
+                  )}
+                >
+                  {data.completion}%
+                </span>
               </div>
             </div>
           </div>

@@ -55,4 +55,4 @@ Alchemy reads Cloudflare credentials from its own profile store (`alchemy profil
 
 ## Theme
 
-Dark navy/blue theme defined via CSS variables in `src/styles/globals.css`. Charts use `currentColor` + token classes, not hardcoded hex.
+Dark navy/blue theme defined via CSS variables in `src/styles/globals.css`. Charts use `currentColor` + token classes, not hardcoded hex. Completion percentages are colored by tier through `lib/completion-tiers.ts` (`completionTierOf`): gray untouched, then red, orange, yellow, lime, and green as progress rises.

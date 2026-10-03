@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
+import { completionTierOf } from "@/lib/completion-tiers";
+import { cn } from "@/lib/utils";
 import type { Game } from "@/lib/types";
 
 const TOP_GAMES_LIMIT = 4;
@@ -64,10 +66,17 @@ function GameHeader({ game, priority }: { game: Game; priority?: boolean }) {
 }
 
 function CompletionBar({ game }: { game: Game }) {
+  const tier = completionTierOf(game.completion);
   return (
     <div className="flex w-32 flex-col gap-1">
-      <span className="font-semibold text-foreground">{game.completion}%</span>
-      <Progress value={game.completion} aria-label={`${game.completion}% completion`} />
+      <span className={cn("font-semibold", tier.textClassName)}>
+        {game.completion}%
+      </span>
+      <Progress
+        value={game.completion}
+        indicatorClassName={tier.barClassName}
+        aria-label={`${game.completion}% completion`}
+      />
     </div>
   );
 }

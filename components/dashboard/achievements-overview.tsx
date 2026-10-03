@@ -26,6 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { buildAlphabetIndex } from "@/src/domain/dashboard-calculations";
+import { completionTierOf } from "@/lib/completion-tiers";
 import type { AchievementsOverview } from "@/src/domain/dashboard";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -197,13 +198,24 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                               <span className="mt-1 flex items-center gap-2">
                                 <Progress
                                   value={game.completion}
+                                  indicatorClassName={
+                                    completionTierOf(game.completion)
+                                      .barClassName
+                                  }
                                   className="h-1 max-w-40 flex-1"
                                 />
                                 <Tooltip>
                                   <TooltipTrigger className="text-[11px] tabular-nums text-muted-foreground">
                                     {game.achievements.earned}/
                                     {game.achievements.total} ·{" "}
-                                    {game.completion}%
+                                    <span
+                                      className={
+                                        completionTierOf(game.completion)
+                                          .textClassName
+                                      }
+                                    >
+                                      {game.completion}%
+                                    </span>
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     {game.hours}h played ·{" "}

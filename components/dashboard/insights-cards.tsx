@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Clock, Gamepad2, Trophy, TrendingUp } from "lucide-react";
+import { completionTierOf } from "@/lib/completion-tiers";
 import type { DashboardData } from "@/lib/types";
 
 function MiniBar({
@@ -15,10 +16,13 @@ function MiniBar({
   max: number;
   color: string;
 }) {
-  void color;
   const pct = max > 0 ? (value / max) * 100 : 0;
   return (
-    <Progress value={pct} className="gap-0">
+    <Progress
+      value={pct}
+      className="gap-0"
+      indicatorStyle={{ backgroundColor: color }}
+    >
       <span className="sr-only">{pct}%</span>
     </Progress>
   );
@@ -166,15 +170,6 @@ function CompletionSection({ data }: { data: DashboardData }) {
     return { bands, maxBand };
   }, [data.games]);
 
-  const completionColors = [
-    "#f87171",
-    "#fb923c",
-    "#facc15",
-    "#a3e635",
-    "#4ade80",
-    "var(--primary)",
-  ];
-
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
@@ -193,7 +188,7 @@ function CompletionSection({ data }: { data: DashboardData }) {
           </span>
         </div>
         <div className="space-y-2">
-          {bands.map((b, i) => (
+          {bands.map((b) => (
             <div key={b.label} className="flex items-center gap-3">
               <span className="w-14 text-right text-xs text-muted-foreground">
                 {b.label}
@@ -202,7 +197,7 @@ function CompletionSection({ data }: { data: DashboardData }) {
                 <MiniBar
                   value={b.count}
                   max={maxBand}
-                  color={completionColors[i]}
+                  color={completionTierOf(b.min).color}
                 />
               </div>
               <span className="w-8 text-right text-xs font-medium text-foreground">
