@@ -10,7 +10,10 @@ import type {
   UserProfile,
 } from "../../lib/types.ts";
 import type { PersistedSnapshot } from "../domain/library.ts";
-import type { GameAchievementCacheEntry } from "../domain/library.ts";
+import type {
+  GameAchievementCacheEntry,
+  GameAchievementSchemaMap,
+} from "../domain/library.ts";
 
 /** Typed failure from D1 reads, writes, or row decoding. */
 export class PersistenceError extends Schema.TaggedError<PersistenceError>()(
@@ -39,6 +42,19 @@ export interface UserProfileInput {
 export interface GameAchievementCacheWrite {
   readonly appId: AppId;
   readonly entry: GameAchievementCacheEntry;
+  readonly fetchedAtMs: number;
+}
+
+/** One game's freshly fetched display metadata awaiting a cache write. */
+export interface GameSchemaCacheWrite {
+  readonly appId: AppId;
+  readonly schema: GameAchievementSchemaMap;
+  readonly fetchedAtMs: number;
+}
+
+/** Cached display metadata for one game, with the time it was fetched. */
+export interface GameSchemaCacheRead {
+  readonly schema: GameAchievementSchemaMap;
   readonly fetchedAtMs: number;
 }
 
@@ -132,6 +148,26 @@ export interface Interface {
   readonly saveGameAchievementCache: (
     steamId: SteamId,
     entries: ReadonlyArray<GameAchievementCacheWrite>,
+  ) => Effect.Effect<void, PersistenceError>;
+
+  /**
+   * Read cached achievement display metadata for the supplied games.
+   *
+   * Schemas are identical for every account, so the cache is global and
+   * keyed by game alone. Games without a cached row are absent from the map.
+   */
+  readonly getGameSchemaCache: (
+    appIds: ReadonlyArray<AppId>,
+  ) => Effect.Effect<ReadonlyMap<number, GameSchemaCacheRead>, PersistenceError>;
+
+  /**
+   * Upsert achievement display metadata for one or more games.
+   *
+   * Entries may hold an empty schema map, which records that Steam has no
+   * schema for the game so the failed lookup is not retried within the TTL.
+   */
+  readonly saveGameSchemaCache: (
+    entries: ReadonlyArray<GameSchemaCacheWrite>,
   ) => Effect.Effect<void, PersistenceError>;
 }
 

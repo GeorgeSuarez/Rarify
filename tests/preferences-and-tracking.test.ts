@@ -60,6 +60,8 @@ const makeStoreLayer = (state: Ref.Ref<StoreState>) =>
       listUserSteamIds: () => Effect.succeed([]),
       getGameAchievementCache: () => Effect.succeed(new Map()),
       saveGameAchievementCache: () => Effect.void,
+      getGameSchemaCache: () => Effect.succeed(new Map()),
+      saveGameSchemaCache: () => Effect.void,
     }),
   );
 

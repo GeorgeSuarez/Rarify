@@ -91,3 +91,40 @@ describe("D1 baseline migration", () => {
     database.close();
   });
 });
+
+describe("D1 schema-cache migration", () => {
+  const migratedDatabase = () => {
+    const database = new DatabaseSync(":memory:");
+    database.exec("PRAGMA foreign_keys = ON");
+    database.exec(readFileSync("migrations/0000_initial_schema.sql", "utf8"));
+    database.exec(
+      readFileSync("migrations/0001_game_achievement_cache.sql", "utf8"),
+    );
+    database.exec(readFileSync("migrations/0002_game_schema_cache.sql", "utf8"));
+    return database;
+  };
+
+  it("creates one global schema row per game", () => {
+    const database = migratedDatabase();
+    const upsert = database.prepare(
+      `INSERT INTO game_schemas (app_id, payload, fetched_at)
+       VALUES (?, ?, ?)
+       ON CONFLICT (app_id) DO UPDATE SET
+         payload = excluded.payload,
+         fetched_at = excluded.fetched_at`,
+    );
+    upsert.run(1245620, '{"ELD_1":{"displayName":"Elden Lord"}}', 100);
+    // A second fetch for the same game replaces the row instead of adding one.
+    upsert.run(1245620, '{}', 200);
+    upsert.run(292030, '{}', 200);
+
+    const rows = database
+      .prepare("SELECT app_id AS appId, payload FROM game_schemas ORDER BY appId")
+      .all();
+    expect(rows).toEqual([
+      { appId: 292030, payload: "{}" },
+      { appId: 1245620, payload: "{}" },
+    ]);
+    database.close();
+  });
+});

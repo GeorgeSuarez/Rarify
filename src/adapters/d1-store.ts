@@ -13,6 +13,7 @@ import {
 } from "../../lib/types.ts";
 import {
   GameAchievementCacheEntrySchema,
+  GameAchievementSchemaMapSchema,
   PersistedSnapshotSchema,
   SNAPSHOT_VERSION,
   type PersistedSnapshot,
@@ -35,6 +36,11 @@ const PreviousSnapshotRowSchema = Schema.Struct({
 });
 const UserIdRowSchema = Schema.Struct({ steamId: SteamIdSchema });
 const GameAchievementRowSchema = Schema.Struct({
+  appId: AppIdSchema,
+  payload: Schema.String,
+  fetchedAt: Schema.Number,
+});
+const GameSchemaRowSchema = Schema.Struct({
   appId: AppIdSchema,
   payload: Schema.String,
   fetchedAt: Schema.Number,
@@ -448,6 +454,84 @@ const make = Effect.gen(function* () {
         Effect.asVoid,
       );
     }),
+
+    getGameSchemaCache: Effect.fn("RarifyStore.getGameSchemaCache")(
+      function* (appIds) {
+        if (appIds.length === 0) return new Map<number, RarifyStore.GameSchemaCacheRead>();
+        const rows = yield* sql<{
+          appId: number;
+          payload: string;
+          fetchedAt: number;
+        }>`
+          SELECT app_id AS appId, payload, fetched_at AS fetchedAt
+          FROM game_schemas
+          WHERE app_id IN ${sql.in(appIds)}
+        `.pipe(mapPersistenceError("getGameSchemaCache"));
+
+        const entries = new Map<number, RarifyStore.GameSchemaCacheRead>();
+        for (const row of rows) {
+          const decoded = yield* Schema.decodeUnknownEffect(
+            GameSchemaRowSchema,
+          )(row).pipe(
+            Effect.mapError((cause) =>
+              new RarifyStore.PersistenceError({
+                operation: "getGameSchemaCache",
+                message: "Rarify D1 row could not be decoded: getGameSchemaCache",
+                cause,
+              }),
+            ),
+          );
+          const schema = Option.getOrNull(
+            Schema.decodeUnknownOption(
+              Schema.fromJsonString(GameAchievementSchemaMapSchema),
+            )(decoded.payload),
+          );
+          if (schema === null) {
+            // A schema row written by an older payload version is treated as
+            // a miss so the game is re-fetched rather than failing the request.
+            yield* Effect.logWarning(
+              "Discarding incompatible cached schema data",
+            ).pipe(Effect.annotateLogs({ appId: String(decoded.appId) }));
+            continue;
+          }
+          entries.set(decoded.appId, {
+            schema,
+            fetchedAtMs: decoded.fetchedAt,
+          });
+        }
+        return entries;
+      },
+    ),
+
+    saveGameSchemaCache: Effect.fn("RarifyStore.saveGameSchemaCache")(
+      function* (entries) {
+        if (entries.length === 0) return;
+        // `sql.insert` compiles the whole column/value clause, so the record
+        // keys are the physical column names.
+        const encoded = entries.map(({ appId, schema, fetchedAtMs }) => ({
+          app_id: appId,
+          payload: Schema.encodeSync(
+            Schema.fromJsonString(GameAchievementSchemaMapSchema),
+          )(schema),
+          fetched_at: fetchedAtMs,
+        }));
+        yield* sql`
+          INSERT INTO game_schemas ${sql.insert(encoded)}
+          ON CONFLICT (app_id) DO UPDATE SET
+            payload = excluded.payload,
+            fetched_at = excluded.fetched_at
+        `.pipe(
+          Effect.mapError((cause) =>
+            new RarifyStore.PersistenceError({
+              operation: "saveGameSchemaCache",
+              message: "Rarify D1 operation failed: saveGameSchemaCache",
+              cause,
+            }),
+          ),
+          Effect.asVoid,
+        );
+      },
+    ),
   });
 });
 

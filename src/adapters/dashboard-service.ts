@@ -15,7 +15,6 @@ import {
   type RecentAchievement,
   type Stats,
   type SteamId,
-  type SteamSchemaAchievement,
   type UserProfile,
 } from "../../lib/types.ts";
 import {
@@ -30,6 +29,7 @@ import {
   isSnapshotFresh,
   type EarnedEntry,
   type GameAchievementCacheEntry,
+  type GameAchievementSchemaValue,
   type PersistedSnapshot,
 } from "../domain/library.ts";
 import type {
@@ -117,6 +117,101 @@ export const make: Effect.Effect<
       achievements,
       globalPercentages,
     } satisfies GameAchievementCacheEntry;
+  });
+
+  /**
+   * Read achievement display metadata through the global schema cache.
+   *
+   * Schemas are identical for every account, so one cached row serves all
+   * users and a dashboard load only touches Steam for stale or unseen games.
+   * A game whose schema fetch fails resolves to an empty map — and that miss
+   * is cached too, so a game without Steam stats never fails or refetches
+   * within the TTL. This resolver never fails the request.
+   */
+  const resolveGameSchemas = Effect.fn(
+    "DashboardService.resolveGameSchemas",
+  )(function* (appIds: ReadonlyArray<AppId>) {
+    const resolved = new Map<
+      number,
+      ReadonlyMap<string, GameAchievementSchemaValue>
+    >();
+    if (appIds.length === 0) return resolved;
+
+    const nowMs = yield* Clock.currentTimeMillis;
+    const cached = yield* store.getGameSchemaCache(appIds).pipe(
+      Effect.catchTag("PersistenceError", (error) =>
+        Effect.logWarning("Schema cache read failed; refetching").pipe(
+          Effect.annotateLogs({ operation: error.operation }),
+          Effect.as(new Map<number, RarifyStore.GameSchemaCacheRead>()),
+        ),
+      ),
+    );
+    for (const [appId, read] of cached) {
+      resolved.set(appId, new Map(Object.entries(read.schema)));
+    }
+
+    const stale = appIds.filter((appId) => {
+      const read = cached.get(appId);
+      return (
+        read === undefined ||
+        nowMs - read.fetchedAtMs >= GAME_ACHIEVEMENT_CACHE_TTL_MS
+      );
+    });
+    const fetched = yield* Effect.forEach(
+      stale,
+      (appId) =>
+        steam.getGameAchievementSchema(appId).pipe(
+          Effect.map((schema) => ({
+            appId,
+            // The Steam adapter leaves display fields optional; normalize
+            // here so the cached rows always carry complete strings.
+            schema: Object.fromEntries(
+              [...schema].map(([name, value]) => [
+                name,
+                {
+                  displayName: value.displayName ?? name,
+                  description: value.description ?? "",
+                  icon: value.icon ?? "",
+                  icongray: value.icongray ?? "",
+                },
+              ]),
+            ),
+          })),
+          Effect.catchTag("SteamApiError", (error) =>
+            Effect.logWarning("Skipping Steam schema fetch for one game", error).pipe(
+              Effect.annotateLogs({
+                appId: String(appId),
+                operation: error.operation,
+                errorTag: error._tag,
+              }),
+              Effect.as({ appId, schema: {} }),
+            ),
+          ),
+        ),
+      { concurrency: DETAIL_CONCURRENCY },
+    );
+
+    if (fetched.length > 0) {
+      yield* store
+        .saveGameSchemaCache(
+          fetched.map(({ appId, schema }) => ({
+            appId,
+            schema,
+            fetchedAtMs: nowMs,
+          })),
+        )
+        .pipe(
+          Effect.catchTag("PersistenceError", (error) =>
+            Effect.logWarning("Schema cache write failed; continuing").pipe(
+              Effect.annotateLogs({ operation: error.operation }),
+            ),
+          ),
+        );
+    }
+    for (const { appId, schema } of fetched) {
+      resolved.set(appId, new Map(Object.entries(schema)));
+    }
+    return resolved;
   });
 
   const enrichLibraryFromSteam = Effect.fn(
@@ -404,11 +499,11 @@ export const make: Effect.Effect<
     const [recentAchievements, rarestAchievements, previousSnapshot] =
       yield* Effect.all(
         [
-          enrichEntries(steam, read.persisted.earnedEntries, {
+          enrichEntries(resolveGameSchemas, read.persisted.earnedEntries, {
             sort: "recent",
             limit: RECENT_ACHIEVEMENT_COUNT,
           }),
-          enrichEntries(steam, read.persisted.earnedEntries, {
+          enrichEntries(resolveGameSchemas, read.persisted.earnedEntries, {
             sort: "rarest",
             limit: RECENT_ACHIEVEMENT_COUNT,
           }),
@@ -471,8 +566,8 @@ export const make: Effect.Effect<
     const stats = computeStats(games, nowMs);
     const [recentAchievements, rarestAchievements] = yield* Effect.all(
       [
-        enrichEntries(steam, read.persisted.earnedEntries, { sort: "recent", limit: 20 }),
-        enrichEntries(steam, read.persisted.earnedEntries, { sort: "rarest", limit: 10 }),
+        enrichEntries(resolveGameSchemas, read.persisted.earnedEntries, { sort: "recent", limit: 20 }),
+        enrichEntries(resolveGameSchemas, read.persisted.earnedEntries, { sort: "rarest", limit: 10 }),
       ],
       { concurrency: "unbounded" },
     );
@@ -488,7 +583,7 @@ export const make: Effect.Effect<
             (a, b) => a.globalPercent - b.globalPercent,
           )[0];
           if (rarest === undefined) return Option.none();
-          const enriched = yield* enrichEntries(steam, [rarest], {
+          const enriched = yield* enrichEntries(resolveGameSchemas, [rarest], {
             sort: "as-is",
             limit: 1,
           });
@@ -556,7 +651,8 @@ export const make: Effect.Effect<
       const ownedGame = owned.ok
         ? owned.games.find((game) => game.appid === appId)
         : undefined;
-      const schema = yield* steam.getGameAchievementSchema(appId);
+      const schemas = yield* resolveGameSchemas([appId]);
+      const schema = schemas.get(appId) ?? new Map();
       const earnedCount = achievements.filter((a) => a.achieved === 1).length;
 
       const rows: ReadonlyArray<GameAchievement> = achievements.map((achievement) => {
@@ -684,10 +780,15 @@ interface EnrichmentOptions {
 }
 
 function enrichEntries(
-  steam: SteamClient.Interface,
+  resolveSchemas: (
+    appIds: ReadonlyArray<AppId>,
+  ) => Effect.Effect<
+    ReadonlyMap<number, ReadonlyMap<string, GameAchievementSchemaValue>>,
+    never
+  >,
   entries: ReadonlyArray<EarnedEntry>,
   options: EnrichmentOptions,
-): Effect.Effect<ReadonlyArray<RecentAchievement>, SteamClient.SteamApiError> {
+): Effect.Effect<ReadonlyArray<RecentAchievement>, never> {
   const selected =
     options.sort === "rarest"
       ? [...entries]
@@ -702,14 +803,7 @@ function enrichEntries(
     .filter((appId): appId is AppId => appId !== null);
 
   return Effect.gen(function* () {
-    const schemas = yield* Effect.forEach(appIds, (appId) =>
-      steam
-        .getGameAchievementSchema(appId)
-        .pipe(Effect.map((schema) => [appId, schema] as const)),
-    );
-    const schemaByAppId = new Map<number, ReadonlyMap<string, Pick<SteamSchemaAchievement, "displayName" | "description" | "icon" | "icongray">>>(
-      schemas.map(([appId, schema]) => [appId, schema] as const),
-    );
+    const schemaByAppId = yield* resolveSchemas(appIds);
     return top.map((entry) => {
       const schema = schemaByAppId.get(entry.appId)?.get(entry.apiname);
       const base = {

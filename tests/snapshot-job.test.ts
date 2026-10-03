@@ -56,6 +56,8 @@ const makeStoreLayer = (recorded: Ref.Ref<ReadonlyArray<RecordedSnapshot>>) =>
       listUserSteamIds: () => Effect.succeed([USER_A, USER_B]),
       getGameAchievementCache: () => Effect.succeed(new Map()),
       saveGameAchievementCache: () => Effect.void,
+      getGameSchemaCache: () => Effect.succeed(new Map()),
+      saveGameSchemaCache: () => Effect.void,
     }),
   );
 
