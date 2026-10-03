@@ -19,6 +19,10 @@
 
 # production
 /build
+/dist/
+
+# alchemy local state and emulation
+/.alchemy/
 
 # misc
 .DS_Store

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
-  computeStats,
+  computeStats as computeStatsAt,
   filterGames,
   meanGlobalPercent,
-} from "@/lib/dashboard";
+} from "@/src/domain/dashboard-calculations";
 import { DASHBOARD_FILTERS } from "@/lib/types";
 import type { Game, SteamGlobalAchievement } from "@/lib/types";
 import {
@@ -13,6 +13,10 @@ import {
   privateProfileFixture,
   emptyGamesFixture,
 } from "./fixtures/steam";
+
+const NOW = Date.now();
+
+const computeStats = (games: ReadonlyArray<Game>) => computeStatsAt(games, NOW);
 
 function makeGame(overrides: Partial<Game> = {}): Game {
   return {
@@ -86,9 +90,8 @@ describe("computeStats", () => {
   });
 
   it("achievementsEarnedDelta counts unlocks in the last 30 days", () => {
-    const now = Date.now();
-    const recentUnlock = Math.floor((now - 5 * 86400000) / 1000);
-    const oldUnlock = Math.floor((now - 60 * 86400000) / 1000);
+    const recentUnlock = Math.floor((NOW - 5 * 86400000) / 1000);
+    const oldUnlock = Math.floor((NOW - 60 * 86400000) / 1000);
     const games = [
       makeGame({ unlocktimes: [recentUnlock, oldUnlock, recentUnlock] }),
     ];
@@ -161,11 +164,18 @@ describe("exported constants", () => {
 
 // --- Fixture-based tests (Steam API response shapes) ---
 
+function getOwnedGamesFixtureGames() {
+  const games = ownedGamesFixture.response.games;
+  if (!games) throw new Error("Owned-games fixture must include its games array");
+  return games;
+}
+
 describe("Steam fixtures - owned games", () => {
   it("contains 3 games with correct playtime", () => {
-    expect(ownedGamesFixture.response.games).toHaveLength(3);
-    expect(ownedGamesFixture.response.games[0].name).toBe("Elden Ring");
-    expect(ownedGamesFixture.response.games[0].playtime_forever).toBe(7200);
+    const games = getOwnedGamesFixtureGames();
+    expect(games).toHaveLength(3);
+    expect(games[0]?.name).toBe("Elden Ring");
+    expect(games[0]?.playtime_forever).toBe(7200);
   });
 
   it("private profile fixture has no games key", () => {
@@ -215,7 +225,7 @@ describe("computeStats with fixture-derived games", () => {
       .filter((a) => a.achieved === 1)
       .map((a) => a.unlocktime);
 
-    const games: Game[] = ownedGamesFixture.response.games.map((owned, i) => ({
+    const games: Game[] = getOwnedGamesFixtureGames().map((owned, i) => ({
       appId: owned.appid,
       name: owned.name,
       hours: Math.round(owned.playtime_forever / 60),

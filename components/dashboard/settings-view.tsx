@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Save, CheckCircle2 } from "lucide-react";
-import type { UserPreferences } from "@/lib/settings";
+import type { UserPreferences } from "@/lib/types";
 import type { GameFilter } from "@/lib/types";
 
 const FILTER_OPTIONS: { value: GameFilter; label: string }[] = [
@@ -86,8 +86,8 @@ export function SettingsView({
                       const next = value[0];
                       if (next) {
                         // SAFETY: ToggleGroup values are constrained to GameFilter strings via FILTER_OPTIONS.
-                        setPrefs((p) => ({
-                          ...p,
+                        setPrefs((current) => ({
+                          ...current,
                           defaultFilter: next as GameFilter,
                         }));
                       }

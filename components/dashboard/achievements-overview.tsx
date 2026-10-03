@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { Image } from "@/src/spa/next-compat";
+import { Link } from "@/src/spa/next-compat";
 import { Trophy, Award, Gamepad2, AlertTriangle, EyeOff } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
@@ -29,7 +29,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { AchievementsOverviewData } from "@/lib/dashboard";
+import type { AchievementsOverview } from "@/src/domain/dashboard";
 
 function timeAgo(unix: number): string {
   if (unix === 0) return "";
@@ -63,7 +63,7 @@ function AchievementRow({
   showGame = true,
   showPercent = false,
 }: {
-  achievement: AchievementsOverviewData["recentAchievements"][number];
+  achievement: AchievementsOverview["recentAchievements"][number];
   showGame?: boolean;
   showPercent?: boolean;
 }) {
@@ -117,7 +117,7 @@ function AchievementRow({
   );
 }
 
-export function AchievementsOverview({ data }: { data: AchievementsOverviewData }) {
+export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
   const { stats, games, recentAchievements, rarestAchievements, rarestPerGame } = data;
 
   const gamesWithAch = games.filter((g) => g.achievements.total > 0);

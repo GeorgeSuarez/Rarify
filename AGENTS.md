@@ -1,71 +1,58 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
-
 # Rarify
 
-A Steam-style achievement dashboard built with Next.js 16, React 19, Tailwind v4, and shadcn/ui.
+A Steam-style achievement dashboard: Vite + React 19 SPA, Effect-native Cloudflare Worker API, D1 storage, deployed with Alchemy.
 
 ## Commands
 
-- `npm run dev` — start the dev server (http://localhost:3000)
-- `npm run build` — production build
-- `npm run start` — serve the production build
+- `npm run dev` — start the SPA dev server (Vite, http://localhost:5173)
+- `npm run alchemy:dev` — run the whole Cloudflare stack locally (API Worker on http://localhost:8787, Vite website on http://localhost:5173)
+- `npm run build` — production build of the SPA
+- `npm run alchemy:deploy` — deploy the Cloudflare stack (Worker, D1, Cron Trigger, custom domain routes)
 - `npm run lint` — run Oxlint (includes the custom `anti-slop` plugin in `tools/oxlint/`)
+- `npm run typecheck` — `tsc --noEmit`
 - `npm run test` — run unit tests once (Vitest)
 - `npm run test:watch` — run tests in watch mode
-- `npm run db:generate` — generate Drizzle migrations from schema changes
-- `npm run db:migrate` — apply pending migrations
-- `npm run db:studio` — open Drizzle Studio (DB browser)
 
-Always run `npm run lint`, `npm run build`, and `npm run test` after making changes.
+Always run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` after making changes.
 
 ## Environment
 
 Copy `.env.example` to `.env.local` and fill in:
 
 - `STEAM_API_KEY` — Steam Web API key (steamcommunity.com/dev/apikey)
-- `TURSO_DATABASE_URL` — `file:local.db` for dev, or your Turso URL for prod
-- `TURSO_AUTH_TOKEN` — Turso auth token (omit for local file DB)
 - `AUTH_SECRET` — random secret for signing session JWTs (`openssl rand -base64 32`)
-- `NEXT_PUBLIC_APP_URL` — public base URL, no trailing slash (used for OpenID return_to)
-- `STEAM_CALLBACK_BASE_URL` — optional override for the OpenID `return_to`/`realm` when using a tunnel during local dev (falls back to `NEXT_PUBLIC_APP_URL`)
-- `CRON_SECRET` — secret for the snapshot cron endpoint (`openssl rand -base64 32`)
+- `PUBLIC_APP_URL` — public base URL of the SPA and API, no trailing slash (used for OpenID `return_to`/`realm`)
+- `PUBLIC_APP_DOMAIN` — optional hostname served by the Alchemy stack (`rarify.georgejsuarez.com` in production); omit for local `alchemy dev`
+
+Alchemy reads Cloudflare credentials from its own profile store (`alchemy profile edit --add Cloudflare`); no Cloudflare tokens are needed in `.env.local`.
 
 ## Architecture
 
-- `app/` — Next.js App Router: `page.tsx` (SSR, session-gated), `loading.tsx` (skeleton), `error.tsx` (global error boundary), `not-found.tsx`, `login/page.tsx` (Steam sign-in), `auth/steam/route.ts` + `auth/steam/callback/route.ts` (OpenID), `auth/logout/route.ts`, `api/dashboard/route.ts` (GET), `api/tracked-games/route.ts` (POST/DELETE toggle), `api/cron/snapshot/route.ts` (nightly snapshot writer), `robots.ts`, `sitemap.ts`.
-- `lib/auth.ts` — session helpers (jose JWT in httpOnly cookie): `createSession`, `getSession`, `clearSession`.
-- `lib/env.ts` — typed, lazy env var access.
-- `lib/db/schema.ts` — Drizzle schema (`users`, `tracked_games`, `snapshots`, `user_preferences`).
-- `lib/db/client.ts` — Drizzle + libSQL/Turso client.
-- `drizzle/` — generated SQL migrations.
-- `lib/steam.ts` — typed, cached Steam Web API client (`unstable_cache` with tiered revalidation).
-- `lib/dashboard.ts` — async data layer. `getLibrarySnapshot` is the deep module that builds the enriched library once per request (`react cache()`); `getDashboardData`, `getGamesData`, `getAchievementsData`, and `snapshotUser` are thin projections over it.
-- `lib/settings.ts` — user preference read/write (`getPreferences`, `savePreferences`).
-- `lib/types.ts` — shared TypeScript interfaces (UI + Steam raw types).
-- `components/dashboard/` — dashboard feature components (props-driven). `dashboard-view.tsx` is the client wrapper managing filter state. `top-games.tsx` has a track toggle.
-- `components/ui/` — shadcn/ui primitives.
-- `tests/` — Vitest unit tests + Steam API fixtures.
+- `src/spa/` — React Router SPA: `api.ts` (typed `HttpApiClient`), `use-api.ts` (loading/unauthorized/error hook), `pages/` (route screens), `next-compat.tsx` (`Image`/`Link` shims used by the existing dashboard components).
+- `src/api-worker.ts` — Alchemy `Cloudflare.Worker` composition root: resolves D1 + secrets, builds application services once per isolate, registers `/api/*` handlers, `/auth/*` redirect routes, and the daily snapshot Cron Trigger.
+- `src/api/` — `contracts.ts` (schema-validated `HttpApi`), `handlers.ts` (group handlers), `auth-routes.ts` (Steam OpenID + logout), `session-cookie.ts` (HTTP-only cookie policy).
+- `src/services/` — capability interfaces and tags: `steam-client.ts`, `steam-openid.ts`, `session.ts`, `steam-login.ts`, `rarify-store.ts`, `dashboard.ts`, `preferences.ts`, `tracked-games.ts`, `snapshot-job.ts`.
+- `src/adapters/` — concrete Layers: `steam-web-api.ts` (Fetch-based Steam client), `steam-openid.ts`, `session-jwt.ts` (jose), `d1-store.ts` (Effect SQL over D1), `dashboard-service.ts`, `preferences-service.ts`, `tracked-games-service.ts`, `snapshot-job.ts`.
+- `src/domain/` — pure domain modules: `library.ts` (snapshot and per-game achievement cache schemas + TTLs), `dashboard-calculations.ts` (stats, filters, rarity buckets, achievement summaries, game rows), `dashboard.ts` (read-model schemas), `game-images.ts`.
+- Steam enrichment is bounded: each request enriches at most `ENRICH_BATCH_SIZE` games (default 20; two Steam subrequests each) and stores them in the `game_achievements` D1 table for 24 hours. The rest of the library fills in on later loads, which keeps a Worker invocation inside Cloudflare's subrequest budget. The library snapshot TTL is 60 seconds so successive loads continue the fill; raise `ENRICH_BATCH_SIZE` on the Workers Paid plan.
+- `src/database.ts`, `src/website.ts`, `alchemy.run.ts` — D1 resource (migrations in `migrations/`), Vite website resource, and the Stack.
+- `lib/types.ts` — shared Effect schemas and types (domain + Steam API wire shapes).
+- `components/dashboard/`, `components/ui/` — props-driven React views and shadcn/ui primitives.
+- `tests/` — Vitest unit, HTTP API, and service tests with Steam fixtures.
 
 ## Auth flow
 
-1. User visits `/` → `getSession()` → no session → redirect to `/login`.
-2. User clicks "Sign in through Steam" → `/auth/steam` → redirect to Steam OpenID.
-3. Steam redirects back to `/auth/steam/callback` → verify with Steam → extract SteamID → upsert user in DB → `createSession()` → redirect to `/`.
-4. Logout: `POST /auth/logout` → `clearSession()` → redirect to `/login`.
+1. The SPA calls `GET /api/session`; when unauthenticated it redirects to `/login`.
+2. "Sign in through Steam" → `GET /auth/steam` → Steam OpenID with `return_to`/`realm` set to `PUBLIC_APP_URL`.
+3. Steam redirects to `GET /auth/steam/callback` → the Worker verifies the assertion with Steam, upserts the user profile in D1 (best-effort), signs a 30-day session JWT, and sets the HTTP-only `rarify_session` cookie.
+4. Logout: `POST /auth/logout` (form post from the sidebar) → expires the cookie and redirects to `/login`.
 
 ## Snapshot cron
 
-A nightly cron job populates the `snapshots` table for delta computation (avg completion change, games owned change).
-
-- Endpoint: `GET /api/cron/snapshot` (requires `Authorization: Bearer <CRON_SECRET>`)
-- On Vercel: add a cron config in `vercel.json` hitting this endpoint daily.
-- Locally: `curl -H "Authorization: Bearer <CRON_SECRET>" http://localhost:3000/api/cron/snapshot`
+- `Cloudflare.Workers.cron("0 0 * * *", ...)` in `src/api-worker.ts` runs the daily snapshot job; there is no public HTTP cron endpoint.
+- Each user is processed independently with a typed failure count; `recordDailySnapshot` upserts on `(steam_id, date)`, so retries cannot duplicate rows.
 - Without snapshots, `avgCompletionDelta` and `gamesOwnedDelta` stay `null`.
 
 ## Theme
 
-Dark navy/blue theme defined via CSS variables in `app/globals.css`. Charts use `currentColor` + token classes, not hardcoded hex.
+Dark navy/blue theme defined via CSS variables in `src/styles/globals.css`. Charts use `currentColor` + token classes, not hardcoded hex.

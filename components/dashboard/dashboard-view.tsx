@@ -125,7 +125,7 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
               <AlertDescription>
                 {data.error.type === "private_profile"
                   ? "Set your profile and game details to public in Steam privacy settings, then refresh."
-                  : `Steam API returned status ${data.error.status ?? "(network error)"}. Ensure your STEAM_API_KEY is correct and set in Vercel env vars for Production.`}
+                  : `Steam returned status ${data.error.status ?? "(network error)"}. Check the STEAM_API_KEY secret on the Rarify API Worker, then try again.`}
               </AlertDescription>
             </Alert>
           ) : (

@@ -30,8 +30,8 @@ import {
   Bookmark,
   BookmarkCheck,
 } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { Image } from "@/src/spa/next-compat";
+import { Link } from "@/src/spa/next-compat";
 import type { Game } from "@/lib/types";
 
 const TOP_GAMES_LIMIT = 4;
@@ -225,7 +225,7 @@ export function TopGames({
   games,
   onTrackToggle,
 }: {
-  games: Game[];
+  games: ReadonlyArray<Game>;
   onTrackToggle?: (appId: number, tracked: boolean) => void;
 }) {
   const topGames = [...games].sort((a, b) => b.hours - a.hours).slice(0, TOP_GAMES_LIMIT);

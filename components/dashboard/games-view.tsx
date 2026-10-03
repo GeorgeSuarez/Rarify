@@ -4,8 +4,8 @@ import { useState, useMemo, useTransition } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import Link from "next/link";
+import { Image } from "@/src/spa/next-compat";
+import { Link } from "@/src/spa/next-compat";
 import { Search, Clock, Trophy, Bookmark, BookmarkCheck, Gamepad2 } from "lucide-react";
 import {
   Select,
@@ -189,7 +189,7 @@ export function GamesView({
   games,
   user,
 }: {
-  games: Game[];
+  games: ReadonlyArray<Game>;
   user?: { personaName: string; avatar: string };
 }) {
   const [search, setSearch] = useState("");

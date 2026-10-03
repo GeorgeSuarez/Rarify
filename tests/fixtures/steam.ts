@@ -5,7 +5,7 @@ import type {
   SteamPlayerSummariesResponse,
 } from "@/lib/types";
 
-export const ownedGamesFixture: SteamOwnedGamesResponse = {
+export const ownedGamesFixture = {
   response: {
     game_count: 3,
     games: [
@@ -35,23 +35,47 @@ export const ownedGamesFixture: SteamOwnedGamesResponse = {
       },
     ],
   },
-};
+} satisfies SteamOwnedGamesResponse;
 
-export const privateProfileFixture: SteamOwnedGamesResponse = {
+/**
+ * Realistic owned-games payload: Steam omits `img_logo_url` for every game and
+ * `has_community_visible_stats` for games without community stats.
+ */
+export const ownedGamesWithOmittedFieldsFixture = {
+  response: {
+    game_count: 2,
+    games: [
+      {
+        appid: 220,
+        name: "Half-Life 2",
+        playtime_forever: 0,
+        img_icon_url: "fcfb366051782b8ebf2aa297f3b746395858cb62",
+        has_community_visible_stats: true,
+      },
+      {
+        appid: 320,
+        playtime_forever: 120,
+        img_icon_url: "icon",
+      },
+    ],
+  },
+} satisfies SteamOwnedGamesResponse;
+
+export const privateProfileFixture = {
   response: {},
-};
+} satisfies SteamOwnedGamesResponse;
 
-export const emptyGamesFixture: SteamOwnedGamesResponse = {
+export const emptyGamesFixture = {
   response: {
     game_count: 0,
     games: [],
   },
-};
+} satisfies SteamOwnedGamesResponse;
 
 const NOW = Math.floor(Date.now() / 1000);
 const ONE_DAY = 86400;
 
-export const playerAchievementsFixture: SteamPlayerAchievementsResponse = {
+export const playerAchievementsFixture = {
   playerstats: {
     steamID: "76561198000000000",
     gameName: "Elden Ring",
@@ -64,17 +88,22 @@ export const playerAchievementsFixture: SteamPlayerAchievementsResponse = {
       { apiname: "ACH_6", achieved: 0, unlocktime: 0 },
     ],
   },
-};
+} satisfies SteamPlayerAchievementsResponse;
 
-export const emptyPlayerAchievementsFixture: SteamPlayerAchievementsResponse = {
+export const emptyPlayerAchievementsFixture = {
   playerstats: {
     steamID: "76561198000000000",
     gameName: "Test Game",
     achievements: [],
   },
-};
+} satisfies SteamPlayerAchievementsResponse;
 
-export const globalAchievementsFixture: SteamGlobalAchievementsResponse = {
+/** Steam returns this shape when a game has no stats or the profile is private. */
+export const unavailablePlayerAchievementsFixture = {
+  playerstats: {},
+} satisfies SteamPlayerAchievementsResponse;
+
+export const globalAchievementsFixture = {
   achievementpercentages: {
     achievements: [
       { name: "ACH_1", percent: 78.5 },
@@ -85,9 +114,9 @@ export const globalAchievementsFixture: SteamGlobalAchievementsResponse = {
       { name: "ACH_6", percent: 5.4 },
     ],
   },
-};
+} satisfies SteamGlobalAchievementsResponse;
 
-export const playerSummariesFixture: SteamPlayerSummariesResponse = {
+export const playerSummariesFixture = {
   response: {
     players: [
       {
@@ -108,4 +137,4 @@ export const playerSummariesFixture: SteamPlayerSummariesResponse = {
       },
     ],
   },
-};
+} satisfies SteamPlayerSummariesResponse;

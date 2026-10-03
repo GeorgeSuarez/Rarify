@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Trophy } from "lucide-react";
-import Image from "next/image";
+import { Image } from "@/src/spa/next-compat";
 import type { RecentAchievement } from "@/lib/types";
 
 function timeAgo(unix: number): string {
@@ -35,7 +35,7 @@ function timeAgo(unix: number): string {
 export function RecentAchievements({
   achievements,
 }: {
-  achievements: RecentAchievement[];
+  achievements: ReadonlyArray<RecentAchievement>;
 }) {
   return (
     <Card className="border-border/50 bg-card">

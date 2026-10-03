@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { Image } from "@/src/spa/next-compat";
+import { Link } from "@/src/spa/next-compat";
 import { ArrowLeft, Clock, Trophy, Lock, Unlock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -18,7 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { GameAchievementsData } from "@/lib/dashboard";
+import type { GameAchievements } from "@/src/domain/dashboard";
 
 function timeAgo(unix: number): string {
   if (unix === 0) return "";
@@ -38,7 +38,7 @@ function timeAgo(unix: number): string {
 function AchievementRow({
   achievement,
 }: {
-  achievement: GameAchievementsData["achievements"][number];
+  achievement: GameAchievements["achievements"][number];
 }) {
   return (
     <div
@@ -112,7 +112,7 @@ function AchievementRow({
   );
 }
 
-export function AchievementList({ data }: { data: GameAchievementsData }) {
+export function AchievementList({ data }: { data: GameAchievements }) {
   const { achievements } = data;
 
   const earned = achievements.filter((a) => a.achieved);

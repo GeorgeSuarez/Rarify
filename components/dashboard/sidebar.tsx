@@ -7,7 +7,7 @@ import {
   LogOut,
   LayoutDashboard,
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from "@/src/spa/next-compat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";

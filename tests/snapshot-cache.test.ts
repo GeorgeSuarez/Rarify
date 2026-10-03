@@ -5,12 +5,11 @@ import {
   serializeSnapshot,
   deserializeSnapshot,
   isSnapshotFresh,
-} from "@/lib/dashboard";
+} from "@/src/domain/library";
 import type { Game } from "@/lib/types";
 
 function makeGame(overrides: Partial<Game> = {}): Game {
   return {
-    id: "g-1",
     appId: 100,
     name: "Test Game",
     hours: 50,

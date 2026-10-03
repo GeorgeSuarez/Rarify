@@ -12,11 +12,11 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Trophy, Clock, BookmarkCheck } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { Image } from "@/src/spa/next-compat";
+import { Link } from "@/src/spa/next-compat";
 import type { Game } from "@/lib/types";
 
-export function TrackedGamesList({ games }: { games: Game[] }) {
+export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
   const tracked = useMemo(
     () =>
       [...games]

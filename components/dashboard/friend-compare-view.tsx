@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/src/spa/next-compat";
 import { ArrowLeft, AlertTriangle, EyeOff, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { DashboardData } from "@/lib/types";
-import type { FriendSummary } from "@/lib/dashboard";
+import type { FriendSummary } from "@/src/domain/dashboard";
 
 function CompareRow({
   label,

@@ -14,8 +14,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Users, GitCompare, ExternalLink, AlertTriangle } from "lucide-react";
-import Link from "next/link";
-import type { FriendSummary } from "@/lib/dashboard";
+import { Link } from "@/src/spa/next-compat";
+import type { FriendSummary } from "@/src/domain/dashboard";
 import type { DashboardError } from "@/lib/types";
 
 export function FriendsView({
@@ -23,7 +23,7 @@ export function FriendsView({
   error,
   hiddenCount = 0,
 }: {
-  friends: FriendSummary[];
+  friends: ReadonlyArray<FriendSummary>;
   error: DashboardError;
   hiddenCount?: number;
 }) {
