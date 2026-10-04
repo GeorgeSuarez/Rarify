@@ -8,7 +8,7 @@ A Steam-style achievement dashboard: Vite + React 19 SPA, Effect-native Cloudfla
 - `npm run alchemy:dev` — run the whole Cloudflare stack locally (API Worker on http://localhost:8787, Vite website on http://localhost:5173)
 - `npm run build` — production build of the SPA
 - `npm run alchemy:deploy` — deploy the Cloudflare stack (Worker, D1, Cron Trigger, custom domain routes)
-- `npm run lint` — run Oxlint (includes the custom `anti-slop` plugin in `tools/oxlint/`)
+- `npm run lint` — run Oxlint (includes the vendored `anti-slop` and `anti-slop-effect` plugins in `tools/oxlint/anti-slop/`; see its `UPSTREAM.md` for provenance and `oxlint.config.ts` for enabled rules)
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run test` — run unit tests once (Vitest)
 - `npm run test:watch` — run tests in watch mode
