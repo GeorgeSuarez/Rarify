@@ -17,6 +17,7 @@ function MiniBar({
   color: string;
 }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
+
   return (
     <Progress
       value={pct}
@@ -33,17 +34,21 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
     const games = data.games;
     const totalHours = games.reduce((s, g) => s + g.hours, 0);
     const backlog = games.filter((g) => g.hours === 0).length;
+
     const bandDefs = [
       { label: "0h", min: 0, max: 0 },
       { label: "1-10h", min: 1, max: 10 },
       { label: "10-100h", min: 10, max: 100 },
       { label: "100h+", min: 100, max: Infinity },
     ];
+
     const bands = bandDefs.map((b) => ({
       ...b,
       count: games.filter((g) => g.hours >= b.min && g.hours < b.max).length,
     }));
+
     const maxBand = Math.max(...bands.map((b) => b.count), 1);
+
     return { totalHours, backlog, bands, maxBand };
   }, [data.games]);
 
@@ -105,6 +110,7 @@ function RaritySection({ data }: { data: DashboardData }) {
   const { tiers, totalEarned } = useMemo(() => {
     const tiers = data.rarityDistribution;
     const totalEarned = tiers.reduce((s, t) => s + t.count, 0);
+
     return { tiers, totalEarned };
   }, [data.rarityDistribution]);
 
@@ -153,6 +159,7 @@ function RaritySection({ data }: { data: DashboardData }) {
 function CompletionSection({ data }: { data: DashboardData }) {
   const { bands, maxBand } = useMemo(() => {
     const games = data.games.filter((g) => g.achievements.total > 0);
+
     const bandDefs = [
       { label: "0%", min: 0, max: 0 },
       { label: "1-25%", min: 1, max: 25 },
@@ -161,12 +168,15 @@ function CompletionSection({ data }: { data: DashboardData }) {
       { label: "75-99%", min: 75, max: 100 },
       { label: "100%", min: 100, max: 100 },
     ];
+
     const bands = bandDefs.map((b) => ({
       ...b,
       count: games.filter((g) => g.completion >= b.min && g.completion < b.max)
         .length,
     }));
+
     const maxBand = Math.max(...bands.map((b) => b.count), 1);
+
     return { bands, maxBand };
   }, [data.games]);
 
@@ -216,20 +226,26 @@ const RENDER_NOW = Date.now();
 function VelocitySection({ data }: { data: DashboardData }) {
   const { weeklyData, maxCount } = useMemo(() => {
     const allUnlocktimes = data.games.flatMap((g) => g.unlocktimes);
+
     if (allUnlocktimes.length === 0) return { weeklyData: [], maxCount: 0 };
 
     const nowSec = RENDER_NOW / 1000;
     const weeks: { label: string; count: number }[] = [];
+
     for (let i = 12; i >= 0; i--) {
       const weekStart = nowSec - (i + 1) * 7 * 86400;
       const weekEnd = nowSec - i * 7 * 86400;
       const label = `-${i}w`;
+
       const count = allUnlocktimes.filter(
         (t) => t >= weekStart && t < weekEnd,
       ).length;
+
       weeks.push({ label, count });
     }
+
     const maxCount = Math.max(...weeks.map((w) => w.count), 1);
+
     return { weeklyData: weeks, maxCount };
   }, [data.games]);
 

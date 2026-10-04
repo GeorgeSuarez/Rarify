@@ -8,15 +8,18 @@ const freshDatabase = () => {
   const database = new DatabaseSync(":memory:");
   database.exec("PRAGMA foreign_keys = ON");
   database.exec(migration);
+
   return database;
 };
 
 describe("D1 baseline migration", () => {
   it("creates every application table", () => {
     const database = freshDatabase();
+
     const rows = database
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
       .all();
+
     const names = rows.map((row) => row.name);
 
     expect(names).toContain("users");
@@ -29,6 +32,7 @@ describe("D1 baseline migration", () => {
 
   it("keeps one snapshot per account per day", () => {
     const database = freshDatabase();
+
     const insert = database.prepare(
       `INSERT INTO snapshots
         (steam_id, date, achievements_earned, avg_completion, games_owned)
@@ -73,6 +77,7 @@ describe("D1 baseline migration", () => {
     const tracked = database.prepare(
       `INSERT INTO tracked_games (steam_id, app_id, tracked_at) VALUES (?, ?, ?)`,
     );
+
     tracked.run("76561198000000001", 1245620, 0);
     expect(() => tracked.run("76561198000000001", 1245620, 1)).toThrow();
     database.close();
@@ -101,11 +106,13 @@ describe("D1 schema-cache migration", () => {
       readFileSync("migrations/0001_game_achievement_cache.sql", "utf8"),
     );
     database.exec(readFileSync("migrations/0002_game_schema_cache.sql", "utf8"));
+
     return database;
   };
 
   it("creates one global schema row per game", () => {
     const database = migratedDatabase();
+
     const upsert = database.prepare(
       `INSERT INTO game_schemas (app_id, payload, fetched_at)
        VALUES (?, ?, ?)
@@ -113,6 +120,7 @@ describe("D1 schema-cache migration", () => {
          payload = excluded.payload,
          fetched_at = excluded.fetched_at`,
     );
+
     upsert.run(1245620, '{"ELD_1":{"displayName":"Elden Lord"}}', 100);
     // A second fetch for the same game replaces the row instead of adding one.
     upsert.run(1245620, '{}', 200);
@@ -121,6 +129,7 @@ describe("D1 schema-cache migration", () => {
     const rows = database
       .prepare("SELECT app_id AS appId, payload FROM game_schemas ORDER BY appId")
       .all();
+
     expect(rows).toEqual([
       { appId: 292030, payload: "{}" },
       { appId: 1245620, payload: "{}" },

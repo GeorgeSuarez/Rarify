@@ -21,6 +21,7 @@ import {
 import * as SteamClient from "../services/steam-client.ts";
 
 const STEAM_API_BASE = "https://api.steampowered.com";
+
 const PRIVATE_PROFILE_MESSAGE = "Profile is not public";
 
 type SteamFetchResult<A> =
@@ -41,6 +42,7 @@ function makeSteamError(
     message: `Steam API operation failed: ${operation}`,
     cause,
   };
+
   // `optionalKey` means the key must be absent, not `undefined`, when Steam
   // did not report an HTTP status.
   return status === undefined
@@ -55,9 +57,11 @@ function steamUrl(
 ): URL {
   const url = new URL(endpoint, STEAM_API_BASE);
   url.searchParams.set("key", Redacted.value(apiKey));
+
   for (const [name, value] of Object.entries(parameters)) {
     url.searchParams.set(name, value);
   }
+
   return url;
 }
 
@@ -80,6 +84,7 @@ function fetchSteamJson<S extends Schema.Constraint>(
       const body = yield* response.text.pipe(
         Effect.catch(() => Effect.succeed("")),
       );
+
       return {
         ok: false,
         status: response.status,
@@ -91,9 +96,11 @@ function fetchSteamJson<S extends Schema.Constraint>(
     const body = yield* response.json.pipe(
       Effect.mapError((cause) => makeSteamError(operation, cause, response.status)),
     );
+
     const data = yield* Schema.decodeUnknownEffect(schema)(body).pipe(
       Effect.mapError((cause) => makeSteamError(operation, cause, response.status)),
     );
+
     return { ok: true, data };
   });
 }
@@ -169,6 +176,7 @@ const make = Effect.gen(function* () {
           }),
         ),
       );
+
       if (!result.ok) {
         return {
           ok: false,
@@ -176,10 +184,13 @@ const make = Effect.gen(function* () {
           status: result.status ?? null,
         } as const;
       }
+
       const games = result.data.response.games;
+
       if (games === undefined) {
         return { ok: false, reason: "private_profile", status: 200 } as const;
       }
+
       return { ok: true, games: games.map(normalizeOwnedGame) } as const;
     }),
 
@@ -191,13 +202,16 @@ const make = Effect.gen(function* () {
           { steamid: steamId, appid: String(appId) },
           SteamPlayerAchievementsResponseSchema,
         );
+
         if (!result.ok) {
           // Steam answers 403 with "Profile is not public" when the account's
           // game details are private; that is ordinary absence of achievement
           // data, not an integration failure.
           if (result.privateProfile) return [];
+
           return yield* failSteamStatus("getPlayerAchievements", result.status);
         }
+
         return result.data.playerstats?.achievements ?? [];
       },
     ),
@@ -211,9 +225,11 @@ const make = Effect.gen(function* () {
         { gameid: String(appId) },
         SteamGlobalAchievementsResponseSchema,
       );
+
       if (!result.ok) {
         return yield* failSteamStatus("getGlobalAchievementPercentages", result.status);
       }
+
       return result.data.achievementpercentages?.achievements ?? [];
     }),
 
@@ -221,12 +237,14 @@ const make = Effect.gen(function* () {
       steamIds,
     ) {
       if (steamIds.length === 0) return [];
+
       const result = yield* request(
         "getPlayerSummaries",
         "/ISteamUser/GetPlayerSummaries/v2/",
         { steamids: steamIds.join(",") },
         SteamPlayerSummariesResponseSchema,
       );
+
       if (!result.ok) return yield* failSteamStatus("getPlayerSummaries", result.status);
 
       return yield* Effect.forEach(result.data.response.players, (player) =>
@@ -253,9 +271,11 @@ const make = Effect.gen(function* () {
         { steamid: steamId, relationship: "friend" },
         SteamFriendListResponseSchema,
       );
+
       if (!result.ok) return yield* failSteamStatus("getFriendIds", result.status);
 
       const friends = result.data.friendslist?.friends ?? [];
+
       return yield* Effect.forEach(friends, (friend) =>
         Schema.decodeUnknownEffect(SteamIdSchema)(friend.steamid).pipe(
           Effect.mapError((cause) => makeSteamError("parseFriendSteamId", cause)),
@@ -271,14 +291,17 @@ const make = Effect.gen(function* () {
           { appid: String(appId), l: "english" },
           SteamSchemaResponseSchema,
         );
+
         if (!result.ok) return yield* failSteamStatus("getGameAchievementSchema", result.status);
 
         const metadata = new Map<
           string,
           Pick<SteamSchemaAchievement, "displayName" | "description" | "icon" | "icongray">
         >();
+
         const achievements =
           result.data.game?.availableGameStats?.achievements ?? [];
+
         for (const achievement of achievements) {
           // Hidden achievements have no description and some games omit the
           // display name or icons; normalize so callers always see strings.
@@ -289,6 +312,7 @@ const make = Effect.gen(function* () {
             icongray: achievement.icongray ?? "",
           });
         }
+
         return metadata;
       },
     ),

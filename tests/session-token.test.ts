@@ -11,6 +11,7 @@ import { layer as sessionTokenLayer } from "@/src/adapters/session-jwt";
 import * as Session from "@/src/services/session";
 
 const STEAM_ID = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000001");
+
 const SECRET = "test-auth-secret";
 
 const runWithSession = <A, E>(effect: Effect.Effect<A, E, Session.Service>) =>
@@ -28,6 +29,7 @@ describe("SessionService", () => {
         Effect.gen(function* () {
           const service = yield* Session.Service;
           const token = yield* service.create(STEAM_ID);
+
           return yield* service.verify(token);
         }),
       ),
@@ -44,6 +46,7 @@ describe("SessionService", () => {
           const service = yield* Session.Service;
           const token = yield* service.create(STEAM_ID);
           const tampered = `${Redacted.value(token).slice(0, -2)}xx`;
+
           return yield* service.verify(
             Redacted.make(tampered, { label: "tampered" }),
           );
@@ -58,6 +61,7 @@ describe("SessionService", () => {
     const forged = await Effect.runPromise(
       Effect.gen(function* () {
         const service = yield* Session.Service;
+
         return yield* service.create(STEAM_ID);
       }).pipe(
         Effect.provide(sessionTokenLayer),
@@ -73,6 +77,7 @@ describe("SessionService", () => {
       runWithSession(
         Effect.gen(function* () {
           const service = yield* Session.Service;
+
           return yield* service.verify(forged);
         }),
       ),
@@ -85,6 +90,7 @@ describe("SessionService", () => {
     const result = await Effect.runPromise(
       Effect.gen(function* () {
         const service = yield* Session.Service;
+
         return yield* service.create(STEAM_ID);
       }).pipe(
         Effect.provide(sessionTokenLayer),
@@ -98,10 +104,12 @@ describe("SessionService", () => {
 
   it("shares one Layer build across both methods", async () => {
     const layer = sessionTokenLayer;
+
     const services = await Effect.runPromise(
       Effect.gen(function* () {
         const first = yield* Session.Service;
         const second = yield* Session.Service;
+
         return first === second;
       }).pipe(
         Effect.provide(layer),
@@ -118,4 +126,5 @@ describe("SessionService", () => {
 /** Ensures the Layer type stays usable from the Worker composition root. */
 const layerUsable: Layer.Layer<Session.Service, ConfigError.ConfigError> =
   sessionTokenLayer;
+
 void layerUsable;

@@ -55,9 +55,11 @@ export type CompletionTier = (typeof COMPLETION_TIERS)[number];
 export function completionTierOf(percent: number): CompletionTier {
   if (!Number.isFinite(percent)) return COMPLETION_TIERS[0];
   let tier: CompletionTier = COMPLETION_TIERS[0];
+
   for (const candidate of COMPLETION_TIERS) {
     if (percent < candidate.min) break;
     tier = candidate;
   }
+
   return tier;
 }

@@ -298,6 +298,7 @@ export function GamesView({
                 value={sort}
                 onValueChange={(v) => {
                   const next = SORT_KEYS.find((key) => key === v);
+
                   if (next) setSort(next);
                 }}
               >

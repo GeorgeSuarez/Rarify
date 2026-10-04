@@ -41,7 +41,9 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
 
   const searched = useMemo(() => {
     const q = query.trim().toLowerCase();
+
     if (!q) return data.games;
+
     return data.games.filter((game) =>
       game.name.toLowerCase().includes(q),
     );

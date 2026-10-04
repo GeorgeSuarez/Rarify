@@ -68,6 +68,7 @@ export function SidebarContent({
       <nav aria-label="Primary" className="mt-8 flex flex-col gap-1">
         {navItems.map((item) => {
           const isActive = !item.disabled && item.href === activeHref;
+
           return item.disabled ? (
             <span
               key={item.label}

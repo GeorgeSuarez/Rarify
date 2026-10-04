@@ -29,12 +29,14 @@ export function SettingsView({
   async function handleSave() {
     setSaving(true);
     setSaved(false);
+
     try {
       const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(prefs),
       });
+
       if (res.ok) {
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
@@ -84,6 +86,7 @@ export function SettingsView({
                     value={[prefs.defaultFilter]}
                     onValueChange={(value) => {
                       const next = value[0];
+
                       if (next) {
                         // SAFETY: ToggleGroup values are constrained to GameFilter strings via FILTER_OPTIONS.
                         setPrefs((current) => ({

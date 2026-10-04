@@ -71,10 +71,12 @@ describe("serializeSnapshot / deserializeSnapshot", () => {
   it("returns null when games or earnedEntries are missing", () => {
     const noGames = JSON.stringify({ ...validSnapshot, games: undefined });
     expect(deserializeSnapshot(noGames)).toBeNull();
+
     const noEntries = JSON.stringify({
       ...validSnapshot,
       earnedEntries: undefined,
     });
+
     expect(deserializeSnapshot(noEntries)).toBeNull();
   });
 

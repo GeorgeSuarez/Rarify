@@ -67,6 +67,7 @@ function GameHeader({ game, priority }: { game: Game; priority?: boolean }) {
 
 function CompletionBar({ game }: { game: Game }) {
   const tier = completionTierOf(game.completion);
+
   return (
     <div className="flex w-32 flex-col gap-1">
       <span className={cn("font-semibold", tier.textClassName)}>
@@ -142,6 +143,7 @@ function TrackButton({
             method: "DELETE",
           });
         }
+
         onTrackToggle?.(game.appId, nextTracked);
       } catch {
         setTracked(!nextTracked);

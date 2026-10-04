@@ -19,6 +19,7 @@ function profileFor(
   summaries: ReadonlyArray<SteamClient.ProfileSummary>,
 ): RarifyStore.UserProfileInput {
   const summary = summaries.find((player) => player.steamId === steamId);
+
   return {
     personaName: summary?.personaName ?? `Player ${steamId.slice(-8)}`,
     avatar: summary?.avatarFull ?? null,
@@ -57,6 +58,7 @@ export const make: Effect.Effect<
     assertion: SteamOpenId.SteamOpenIdAssertion,
   ) {
     const steamId = yield* openId.verify(assertion);
+
     const summaries = yield* steam
       .getPlayerSummaries([steamId])
       .pipe(

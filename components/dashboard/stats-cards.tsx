@@ -88,6 +88,7 @@ function StatCard({ icon, iconBg, label, value, subtext }: StatCardProps) {
 
 export function StatsCards({ stats }: { stats: Stats }) {
   const completionValue = Math.round(stats.avgCompletion) || 0;
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard

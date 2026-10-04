@@ -28,18 +28,23 @@ const UserRowSchema = Schema.Struct({
 });
 
 const TrackedAppIdRowSchema = Schema.Struct({ appId: AppIdSchema });
+
 const PreferencesRowSchema = Schema.Struct({ defaultFilter: GameFilterSchema });
+
 const PreviousSnapshotRowSchema = Schema.Struct({
   achievementsEarned: Schema.Number,
   avgCompletion: Schema.Number,
   gamesOwned: Schema.Number,
 });
+
 const UserIdRowSchema = Schema.Struct({ steamId: SteamIdSchema });
+
 const GameAchievementRowSchema = Schema.Struct({
   appId: AppIdSchema,
   payload: Schema.String,
   fetchedAt: Schema.Number,
 });
+
 const GameSchemaRowSchema = Schema.Struct({
   appId: AppIdSchema,
   payload: Schema.String,
@@ -69,6 +74,7 @@ const make = Effect.gen(function* () {
       `.pipe(mapPersistenceError("getUserProfile"));
 
       const row = rows[0];
+
       if (row === undefined) return Option.none();
 
       const decoded = yield* Schema.decodeUnknownEffect(UserRowSchema)(row).pipe(
@@ -80,6 +86,7 @@ const make = Effect.gen(function* () {
           }),
         ),
       );
+
       if (decoded.avatar === null) return Option.none();
 
       return Option.some({
@@ -181,6 +188,7 @@ const make = Effect.gen(function* () {
       `.pipe(mapPersistenceError("getPreferences"));
 
       const row = rows[0];
+
       if (row === undefined) return { defaultFilter: "all" as const };
 
       const decoded = yield* Schema.decodeUnknownEffect(PreferencesRowSchema)(row).pipe(
@@ -192,6 +200,7 @@ const make = Effect.gen(function* () {
           }),
         ),
       );
+
       return { defaultFilter: decoded.defaultFilter };
     }),
 
@@ -200,6 +209,7 @@ const make = Effect.gen(function* () {
       preferences,
     ) {
       const now = yield* Clock.currentTimeMillis;
+
       return yield* sql`
         INSERT INTO user_preferences (steam_id, default_filter, updated_at)
         VALUES (${steamId}, ${preferences.defaultFilter}, ${now})
@@ -229,6 +239,7 @@ const make = Effect.gen(function* () {
       `.pipe(mapPersistenceError("getCachedLibrary"));
 
       const row = rows[0];
+
       if (row === undefined) return Option.none();
 
       const decoded = Option.getOrNull(
@@ -236,9 +247,11 @@ const make = Effect.gen(function* () {
           row.payload,
         ),
       );
+
       if (decoded === null || decoded.version !== SNAPSHOT_VERSION) {
         return Option.none();
       }
+
       return Option.some(decoded);
     }),
 
@@ -264,6 +277,7 @@ const make = Effect.gen(function* () {
               earnedEntries: snapshot.earnedEntries,
               user: snapshot.user,
             };
+
       const payload = Schema.encodeSync(Schema.fromJsonString(PersistedSnapshotSchema))(persisted);
       yield* sql`
         INSERT INTO library_snapshots (steam_id, version, payload, fetched_at)
@@ -304,6 +318,7 @@ const make = Effect.gen(function* () {
       `.pipe(mapPersistenceError("getPreviousSnapshot"));
 
       const row = rows[0];
+
       if (row === undefined) return Option.none();
 
       const decoded = yield* Schema.decodeUnknownEffect(
@@ -317,6 +332,7 @@ const make = Effect.gen(function* () {
           }),
         ),
       );
+
       return Option.some({
         achievementsEarned: decoded.achievementsEarned,
         avgCompletion: decoded.avgCompletion / 10,
@@ -390,6 +406,7 @@ const make = Effect.gen(function* () {
           number,
           RarifyStore.GameAchievementCacheRead
         >();
+
         for (const row of rows) {
           const decoded = yield* Schema.decodeUnknownEffect(
             GameAchievementRowSchema,
@@ -402,11 +419,13 @@ const make = Effect.gen(function* () {
               }),
             ),
           );
+
           const entry = Option.getOrNull(
             Schema.decodeUnknownOption(
               Schema.fromJsonString(GameAchievementCacheEntrySchema),
             )(decoded.payload),
           );
+
           if (entry === null) {
             // A cache row written by an older payload version is treated as a
             // miss so the game is re-fetched rather than failing the request.
@@ -415,11 +434,13 @@ const make = Effect.gen(function* () {
             ).pipe(Effect.annotateLogs({ appId: String(decoded.appId) }));
             continue;
           }
+
           entries.set(decoded.appId, {
             entry,
             fetchedAtMs: decoded.fetchedAt,
           });
         }
+
         return entries;
       },
     ),
@@ -428,6 +449,7 @@ const make = Effect.gen(function* () {
       "RarifyStore.saveGameAchievementCache",
     )(function* (steamId, entries) {
       if (entries.length === 0) return;
+
       // `sql.insert` compiles the whole column/value clause, so the record keys
       // are the physical column names.
       const encoded = entries.map(({ appId, entry, fetchedAtMs }) => ({
@@ -438,6 +460,7 @@ const make = Effect.gen(function* () {
         )(entry),
         fetched_at: fetchedAtMs,
       }));
+
       yield* sql`
         INSERT INTO game_achievements ${sql.insert(encoded)}
         ON CONFLICT (steam_id, app_id) DO UPDATE SET
@@ -458,6 +481,7 @@ const make = Effect.gen(function* () {
     getGameSchemaCache: Effect.fn("RarifyStore.getGameSchemaCache")(
       function* (appIds) {
         if (appIds.length === 0) return new Map<number, RarifyStore.GameSchemaCacheRead>();
+
         const rows = yield* sql<{
           appId: number;
           payload: string;
@@ -469,6 +493,7 @@ const make = Effect.gen(function* () {
         `.pipe(mapPersistenceError("getGameSchemaCache"));
 
         const entries = new Map<number, RarifyStore.GameSchemaCacheRead>();
+
         for (const row of rows) {
           const decoded = yield* Schema.decodeUnknownEffect(
             GameSchemaRowSchema,
@@ -481,11 +506,13 @@ const make = Effect.gen(function* () {
               }),
             ),
           );
+
           const schema = Option.getOrNull(
             Schema.decodeUnknownOption(
               Schema.fromJsonString(GameAchievementSchemaMapSchema),
             )(decoded.payload),
           );
+
           if (schema === null) {
             // A schema row written by an older payload version is treated as
             // a miss so the game is re-fetched rather than failing the request.
@@ -494,11 +521,13 @@ const make = Effect.gen(function* () {
             ).pipe(Effect.annotateLogs({ appId: String(decoded.appId) }));
             continue;
           }
+
           entries.set(decoded.appId, {
             schema,
             fetchedAtMs: decoded.fetchedAt,
           });
         }
+
         return entries;
       },
     ),
@@ -506,6 +535,7 @@ const make = Effect.gen(function* () {
     saveGameSchemaCache: Effect.fn("RarifyStore.saveGameSchemaCache")(
       function* (entries) {
         if (entries.length === 0) return;
+
         // `sql.insert` compiles the whole column/value clause, so the record
         // keys are the physical column names.
         const encoded = entries.map(({ appId, schema, fetchedAtMs }) => ({
@@ -515,6 +545,7 @@ const make = Effect.gen(function* () {
           )(schema),
           fetched_at: fetchedAtMs,
         }));
+
         yield* sql`
           INSERT INTO game_schemas ${sql.insert(encoded)}
           ON CONFLICT (app_id) DO UPDATE SET
@@ -556,6 +587,7 @@ export const layerForD1 = (
 export const layer = Layer.unwrap(
   Effect.gen(function* () {
     const database = yield* Cloudflare.D1.QueryDatabase(Database);
+
     return layerForD1(database);
   }),
 );

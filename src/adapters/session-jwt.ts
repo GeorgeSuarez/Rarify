@@ -32,6 +32,7 @@ const make = Effect.gen(function* () {
           cause,
         }),
     });
+
     return Redacted.make(token, { label: "Rarify session token" });
   });
 
@@ -50,6 +51,7 @@ const make = Effect.gen(function* () {
 
     if (Result.isFailure(result)) return Option.none();
     const session = Schema.decodeUnknownOption(SessionPayloadSchema)(result.success.payload);
+
     return Option.map(session, ({ steamId }) => ({ steamId }));
   });
 

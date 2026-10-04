@@ -46,6 +46,7 @@ export function useApi<A, E>(
 
     Effect.runPromise(outcome).then((result) => {
       if (cancelled) return;
+
       if (result.status === "ready") setState({ status: "ready", data: result.data });
       else if (result.status === "unauthorized") setState({ status: "unauthorized" });
       else setState({ status: "error", message: result.message });

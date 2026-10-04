@@ -38,13 +38,17 @@ export function summarizeAchievementData(
   entry: GameAchievementCacheEntry,
 ): GameEnrichment & { readonly earnedEntries: ReadonlyArray<EarnedAchievementSummary> } {
   const earned = entry.achievements.filter((a) => a.achieved === 1).length;
+
   const unlocktimes = entry.achievements
     .filter((a) => a.achieved === 1 && a.unlocktime > 0)
     .map((a) => a.unlocktime);
+
   const percentByApiName = new Map<string, number>();
+
   for (const percentage of entry.globalPercentages) {
     percentByApiName.set(percentage.name, percentage.percent);
   }
+
   const earnedEntries = entry.achievements
     .filter((a) => a.achieved === 1 && a.unlocktime > 0)
     .map((a) => ({
@@ -84,10 +88,12 @@ export function computeStats(
   const gamesWithAchievements = games.filter(
     (game) => game.achievements.total > 0,
   );
+
   const achievementsEarned = games.reduce(
     (sum, game) => sum + game.achievements.earned,
     0,
   );
+
   const avgCompletion =
     gamesWithAchievements.length === 0
       ? 0
@@ -101,6 +107,7 @@ export function computeStats(
         ) / 10;
 
   const thirtyDaysAgo = nowMs - 30 * 24 * 60 * 60 * 1000;
+
   const recentUnlocks = games.reduce(
     (sum, game) =>
       sum + game.unlocktimes.filter((time) => time * 1000 >= thirtyDaysAgo).length,
@@ -130,6 +137,7 @@ export function meanGlobalPercent(
   if (percentages.length === 0) return 0;
   const sum = percentages.reduce((total, achievement) => total + achievement.percent, 0);
   const mean = Math.round((sum / percentages.length) * 10) / 10;
+
   return Number.isNaN(mean) ? 0 : mean;
 }
 
@@ -145,10 +153,13 @@ export function buildGame(
     data.achievements.total === 0
       ? 0
       : Math.round((data.achievements.earned / data.achievements.total) * 100);
+
   const safeCompletion = Number.isNaN(completion) ? 0 : completion;
+
   const safeCommunityAvg = Number.isNaN(data.communityAvg)
     ? 0
     : data.communityAvg;
+
   const communityPct = Math.round(safeCommunityAvg * 10) / 10;
   const isPositive = safeCompletion >= safeCommunityAvg;
 
@@ -173,6 +184,7 @@ export function buildGame(
 /** First index letter for a game name; non A–Z initials group under `#`. */
 export function indexLetterOfName(name: string): string {
   const first = name.trim().charAt(0).toUpperCase();
+
   return first >= "A" && first <= "Z" ? first : "#";
 }
 
@@ -197,13 +209,16 @@ export function buildAlphabetIndex(
   const sorted = [...games]
     .filter((game) => game.achievements.total > 0)
     .sort((a, b) => a.name.localeCompare(b.name));
+
   const groups = new Map<string, Array<Game>>();
+
   for (const game of sorted) {
     const letter = indexLetterOfName(game.name);
     const list = groups.get(letter) ?? [];
     list.push(game);
     groups.set(letter, list);
   }
+
   return [...groups.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([letter, list]) => ({ letter, games: list }));
@@ -222,8 +237,10 @@ export function computeRarityDistribution(
   earnedEntries: ReadonlyArray<EarnedEntry>,
 ): ReadonlyArray<RarityTier> {
   const counts = RARITY_TIERS.map((tier) => ({ ...tier, count: 0 }));
+
   for (const entry of earnedEntries) {
     const percentage = entry.globalPercent ?? 0;
+
     for (const tier of counts) {
       if (percentage >= tier.min && percentage < tier.max) {
         tier.count += 1;
@@ -231,5 +248,6 @@ export function computeRarityDistribution(
       }
     }
   }
+
   return counts.map(({ tier, count, color }) => ({ tier, count, color }));
 }

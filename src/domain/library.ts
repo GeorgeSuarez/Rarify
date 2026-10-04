@@ -103,7 +103,9 @@ export function deserializeSnapshot(raw: string): PersistedSnapshot | null {
   const decoded = Option.getOrNull(
     Schema.decodeUnknownOption(Schema.fromJsonString(PersistedSnapshotSchema))(raw),
   );
+
   if (decoded === null || decoded.version !== SNAPSHOT_VERSION) return null;
+
   return decoded;
 }
 

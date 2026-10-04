@@ -48,8 +48,11 @@ export function OverviewPage() {
   );
 
   if (dashboard.status === "loading") return <LoadingScreen />;
+
   if (dashboard.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (dashboard.status === "error") return <ApiErrorScreen message={dashboard.message} />;
+
   return <DashboardView initialData={dashboard.data} />;
 }
 
@@ -58,8 +61,11 @@ export function GamesPage() {
   const library = useApi(() => apiGroups.library.getGames(), []);
 
   if (library.status === "loading") return <LoadingScreen />;
+
   if (library.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (library.status === "error") return <ApiErrorScreen message={library.message} />;
+
   return <GamesView games={library.data.games} user={library.data.user} />;
 }
 
@@ -67,6 +73,7 @@ export function GamesPage() {
 export function GameAchievementsPage() {
   const { appId: appIdParam } = useParams();
   const appId = appIdFromRouteParam(appIdParam);
+
   const achievements = useApi(
     () =>
       appId === null
@@ -78,9 +85,13 @@ export function GameAchievementsPage() {
   );
 
   if (achievements.status === "loading") return <LoadingScreen />;
+
   if (achievements.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (achievements.status === "error") return <ApiErrorScreen message={achievements.message} />;
+
   if (achievements.data === null) return <NotFoundPage />;
+
   return <AchievementList data={achievements.data} />;
 }
 
@@ -92,8 +103,11 @@ export function AchievementsPage() {
   );
 
   if (achievements.status === "loading") return <LoadingScreen />;
+
   if (achievements.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (achievements.status === "error") return <ApiErrorScreen message={achievements.message} />;
+
   return <AchievementsOverview data={achievements.data} />;
 }
 
@@ -105,8 +119,11 @@ export function InsightsPage() {
   );
 
   if (dashboard.status === "loading") return <LoadingScreen />;
+
   if (dashboard.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (dashboard.status === "error") return <ApiErrorScreen message={dashboard.message} />;
+
   return <InsightsView initialData={dashboard.data} />;
 }
 
@@ -115,8 +132,11 @@ export function FriendsPage() {
   const friends = useApi(() => apiGroups.friends.getFriends(), []);
 
   if (friends.status === "loading") return <LoadingScreen />;
+
   if (friends.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (friends.status === "error") return <ApiErrorScreen message={friends.message} />;
+
   return (
     <FriendsView
       friends={friends.data.friends}
@@ -130,6 +150,7 @@ export function FriendsPage() {
 export function FriendComparePage() {
   const { steamId: steamIdParam } = useParams();
   const steamId = steamIdFromRouteParam(steamIdParam);
+
   const comparison = useApi(
     () =>
       steamId === null
@@ -139,9 +160,13 @@ export function FriendComparePage() {
   );
 
   if (comparison.status === "loading") return <LoadingScreen />;
+
   if (comparison.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (comparison.status === "error") return <ApiErrorScreen message={comparison.message} />;
+
   if (comparison.data === null) return <NotFoundPage />;
+
   return (
     <FriendCompareView
       yourData={comparison.data.yourData}
@@ -156,8 +181,11 @@ export function SettingsPage() {
   const preferences = useApi(() => apiGroups.preferences.getPreferences(), []);
 
   if (preferences.status === "loading") return <LoadingScreen />;
+
   if (preferences.status === "unauthorized") return <Navigate to="/login" replace />;
+
   if (preferences.status === "error") return <ApiErrorScreen message={preferences.message} />;
+
   return <SettingsView initialPrefs={preferences.data} />;
 }
 
@@ -183,6 +211,7 @@ export function NotFoundPage() {
 /** Route-level error boundary matching the previous Next.js error screen. */
 export function RouteErrorPage() {
   const error = useRouteError();
+
   const message =
     error instanceof Error ? error.message : "We hit an unexpected error while loading this page.";
 

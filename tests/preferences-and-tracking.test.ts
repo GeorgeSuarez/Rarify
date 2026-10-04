@@ -12,6 +12,7 @@ import * as RarifyStore from "@/src/services/rarify-store";
 import * as TrackedGames from "@/src/services/tracked-games";
 
 const STEAM_ID = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000001");
+
 const APP_ID = Schema.decodeUnknownSync(AppIdSchema)(1245620);
 
 interface StoreState {
@@ -72,6 +73,7 @@ describe("PreferencesService", () => {
     const preferences = await Effect.runPromise(
       Effect.gen(function* () {
         const service = yield* Preferences.Service;
+
         return yield* service.get(STEAM_ID);
       }).pipe(
         Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state)))),
@@ -87,6 +89,7 @@ describe("PreferencesService", () => {
     const saved = await Effect.runPromise(
       Effect.gen(function* () {
         const service = yield* Preferences.Service;
+
         return yield* service.save(STEAM_ID, { defaultFilter: "tracked" });
       }).pipe(
         Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state)))),
@@ -109,6 +112,7 @@ describe("PreferencesService", () => {
     const saved = await Effect.runPromise(
       Effect.gen(function* () {
         const service = yield* Preferences.Service;
+
         return yield* service.save(STEAM_ID, {});
       }).pipe(
         Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state)))),

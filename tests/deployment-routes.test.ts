@@ -41,6 +41,7 @@ describe("website deep-link fallback", () => {
     const { websiteAssets, websiteDomain, ZONE_NAME } = await import(
       "@/src/website"
     );
+
     expect(websiteAssets.notFoundHandling).toBe("single-page-application");
     expect(websiteDomain("rarify.georgejsuarez.com")).toEqual({
       name: "rarify.georgejsuarez.com",

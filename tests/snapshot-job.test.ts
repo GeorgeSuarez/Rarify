@@ -13,8 +13,11 @@ import * as RarifyStore from "@/src/services/rarify-store";
 import * as SnapshotJob from "@/src/services/snapshot-job";
 
 const USER_A = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000001");
+
 const USER_B = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000002");
+
 const NOW = 1_700_000_000_000;
+
 const TODAY = "2023-11-14";
 
 const game: Game = {
@@ -98,6 +101,7 @@ describe("SnapshotJob.runDaily", () => {
         Effect.andThen(
           Effect.gen(function* () {
             const job = yield* SnapshotJob.Service;
+
             return yield* job.runDaily(NOW);
           }),
         ),
@@ -129,6 +133,7 @@ describe("SnapshotJob.runDaily", () => {
         Effect.andThen(
           Effect.gen(function* () {
             const job = yield* SnapshotJob.Service;
+
             return yield* job.runDaily(lateEvening);
           }),
         ),

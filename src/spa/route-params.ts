@@ -15,6 +15,7 @@ import {
  */
 export function appIdFromRouteParam(value: string | undefined): AppId | null {
   if (value === undefined) return null;
+
   return Option.getOrNull(Schema.decodeUnknownOption(AppIdFromStringSchema)(value));
 }
 
@@ -26,5 +27,6 @@ export function appIdFromRouteParam(value: string | undefined): AppId | null {
  */
 export function steamIdFromRouteParam(value: string | undefined): SteamId | null {
   if (value === undefined) return null;
+
   return Option.getOrNull(Schema.decodeUnknownOption(SteamIdSchema)(value));
 }

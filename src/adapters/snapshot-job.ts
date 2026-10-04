@@ -25,6 +25,7 @@ export const make: Effect.Effect<
       (steamId: SteamId) =>
         Effect.gen(function* () {
           const library = yield* dashboard.getLibrary(steamId);
+
           if (library.error !== null) {
             return yield* Effect.logWarning(
               "Skipping snapshot for a private or unavailable profile",
@@ -33,12 +34,14 @@ export const make: Effect.Effect<
               Effect.as(false),
             );
           }
+
           const nowMs = yield* Clock.currentTimeMillis;
           yield* store.recordDailySnapshot(
             steamId,
             date,
             computeStats(library.games, nowMs),
           );
+
           return true;
         }).pipe(
           Effect.catchTag("PersistenceError", (error) =>
@@ -58,6 +61,7 @@ export const make: Effect.Effect<
     );
 
     const recorded = outcomes.filter((recorded) => recorded).length;
+
     return {
       attempted: outcomes.length,
       recorded,

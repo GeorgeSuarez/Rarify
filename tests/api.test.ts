@@ -91,6 +91,7 @@ describe("Rarify HTTP API", () => {
       }),
       { disableLogger: true },
     );
+
     handler = built.handler;
     dispose = built.dispose;
     context = Context.empty();
@@ -105,6 +106,7 @@ describe("Rarify HTTP API", () => {
       new Request("http://rarify.test/api/session"),
       context,
     );
+
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ authenticated: false });
   });
@@ -116,6 +118,7 @@ describe("Rarify HTTP API", () => {
       }),
       context,
     );
+
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ authenticated: true });
   });
@@ -125,6 +128,7 @@ describe("Rarify HTTP API", () => {
       new Request("http://rarify.test/api/dashboard"),
       context,
     );
+
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toMatchObject({
       message: "Sign in through Steam to continue",
@@ -138,6 +142,7 @@ describe("Rarify HTTP API", () => {
       }),
       context,
     );
+
     expect(response.status).toBe(200);
     // SAFETY: /api/games serializes the LibraryResponse contract, whose games
     // field is an array; the test only inspects that shape.
@@ -153,6 +158,7 @@ describe("Rarify HTTP API", () => {
       }),
       context,
     );
+
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ games: [], error: null });
   });
@@ -164,6 +170,7 @@ describe("Rarify HTTP API", () => {
       }),
       context,
     );
+
     expect(response.status).toBe(400);
   });
 
@@ -179,6 +186,7 @@ describe("Rarify HTTP API", () => {
       }),
       context,
     );
+
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ defaultFilter: "owned" });
   });
@@ -195,6 +203,7 @@ describe("Rarify HTTP API", () => {
       }),
       context,
     );
+
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ tracked: true, appId: 1245620 });
   });
@@ -211,6 +220,7 @@ describe("Rarify HTTP API", () => {
       }),
       context,
     );
+
     expect(response.status).toBe(400);
   });
 });

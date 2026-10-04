@@ -11,9 +11,11 @@ const STEAM_OPENID_URL = "https://steamcommunity.com/openid/login";
 function assertionFrom(url: string) {
   const parameters = new URL(url, "https://rarify.invalid").searchParams;
   const assertion: Record<string, string> = {};
+
   for (const [name, value] of parameters) {
     assertion[name] = value;
   }
+
   return assertion;
 }
 
@@ -44,6 +46,7 @@ export const authRoutesLayer = (services: {
           "openid.ns.pape": "http://specs.openid.net/extensions/pape/1.0",
           "openid.pape.max_auth_age": "0",
         });
+
         return Effect.succeed(
           HttpServerResponse.redirect(`${STEAM_OPENID_URL}?${parameters.toString()}`),
         );
@@ -59,6 +62,7 @@ export const authRoutesLayer = (services: {
             yield* Effect.logWarning("Steam sign-in failed").pipe(
               Effect.annotateLogs({ errorTag: outcome.failure._tag }),
             );
+
             return HttpServerResponse.redirect(
               `${services.publicAppUrl}/login?error=auth_failed`,
             );
@@ -78,6 +82,7 @@ export const authRoutesLayer = (services: {
             HttpServerResponse.redirect(`${services.publicAppUrl}/login`),
             services.secureCookies,
           );
+
           return HttpServerResponse.setHeader(cleared, "cache-control", "no-store");
         }),
       );

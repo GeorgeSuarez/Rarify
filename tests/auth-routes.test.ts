@@ -10,6 +10,7 @@ import * as SteamLogin from "@/src/services/steam-login";
 import * as SteamOpenId from "@/src/services/steam-openid";
 
 const STEAM_ID = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000001");
+
 const PUBLIC_APP_URL = "https://rarify.example";
 
 const makeSteamLogin = (
@@ -43,10 +44,12 @@ const buildHandler = (steamLogin: SteamLogin.Interface) =>
 describe("Steam auth routes", () => {
   it("starts Steam OpenID with return_to and realm on the public origin", async () => {
     const built = buildHandler(succeedingLogin);
+
     try {
       const response = await built.handler(
         new Request("https://rarify.example/auth/steam"),
       );
+
       expect(response.status).toBe(302);
       const location = response.headers.get("location");
       expect(location).toContain("https://steamcommunity.com/openid/login");
@@ -63,12 +66,14 @@ describe("Steam auth routes", () => {
 
   it("sets the HTTP-only session cookie on a successful callback", async () => {
     const built = buildHandler(succeedingLogin);
+
     try {
       const response = await built.handler(
         new Request(
           `https://rarify.example/auth/steam/callback?openid.mode=id_res&openid.claimed_id=https://steamcommunity.com/openid/id/${STEAM_ID}`,
         ),
       );
+
       expect(response.status).toBe(302);
       expect(response.headers.get("location")).toBe(`${PUBLIC_APP_URL}/`);
       const setCookie = response.headers.get("set-cookie") ?? "";
@@ -83,10 +88,12 @@ describe("Steam auth routes", () => {
 
   it("redirects to the login screen with an error when verification fails", async () => {
     const built = buildHandler(failingLogin);
+
     try {
       const response = await built.handler(
         new Request("https://rarify.example/auth/steam/callback?openid.mode=id_res"),
       );
+
       expect(response.status).toBe(302);
       expect(response.headers.get("location")).toBe(
         `${PUBLIC_APP_URL}/login?error=auth_failed`,
@@ -99,10 +106,12 @@ describe("Steam auth routes", () => {
 
   it("expires the session cookie on logout", async () => {
     const built = buildHandler(succeedingLogin);
+
     try {
       const response = await built.handler(
         new Request("https://rarify.example/auth/logout", { method: "POST" }),
       );
+
       expect(response.status).toBe(302);
       expect(response.headers.get("location")).toBe(`${PUBLIC_APP_URL}/login`);
       const setCookie = response.headers.get("set-cookie") ?? "";
@@ -122,10 +131,12 @@ describe("Steam auth routes", () => {
       }),
       { disableLogger: true },
     );
+
     try {
       const response = await built.handler(
         new Request("http://localhost:5173/auth/steam/callback?openid.mode=id_res"),
       );
+
       const setCookie = response.headers.get("set-cookie") ?? "";
       expect(setCookie).toContain(`${SESSION_COOKIE}=issued-token`);
       expect(setCookie).not.toContain("Secure");

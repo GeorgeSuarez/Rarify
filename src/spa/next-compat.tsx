@@ -27,6 +27,7 @@ export function Image({
   const style: CSSProperties | undefined = fill
     ? { position: "absolute", inset: 0, width: "100%", height: "100%" }
     : undefined;
+
   return (
     <img
       src={src}

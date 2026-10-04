@@ -8,6 +8,7 @@ import { SteamIdSchema } from "../../lib/types.ts";
 import * as SteamOpenId from "../services/steam-openid.ts";
 
 const STEAM_OPENID_URL = "https://steamcommunity.com/openid/login";
+
 const STEAM_ID_PREFIX = "https://steamcommunity.com/openid/id/";
 
 const make = Effect.gen(function* () {
@@ -15,6 +16,7 @@ const make = Effect.gen(function* () {
 
   const verify = Effect.fn("SteamOpenId.verify")(function* (assertion) {
     const claimedId = assertion["openid.claimed_id"];
+
     if (!claimedId?.startsWith(STEAM_ID_PREFIX)) {
       return yield* Effect.fail(
         new SteamOpenId.SteamOpenIdError({

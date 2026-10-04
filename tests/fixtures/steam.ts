@@ -73,6 +73,7 @@ export const emptyGamesFixture = {
 } satisfies SteamOwnedGamesResponse;
 
 const NOW = Math.floor(Date.now() / 1000);
+
 const ONE_DAY = 86400;
 
 export const playerAchievementsFixture = {

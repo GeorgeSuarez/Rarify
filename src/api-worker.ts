@@ -52,6 +52,7 @@ export default Cloudflare.Worker(
     // Deployment secrets are resolved in the Construction phase so Alchemy
     // binds them without exposing their values to diagnostics.
     const domain = yield* Config.option(Config.String("PUBLIC_APP_DOMAIN"));
+
     // A deployed stack always serves the configured hostname, so the Steam
     // return_to/realm cannot drift from the host the browser is on. Local
     // development falls back to the explicit PUBLIC_APP_URL.
@@ -59,6 +60,7 @@ export default Cloudflare.Worker(
       onNone: () => Config.String("PUBLIC_APP_URL"),
       onSome: (host) => Config.succeed(`https://${host}`),
     });
+
     // Local development serves over http://, so its session cookie cannot be
     // marked Secure; every https deployment keeps the stricter flag.
     const secureCookies = publicAppUrl.startsWith("https://");
@@ -71,23 +73,29 @@ export default Cloudflare.Worker(
     const steamClient = yield* SteamClient.Service.pipe(
       Effect.provide(steamWebApiLayer),
     );
+
     const dashboard = yield* DashboardService.Service.pipe(
       Effect.provide(
         dashboardServiceLayer.pipe(Layer.provide(Layer.mergeAll(steamWebApiLayer, storeLayer))),
       ),
     );
+
     const preferences = yield* PreferencesService.Service.pipe(
       Effect.provide(preferencesServiceLayer.pipe(Layer.provide(storeLayer))),
     );
+
     const trackedGames = yield* TrackedGamesService.Service.pipe(
       Effect.provide(trackedGamesServiceLayer.pipe(Layer.provide(storeLayer))),
     );
+
     const session = yield* SessionService.Service.pipe(
       Effect.provide(sessionTokenLayer),
     );
+
     const steamOpenId = yield* SteamOpenId.Service.pipe(
       Effect.provide(steamOpenIdLayer),
     );
+
     const steamLogin = yield* SteamLogin.Service.pipe(
       Effect.provide(
         steamLoginLayer.pipe(
@@ -102,6 +110,7 @@ export default Cloudflare.Worker(
         ),
       ),
     );
+
     const snapshotJob = yield* SnapshotJob.Service.pipe(
       Effect.provide(
         snapshotJobLayer.pipe(

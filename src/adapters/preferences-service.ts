@@ -18,9 +18,11 @@ export const make: Effect.Effect<
   const save = Effect.fn("PreferencesService.save")(function* (steamId, input) {
     const current = yield* store.getPreferences(steamId);
     const next = input.defaultFilter ?? current.defaultFilter;
+
     if (input.defaultFilter === undefined || next === current.defaultFilter) {
       return { defaultFilter: next };
     }
+
     return yield* store.savePreferences(steamId, { defaultFilter: next });
   });
 

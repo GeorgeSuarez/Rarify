@@ -30,8 +30,10 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
       const params = new URLSearchParams({
         filter: nextFilter,
       });
+
       try {
         const res = await fetch(`/api/dashboard?${params.toString()}`);
+
         if (!res.ok) return;
         // SAFETY: /api/dashboard serializes our own DashboardData shape.
         const next = (await res.json()) as DashboardData;
