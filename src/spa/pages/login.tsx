@@ -34,10 +34,9 @@ export function LoginPage() {
   const [searchParams] = useSearchParams();
   const session = useApi(() => apiGroups.session.getSessionStatus(), []);
   const errorCode = searchParams.get("error");
+
   const errorMessage =
-    errorCode === null
-      ? null
-      : (ERROR_MESSAGES.get(errorCode) ?? "Something went wrong.");
+    errorCode === null ? null : (ERROR_MESSAGES.get(errorCode) ?? "Something went wrong.");
 
   if (session.status === "ready" && session.data.authenticated) {
     return <Navigate to="/" replace />;
@@ -60,16 +59,16 @@ export function LoginPage() {
 
       {/* hero */}
       <section className="relative z-10 flex flex-1 flex-col items-center px-6 pb-10 pt-10 md:pt-16">
-        <h1 className="max-w-3xl text-center text-[36px] font-[800] leading-[0.95] tracking-[-0.03em] sm:text-[54px] md:text-[62px]">
+        <h1 className="max-w-3xl text-center text-[36px] font-extrabold leading-[0.95] tracking-[-0.03em] sm:text-[54px] md:text-[62px]">
           Your trophies
           <br />
-          <span className="bg-gradient-to-r from-blue-400 via-violet-400 to-cyan-300 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-blue-400 via-violet-400 to-cyan-300 bg-clip-text text-transparent">
             deserve a vault.
           </span>
         </h1>
         <p className="mt-4 max-w-xl text-center text-[15px] leading-relaxed text-white/55">
-          Completion rates, rarity hunts, perfect games — your entire Steam library
-          turned into a collection worth showing off. No extensions. No scraping.
+          Completion rates, rarity hunts, perfect games — your entire Steam library turned into a
+          collection worth showing off. No extensions. No scraping.
         </p>
 
         <div className="mt-7 flex flex-col items-center gap-3">
@@ -93,12 +92,12 @@ export function LoginPage() {
         </div>
 
         {/* floating card stack — real Steam header art */}
-        <div className="relative mt-10 flex w-full max-w-[740px] justify-center">
-          <div className="absolute left-1/2 top-1/2 h-[320px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-[40px] bg-blue-500/15 blur-[50px]" />
-          <div className="relative flex w-full max-w-[640px] items-end justify-center gap-3">
+        <div className="relative mt-10 flex w-full max-w-185 justify-center">
+          <div className="absolute left-1/2 top-1/2 h-80 w-130 -translate-x-1/2 -translate-y-1/2 rounded-[40px] bg-blue-500/15 blur-[50px]" />
+          <div className="relative flex w-full max-w-160 items-end justify-center gap-3">
             {/* left card — BG3 */}
-            <div className="hidden sm:flex w-[176px] shrink-0 -rotate-[4deg] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl translate-y-3">
-              <div className="relative h-[98px] overflow-hidden">
+            <div className="hidden sm:flex w-44 shrink-0 rotate-[-4deg] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl translate-y-3">
+              <div className="relative h-24.5 overflow-hidden">
                 <Image
                   src={ROWS[2].header}
                   alt="Baldur's Gate 3 header art"
@@ -106,7 +105,7 @@ export function LoginPage() {
                   sizes="176px"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-zinc-900/60 to-transparent" />
               </div>
               <div className="p-3">
                 <div className="text-xs font-semibold leading-none">Baldur&apos;s Gate 3</div>
@@ -117,11 +116,11 @@ export function LoginPage() {
               </div>
             </div>
             {/* center hero card — Hades */}
-            <div className="relative z-10 flex w-[228px] sm:w-[240px] shrink-0 flex-col overflow-hidden rounded-[20px] border border-white/15 bg-zinc-900 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)_inset] backdrop-blur-xl">
+            <div className="relative z-10 flex w-57 sm:w-60 shrink-0 flex-col overflow-hidden rounded-[20px] border border-white/15 bg-zinc-900 shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)_inset] backdrop-blur-xl">
               <div className="absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-black tracking-widest text-zinc-900 uppercase shadow">
                 ★ Perfect
               </div>
-              <div className="relative h-[136px] overflow-hidden">
+              <div className="relative h-34 overflow-hidden">
                 <Image
                   src={ROWS[1].header}
                   alt="Hades header art"
@@ -131,7 +130,7 @@ export function LoginPage() {
                   fetchPriority="high"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-zinc-900 via-zinc-900/20 to-transparent" />
                 <div className="absolute bottom-2 left-2 flex items-center gap-1.5 rounded-full bg-black/55 px-2 py-1 text-[11px] font-medium text-white backdrop-blur border border-white/15">
                   <Trophy className="h-3 w-3 text-amber-300" /> 49/49
                 </div>
@@ -148,8 +147,8 @@ export function LoginPage() {
               </div>
             </div>
             {/* right card — Elden Ring */}
-            <div className="hidden sm:flex w-[176px] shrink-0 rotate-[4deg] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl translate-y-3">
-              <div className="relative h-[98px] overflow-hidden">
+            <div className="hidden sm:flex w-44 shrink-0 rotate-[4deg] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/70 backdrop-blur-xl translate-y-3">
+              <div className="relative h-24.5 overflow-hidden">
                 <Image
                   src={ROWS[0].header}
                   alt="Elden Ring header art"
@@ -157,7 +156,7 @@ export function LoginPage() {
                   sizes="176px"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-zinc-900/60 to-transparent" />
               </div>
               <div className="p-3">
                 <div className="text-xs font-semibold leading-none">Elden Ring</div>
@@ -172,11 +171,11 @@ export function LoginPage() {
 
         {/* stats ticker */}
         <div className="mt-10 flex w-full max-w-3xl flex-col items-center gap-3">
-          <div className="flex w-full items-center gap-2 overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.04] p-1.5 backdrop-blur">
+          <div className="flex w-full items-center gap-2 overflow-hidden rounded-2xl border border-white/[0.07] bg-white/4 p-1.5 backdrop-blur">
             {STATS.map((s) => (
               <div
                 key={s.label}
-                className="flex flex-1 items-center gap-2.5 rounded-xl bg-white/[0.06] px-3 py-2.5 border border-white/[0.06]"
+                className="flex flex-1 items-center gap-2.5 rounded-xl bg-white/6 px-3 py-2.5 border border-white/6"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-zinc-900">
                   <s.icon className="h-4 w-4" />
@@ -197,7 +196,9 @@ export function LoginPage() {
               </div>
             </div>
           </div>
-          <p className="text-[11px] tracking-wide text-white/25">Preview data — replaced by your library after sign-in</p>
+          <p className="text-[11px] tracking-wide text-white/25">
+            Preview data — replaced by your library after sign-in
+          </p>
         </div>
       </section>
     </main>
