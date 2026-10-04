@@ -64,9 +64,7 @@ const makeStoreLayer = (recorded: Ref.Ref<ReadonlyArray<RecordedSnapshot>>) =>
     }),
   );
 
-const libraryFor = (
-  steamId: SteamId,
-): Effect.Effect<LibrarySnapshot, never> =>
+const libraryFor = (steamId: SteamId): Effect.Effect<LibrarySnapshot, never> =>
   steamId === USER_A
     ? Effect.succeed({
         games: [game],

@@ -8,21 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Empty,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { buildAlphabetIndex } from "@/src/domain/dashboard-calculations";
 import { completionTierOf } from "@/lib/completion-tiers";
 import type { AchievementsOverview } from "@/src/domain/dashboard";
@@ -42,24 +33,17 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
 
     if (!q) return data.games;
 
-    return data.games.filter((game) =>
-      game.name.toLowerCase().includes(q),
-    );
+    return data.games.filter((game) => game.name.toLowerCase().includes(q));
   }, [data.games, query]);
 
   const present = useMemo(
-    () =>
-      new Set(
-        buildAlphabetIndex(searched).map((group) => group.letter),
-      ),
+    () => new Set(buildAlphabetIndex(searched).map((group) => group.letter)),
     [searched],
   );
 
   const sections = useMemo(
     () =>
-      buildAlphabetIndex(searched).filter(
-        (group) => letter === "All" || group.letter === letter,
-      ),
+      buildAlphabetIndex(searched).filter((group) => letter === "All" || group.letter === letter),
     [searched, letter],
   );
 
@@ -78,18 +62,19 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
 
           {/* Header */}
           <div className="pb-6">
-            <h2 className="hidden text-2xl font-bold text-foreground lg:block">
-              Achievements
-            </h2>
+            <h2 className="hidden text-2xl font-bold text-foreground lg:block">Achievements</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {data.stats.achievementsEarned.toLocaleString()} earned across{" "}
-              {gamesWithAch.length} game
+              {data.stats.achievementsEarned.toLocaleString()} earned across {gamesWithAch.length}{" "}
+              game
               {gamesWithAch.length !== 1 ? "s" : ""}
             </p>
           </div>
 
           {data.error ? (
-            <Alert variant="destructive" className="flex flex-col items-center gap-3 py-8 text-center">
+            <Alert
+              variant="destructive"
+              className="flex flex-col items-center gap-3 py-8 text-center"
+            >
               {data.error.type === "private_profile" ? (
                 <EyeOff className="size-6" aria-hidden />
               ) : (
@@ -111,8 +96,8 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    <BookMarked className="size-4" aria-hidden /> A–Z index ·{" "}
-                    {gamesWithAch.length} games
+                    <BookMarked className="size-4" aria-hidden /> A–Z index · {gamesWithAch.length}{" "}
+                    games
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3 pt-0">
@@ -132,11 +117,7 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                       />
                     </div>
                   </div>
-                  <div
-                    className="flex flex-wrap gap-1"
-                    role="group"
-                    aria-label="Jump to letter"
-                  >
+                  <div className="flex flex-wrap gap-1" role="group" aria-label="Jump to letter">
                     <Button
                       size="xs"
                       variant={letter === "All" ? "default" : "ghost"}
@@ -199,36 +180,27 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                                 <Progress
                                   value={game.completion}
                                   indicatorClassName={
-                                    completionTierOf(game.completion)
-                                      .barClassName
+                                    completionTierOf(game.completion).barClassName
                                   }
                                   className="h-1 max-w-40 flex-1"
                                 />
                                 <Tooltip>
                                   <TooltipTrigger className="text-[11px] tabular-nums text-muted-foreground">
-                                    {game.achievements.earned}/
-                                    {game.achievements.total} ·{" "}
+                                    {game.achievements.earned}/{game.achievements.total} ·{" "}
                                     <span
-                                      className={
-                                        completionTierOf(game.completion)
-                                          .textClassName
-                                      }
+                                      className={completionTierOf(game.completion).textClassName}
                                     >
                                       {game.completion}%
                                     </span>
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     {game.hours}h played ·{" "}
-                                    {game.achievements.total -
-                                      game.achievements.earned}{" "}
-                                    remaining
+                                    {game.achievements.total - game.achievements.earned} remaining
                                   </TooltipContent>
                                 </Tooltip>
                               </span>
                             </div>
-                            {game.completion >= 100 && (
-                              <Badge className="shrink-0">Perfect</Badge>
-                            )}
+                            {game.completion >= 100 && <Badge className="shrink-0">Perfect</Badge>}
                           </div>
                         </div>
                       ))}
@@ -244,9 +216,7 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                             <Search />
                           </EmptyMedia>
                           <EmptyTitle>
-                            {query
-                              ? `No games match “${query}”`
-                              : `No games under “${letter}”`}
+                            {query ? `No games match “${query}”` : `No games under “${letter}”`}
                           </EmptyTitle>
                         </EmptyHeader>
                       </Empty>

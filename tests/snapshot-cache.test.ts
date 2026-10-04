@@ -97,9 +97,7 @@ describe("serializeSnapshot / deserializeSnapshot", () => {
 
 describe("isSnapshotFresh", () => {
   it("is fresh within the TTL", () => {
-    expect(isSnapshotFresh(1_000_000, 1_000_000 + SNAPSHOT_TTL_MS - 1)).toBe(
-      true,
-    );
+    expect(isSnapshotFresh(1_000_000, 1_000_000 + SNAPSHOT_TTL_MS - 1)).toBe(true);
   });
 
   it("is stale at exactly the TTL boundary", () => {
@@ -107,9 +105,7 @@ describe("isSnapshotFresh", () => {
   });
 
   it("is stale beyond the TTL", () => {
-    expect(isSnapshotFresh(1_000_000, 1_000_000 + SNAPSHOT_TTL_MS * 10)).toBe(
-      false,
-    );
+    expect(isSnapshotFresh(1_000_000, 1_000_000 + SNAPSHOT_TTL_MS * 10)).toBe(false);
   });
 
   it("honors a custom TTL", () => {

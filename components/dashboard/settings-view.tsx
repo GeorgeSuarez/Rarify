@@ -15,11 +15,7 @@ const FILTER_OPTIONS: { value: GameFilter; label: string }[] = [
   { value: "tracked", label: "Tracked Games" },
 ];
 
-export function SettingsView({
-  initialPrefs,
-}: {
-  initialPrefs: UserPreferences;
-}) {
+export function SettingsView({ initialPrefs }: { initialPrefs: UserPreferences }) {
   const [prefs, setPrefs] = useState<UserPreferences>(initialPrefs);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -59,20 +55,14 @@ export function SettingsView({
 
           {/* Header */}
           <div className="pb-6">
-            <h2 className="hidden text-2xl font-bold text-foreground lg:block">
-              Settings
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Manage your dashboard preferences.
-            </p>
+            <h2 className="hidden text-2xl font-bold text-foreground lg:block">Settings</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Manage your dashboard preferences.</p>
           </div>
 
           {/* Dashboard defaults */}
           <Card className="border-border/50 bg-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">
-                Dashboard Defaults
-              </CardTitle>
+              <CardTitle className="text-base font-semibold">Dashboard Defaults</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <FieldGroup>

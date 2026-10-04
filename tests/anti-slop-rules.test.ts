@@ -47,16 +47,46 @@ describe("vendored anti-slop rules", () => {
           code: "[].map(user => user.active ? user.email : undefined).filter(email => email !== undefined);",
           errors: [{ messageId: "arrayFilterMap" }],
         },
-        { code: "const users = []; users.map(email).filter(Boolean);", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "const users = []; const alias = users; alias.filter(active).map(email);", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "function collect(users: User[]) { return users.filter(active).map(email); }", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "function collect(users: readonly User[]) { return users.map(email).filter(present); }", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "function collect(users: ReadonlyArray<User>) { return users.filter(active).map(email); }", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "function collect(users: Array<User>) { return users.filter(active).map(email); }", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "const users = [] as const; users['filter'](active)['map'](email);", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "const users = []; (users.filter(active)!).map(email);", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "const users = []; users?.filter(active)?.map(email);", errors: [{ messageId: "arrayFilterMap" }] },
-        { code: "const users = []; users.slice().filter(active).map(email);", errors: [{ messageId: "arrayFilterMap" }] },
+        {
+          code: "const users = []; users.map(email).filter(Boolean);",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "const users = []; const alias = users; alias.filter(active).map(email);",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "function collect(users: User[]) { return users.filter(active).map(email); }",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "function collect(users: readonly User[]) { return users.map(email).filter(present); }",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "function collect(users: ReadonlyArray<User>) { return users.filter(active).map(email); }",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "function collect(users: Array<User>) { return users.filter(active).map(email); }",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "const users = [] as const; users['filter'](active)['map'](email);",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "const users = []; (users.filter(active)!).map(email);",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "const users = []; users?.filter(active)?.map(email);",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
+        {
+          code: "const users = []; users.slice().filter(active).map(email);",
+          errors: [{ messageId: "arrayFilterMap" }],
+        },
         {
           code: "const users = []; users.filter(active).map(email).filter(Boolean);",
           errors: [{ messageId: "arrayFilterMap" }, { messageId: "arrayFilterMap" }],
@@ -89,26 +119,86 @@ describe("vendored anti-slop rules", () => {
         "items.reduce((acc, item) => ({ ...acc, [item.id]: item }), {});",
       ],
       invalid: [
-        { code: "items.reduce((acc, item) => Object.assign({}, acc, { [item.id]: item }), {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduceRight((acc, item) => Object.assign({}, acc, item), {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item, index, array) => Object.assign({}, acc, item), {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce(acc => Object.assign({}, acc), {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce(function (acc, item) { return Object.assign({}, item, acc); }, {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items['reduce'](((acc, item) => Object['assign']({}, acc, item)), {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc = {}, item) => Object.assign({}, acc, item), {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => { const alias = acc; return Object.assign({}, alias, item); }, {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => Object.assign({}, acc as State, item), {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => { const next = Object.assign({}, acc); next[item.id] = item; return next; }, {});", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => acc.concat([item]), []);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduceRight((acc, item, index) => acc['concat']([item]), [] as Item[]);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => { const next = acc.slice(); next.push(item); return next; }, []);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => { const alias = acc; return alias.concat(item); }, []);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "const initial = []; items.reduce((acc, item) => acc.concat(item), initial);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => { const next = Array.from(acc); next.push(item); return next; }, []);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => acc.toSpliced(acc.length, 0, item), []);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => acc.toSorted(), []);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => acc.toReversed(), []);", errors: [{ messageId: "accumulatorCopy" }] },
-        { code: "items.reduce((acc, item) => acc.with(0, item), []);", errors: [{ messageId: "accumulatorCopy" }] },
+        {
+          code: "items.reduce((acc, item) => Object.assign({}, acc, { [item.id]: item }), {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduceRight((acc, item) => Object.assign({}, acc, item), {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item, index, array) => Object.assign({}, acc, item), {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce(acc => Object.assign({}, acc), {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce(function (acc, item) { return Object.assign({}, item, acc); }, {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items['reduce'](((acc, item) => Object['assign']({}, acc, item)), {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc = {}, item) => Object.assign({}, acc, item), {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => { const alias = acc; return Object.assign({}, alias, item); }, {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => Object.assign({}, acc as State, item), {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => { const next = Object.assign({}, acc); next[item.id] = item; return next; }, {});",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => acc.concat([item]), []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduceRight((acc, item, index) => acc['concat']([item]), [] as Item[]);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => { const next = acc.slice(); next.push(item); return next; }, []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => { const alias = acc; return alias.concat(item); }, []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "const initial = []; items.reduce((acc, item) => acc.concat(item), initial);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => { const next = Array.from(acc); next.push(item); return next; }, []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => acc.toSpliced(acc.length, 0, item), []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => acc.toSorted(), []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => acc.toReversed(), []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
+        {
+          code: "items.reduce((acc, item) => acc.with(0, item), []);",
+          errors: [{ messageId: "accumulatorCopy" }],
+        },
       ],
     });
   });
@@ -129,7 +219,11 @@ describe("vendored anti-slop rules", () => {
         "switch (x) { case 1: case 2: go(); break; default: stop(); }",
       ],
       invalid: [
-        { code: "const a = 1;\nconst b = 2;", output: "const a = 1;\n\nconst b = 2;", errors: [{ messageId: "expectedBlankLine" }] },
+        {
+          code: "const a = 1;\nconst b = 2;",
+          output: "const a = 1;\n\nconst b = 2;",
+          errors: [{ messageId: "expectedBlankLine" }],
+        },
         {
           code: "export const a = 1;\n/** B docs. */\nexport type B = number;",
           output: "export const a = 1;\n\n/** B docs. */\nexport type B = number;",
@@ -140,7 +234,11 @@ describe("vendored anti-slop rules", () => {
           output: "const a = 1; // trailing\n\n// leading\nconst b = 2;",
           errors: [{ messageId: "expectedBlankLine" }],
         },
-        { code: "const a = 1; const b = 2;", output: "const a = 1;\n\n const b = 2;", errors: [{ messageId: "expectedBlankLine" }] },
+        {
+          code: "const a = 1; const b = 2;",
+          output: "const a = 1;\n\n const b = 2;",
+          errors: [{ messageId: "expectedBlankLine" }],
+        },
         {
           code: "import { a } from 'a';\nconst b = a;",
           output: "import { a } from 'a';\n\nconst b = a;",
@@ -167,8 +265,16 @@ describe("vendored anti-slop rules", () => {
             "const f = Effect.gen(function* () {\nconst a = yield* A;\nconst b = yield* B;\n\nconst dispatch = Effect.fn('dispatch')(function* () {\nyield* a;\n});\n\nreturn dispatch;\n});",
           errors: [{ messageId: "expectedBlankLine" }, { messageId: "expectedBlankLine" }],
         },
-        { code: "export interface A {}\nexport class B {}", output: "export interface A {}\n\nexport class B {}", errors: [{ messageId: "expectedBlankLine" }] },
-        { code: "const a = 1\n;[1].forEach(f)", output: "const a = 1\n\n;[1].forEach(f)", errors: [{ messageId: "expectedBlankLine" }] },
+        {
+          code: "export interface A {}\nexport class B {}",
+          output: "export interface A {}\n\nexport class B {}",
+          errors: [{ messageId: "expectedBlankLine" }],
+        },
+        {
+          code: "const a = 1\n;[1].forEach(f)",
+          output: "const a = 1\n\n;[1].forEach(f)",
+          errors: [{ messageId: "expectedBlankLine" }],
+        },
         {
           code: "function f() {\nfoo();\nwhile (ok) go();\n}",
           output: "function f() {\nfoo();\n\nwhile (ok) go();\n}",
@@ -325,7 +431,7 @@ describe("vendored anti-slop rules", () => {
           errors: [{ messageId: "preferMatch" }],
         },
         {
-          code: '`a` !== kind ? first : `b` === kind ? second : fallback;',
+          code: "`a` !== kind ? first : `b` === kind ? second : fallback;",
           errors: [{ messageId: "preferMatch" }],
         },
       ],

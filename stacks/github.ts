@@ -28,10 +28,7 @@ const REPOSITORY = "Rarify";
 export default Alchemy.Stack(
   "RarifyGithub",
   {
-    providers: Layer.mergeAll(
-      Cloudflare.providers(),
-      GitHub.providers(),
-    ),
+    providers: Layer.mergeAll(Cloudflare.providers(), GitHub.providers()),
     state: Cloudflare.state(),
   },
   Effect.gen(function* () {

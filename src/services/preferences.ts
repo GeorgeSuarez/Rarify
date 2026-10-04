@@ -11,9 +11,7 @@ export interface SavePreferencesInput {
 /** User preference operations and their defaulting policy. */
 export interface Interface {
   /** Load saved preferences, returning the documented default when absent. */
-  readonly get: (
-    steamId: SteamId,
-  ) => Effect.Effect<UserPreferences, PersistenceError>;
+  readonly get: (steamId: SteamId) => Effect.Effect<UserPreferences, PersistenceError>;
 
   /** Save supplied preference fields and return the normalized saved value. */
   readonly save: (
@@ -25,6 +23,4 @@ export interface Interface {
 /**
  * Effect service for user settings and default-filter behavior.
  */
-export class Service extends Context.Service<Service, Interface>()(
-  "@rarify/PreferencesService",
-) {}
+export class Service extends Context.Service<Service, Interface>()("@rarify/PreferencesService") {}

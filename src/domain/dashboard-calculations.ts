@@ -66,10 +66,7 @@ export function summarizeAchievementData(
 }
 
 /** Return the games matching the selected library filter. */
-export function filterGames(
-  games: ReadonlyArray<Game>,
-  filter: GameFilter,
-): ReadonlyArray<Game> {
+export function filterGames(games: ReadonlyArray<Game>, filter: GameFilter): ReadonlyArray<Game> {
   switch (filter) {
     case "owned":
       return games.filter((game) => game.owned);
@@ -81,27 +78,16 @@ export function filterGames(
 }
 
 /** Compute aggregate achievement and library statistics at a supplied time. */
-export function computeStats(
-  games: ReadonlyArray<Game>,
-  nowMs: number,
-): Stats {
-  const gamesWithAchievements = games.filter(
-    (game) => game.achievements.total > 0,
-  );
+export function computeStats(games: ReadonlyArray<Game>, nowMs: number): Stats {
+  const gamesWithAchievements = games.filter((game) => game.achievements.total > 0);
 
-  const achievementsEarned = games.reduce(
-    (sum, game) => sum + game.achievements.earned,
-    0,
-  );
+  const achievementsEarned = games.reduce((sum, game) => sum + game.achievements.earned, 0);
 
   const avgCompletion =
     gamesWithAchievements.length === 0
       ? 0
       : Math.round(
-          (gamesWithAchievements.reduce(
-            (sum, game) => sum + game.completion,
-            0,
-          ) /
+          (gamesWithAchievements.reduce((sum, game) => sum + game.completion, 0) /
             gamesWithAchievements.length) *
             10,
         ) / 10;
@@ -109,8 +95,7 @@ export function computeStats(
   const thirtyDaysAgo = nowMs - 30 * 24 * 60 * 60 * 1000;
 
   const recentUnlocks = games.reduce(
-    (sum, game) =>
-      sum + game.unlocktimes.filter((time) => time * 1000 >= thirtyDaysAgo).length,
+    (sum, game) => sum + game.unlocktimes.filter((time) => time * 1000 >= thirtyDaysAgo).length,
     0,
   );
 
@@ -123,17 +108,13 @@ export function computeStats(
     gamesOwnedDelta: null,
     gamesTracked: games.filter((game) => game.tracked).length,
     perfectGames: games.filter(
-      (game) =>
-        game.achievements.total > 0 &&
-        game.achievements.earned >= game.achievements.total,
+      (game) => game.achievements.total > 0 && game.achievements.earned >= game.achievements.total,
     ).length,
   };
 }
 
 /** Calculate the mean Steam community achievement completion percentage. */
-export function meanGlobalPercent(
-  percentages: ReadonlyArray<SteamGlobalAchievement>,
-): number {
+export function meanGlobalPercent(percentages: ReadonlyArray<SteamGlobalAchievement>): number {
   if (percentages.length === 0) return 0;
   const sum = percentages.reduce((total, achievement) => total + achievement.percent, 0);
   const mean = Math.round((sum / percentages.length) * 10) / 10;
@@ -156,9 +137,7 @@ export function buildGame(
 
   const safeCompletion = Number.isNaN(completion) ? 0 : completion;
 
-  const safeCommunityAvg = Number.isNaN(data.communityAvg)
-    ? 0
-    : data.communityAvg;
+  const safeCommunityAvg = Number.isNaN(data.communityAvg) ? 0 : data.communityAvg;
 
   const communityPct = Math.round(safeCommunityAvg * 10) / 10;
   const isPositive = safeCompletion >= safeCommunityAvg;
@@ -203,9 +182,7 @@ export interface AlphabetIndexGroup {
  * @param games - Library games from the achievements overview read model.
  * @returns Letter groups sorted alphabetically, each holding sorted games.
  */
-export function buildAlphabetIndex(
-  games: ReadonlyArray<Game>,
-): ReadonlyArray<AlphabetIndexGroup> {
+export function buildAlphabetIndex(games: ReadonlyArray<Game>): ReadonlyArray<AlphabetIndexGroup> {
   const sorted = [...games]
     .filter((game) => game.achievements.total > 0)
     .sort((a, b) => a.name.localeCompare(b.name));

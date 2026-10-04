@@ -29,18 +29,10 @@ const cookieOptions = (
 /** Session readers bound to one verified session-token capability. */
 export interface SessionReader {
   /** Read and verify the current request's session cookie, if present. */
-  readonly read: Effect.Effect<
-    Option.Option<Session>,
-    never,
-    HttpServerRequest.HttpServerRequest
-  >;
+  readonly read: Effect.Effect<Option.Option<Session>, never, HttpServerRequest.HttpServerRequest>;
 
   /** Require a verified session or fail with the API's unauthorized error. */
-  readonly require: Effect.Effect<
-    Session,
-    UnauthorizedError,
-    HttpServerRequest.HttpServerRequest
-  >;
+  readonly require: Effect.Effect<Session, UnauthorizedError, HttpServerRequest.HttpServerRequest>;
 }
 
 /**
@@ -52,9 +44,7 @@ export interface SessionReader {
  * @param session - Signed session-token capability resolved during init.
  * @returns Cookie readers that fail with `UnauthorizedError` when required.
  */
-export const createSessionReader = (
-  session: SessionService.Interface,
-): SessionReader => {
+export const createSessionReader = (session: SessionService.Interface): SessionReader => {
   const read: SessionReader["read"] = Effect.gen(function* () {
     const request = yield* HttpServerRequest.HttpServerRequest;
     const token = request.cookies[SESSION_COOKIE];
@@ -77,9 +67,7 @@ export const createSessionReader = (
     Effect.flatMap((current) =>
       Option.match(current, {
         onNone: () =>
-          Effect.fail(
-            new UnauthorizedError({ message: "Sign in through Steam to continue" }),
-          ),
+          Effect.fail(new UnauthorizedError({ message: "Sign in through Steam to continue" })),
         onSome: (value) => Effect.succeed(value),
       }),
     ),

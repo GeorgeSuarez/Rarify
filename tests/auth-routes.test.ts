@@ -27,9 +27,7 @@ const failingLogin = makeSteamLogin(() =>
   ),
 );
 
-const succeedingLogin = makeSteamLogin(() =>
-  Effect.succeed(Redacted.make("issued-token")),
-);
+const succeedingLogin = makeSteamLogin(() => Effect.succeed(Redacted.make("issued-token")));
 
 const buildHandler = (steamLogin: SteamLogin.Interface) =>
   HttpRouter.toWebHandler(
@@ -46,18 +44,14 @@ describe("Steam auth routes", () => {
     const built = buildHandler(succeedingLogin);
 
     try {
-      const response = await built.handler(
-        new Request("https://rarify.example/auth/steam"),
-      );
+      const response = await built.handler(new Request("https://rarify.example/auth/steam"));
 
       expect(response.status).toBe(302);
       const location = response.headers.get("location");
       expect(location).toContain("https://steamcommunity.com/openid/login");
       const parameters = new URL(location ?? "").searchParams;
       expect(parameters.get("openid.mode")).toBe("checkid_setup");
-      expect(parameters.get("openid.return_to")).toBe(
-        `${PUBLIC_APP_URL}/auth/steam/callback`,
-      );
+      expect(parameters.get("openid.return_to")).toBe(`${PUBLIC_APP_URL}/auth/steam/callback`);
       expect(parameters.get("openid.realm")).toBe(PUBLIC_APP_URL);
     } finally {
       await built.dispose();
@@ -95,9 +89,7 @@ describe("Steam auth routes", () => {
       );
 
       expect(response.status).toBe(302);
-      expect(response.headers.get("location")).toBe(
-        `${PUBLIC_APP_URL}/login?error=auth_failed`,
-      );
+      expect(response.headers.get("location")).toBe(`${PUBLIC_APP_URL}/login?error=auth_failed`);
       expect(response.headers.get("set-cookie")).toBeNull();
     } finally {
       await built.dispose();

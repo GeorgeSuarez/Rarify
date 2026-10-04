@@ -11,11 +11,7 @@ import {
 } from "@/components/ui/empty";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { completionTierOf } from "@/lib/completion-tiers";
 import { cn } from "@/lib/utils";
 import type { GameAchievements } from "@/src/domain/dashboard";
@@ -77,9 +73,7 @@ function AchievementRow({
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-foreground">
-          {achievement.name}
-        </p>
+        <p className="truncate font-semibold text-foreground">{achievement.name}</p>
         {achievement.description && (
           <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
             {achievement.description}
@@ -151,9 +145,7 @@ export function AchievementList({ data }: { data: GameAchievements }) {
               <div className="absolute inset-0 bg-linear-to-t from-background via-background/30 to-transparent" />
             </div>
             <div className="absolute bottom-0 left-0 right-0 p-6">
-              <h1 className="text-2xl font-bold text-white drop-shadow-lg">
-                {data.gameName}
-              </h1>
+              <h1 className="text-2xl font-bold text-white drop-shadow-lg">{data.gameName}</h1>
               <div className="mt-2 flex items-center gap-4 text-sm text-white/80">
                 <span className="flex items-center gap-1">
                   <Clock className="size-4" />
@@ -164,10 +156,7 @@ export function AchievementList({ data }: { data: GameAchievements }) {
                   {data.earnedAchievements}/{data.totalAchievements}
                 </span>
                 <span
-                  className={cn(
-                    "font-semibold",
-                    completionTierOf(data.completion).textClassName,
-                  )}
+                  className={cn("font-semibold", completionTierOf(data.completion).textClassName)}
                 >
                   {data.completion}%
                 </span>

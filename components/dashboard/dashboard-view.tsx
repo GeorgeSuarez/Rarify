@@ -51,10 +51,7 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar user={data.user} activeHref="/" />
-      <main
-        className="flex-1 overflow-auto bg-background p-4 lg:p-8"
-        aria-busy={isPending}
-      >
+      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8" aria-busy={isPending}>
         <div className="mx-auto max-w-7xl">
           {/* Mobile top bar */}
           <div className="-mx-4 mb-4 flex items-center gap-3 lg:hidden">
@@ -65,15 +62,11 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
           {/* Header */}
           <div className="flex flex-col justify-between gap-4 pb-6 sm:flex-row sm:items-start">
             <div>
-              <h2
-                className="hidden text-2xl font-bold text-foreground lg:block"
-                aria-hidden
-              >
+              <h2 className="hidden text-2xl font-bold text-foreground lg:block" aria-hidden>
                 Overview
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Track your achievements and compare your progress with other
-                players.
+                Track your achievements and compare your progress with other players.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -96,14 +89,11 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
           <Alert className="mb-6 border-primary/20 bg-primary/10">
             <Lightbulb />
             <AlertTitle>
-              {data.stats.achievementsEarnedDelta != null &&
-              data.stats.achievementsEarnedDelta > 0
+              {data.stats.achievementsEarnedDelta != null && data.stats.achievementsEarnedDelta > 0
                 ? `Great job! You've earned ${data.stats.achievementsEarnedDelta} more achievements this month.`
                 : `You've earned ${data.stats.achievementsEarned.toLocaleString()} achievements total.`}
             </AlertTitle>
-            <AlertDescription>
-              Keep playing to beat your community average!
-            </AlertDescription>
+            <AlertDescription>Keep playing to beat your community average!</AlertDescription>
           </Alert>
 
           {/* Dashboard content */}
@@ -159,19 +149,14 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
               )}
               <div
                 className={
-                  isPending
-                    ? "pointer-events-none opacity-50"
-                    : "transition-opacity duration-200"
+                  isPending ? "pointer-events-none opacity-50" : "transition-opacity duration-200"
                 }
               >
                 <StatsCards stats={data.stats} />
 
                 {/* Top games */}
                 <div className="mt-6">
-                  <TopGames
-                    games={data.games}
-                    onTrackToggle={() => refetch(filter)}
-                  />
+                  <TopGames games={data.games} onTrackToggle={() => refetch(filter)} />
                 </div>
 
                 {/* Tracked games */}

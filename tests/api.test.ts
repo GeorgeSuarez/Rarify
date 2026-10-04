@@ -46,8 +46,7 @@ const dashboardService: DashboardService.Interface = {
     // Mirrors the production shape when no profile row exists yet: the
     // optional key is omitted entirely, never set to `undefined`.
     Effect.succeed({ games: [], earnedEntries: [], error: null }),
-  getAchievementsOverview: () =>
-    Effect.succeed({ ...emptyDashboardData, rarestPerGame: [] }),
+  getAchievementsOverview: () => Effect.succeed({ ...emptyDashboardData, rarestPerGame: [] }),
   getGameAchievements: (_steamId, appId) =>
     Effect.succeed({
       gameName: "",
@@ -67,8 +66,7 @@ const dashboardService: DashboardService.Interface = {
 
 const preferencesService: PreferencesService.Interface = {
   get: () => Effect.succeed({ defaultFilter: "all" }),
-  save: (_steamId, input) =>
-    Effect.succeed({ defaultFilter: input.defaultFilter ?? "all" }),
+  save: (_steamId, input) => Effect.succeed({ defaultFilter: input.defaultFilter ?? "all" }),
 };
 
 const trackedGamesService: TrackedGamesService.Interface = {
@@ -102,10 +100,7 @@ describe("Rarify HTTP API", () => {
   });
 
   it("reports an anonymous session without a cookie", async () => {
-    const response = await handler(
-      new Request("http://rarify.test/api/session"),
-      context,
-    );
+    const response = await handler(new Request("http://rarify.test/api/session"), context);
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ authenticated: false });
@@ -124,10 +119,7 @@ describe("Rarify HTTP API", () => {
   });
 
   it("rejects dashboard reads without a session", async () => {
-    const response = await handler(
-      new Request("http://rarify.test/api/dashboard"),
-      context,
-    );
+    const response = await handler(new Request("http://rarify.test/api/dashboard"), context);
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toMatchObject({

@@ -1,718 +1,1323 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rarify · System Flow</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#0a101e; --panel:#101a30; --line:#223052; --wire:#2b3c63;
-    --ink:#e8eef9; --mut:#8fa1c2;
-    --client:#45d6b8; --server:#8f9bff; --steam:#66c0f4; --db:#f2c14e;
-  }
-  *{box-sizing:border-box}
-  html.js .flow{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
-  html.js .flow.in-view{opacity:1;transform:none}
-  body{
-    margin:0;background:var(--bg);color:var(--ink);
-    font:400 13.5px/1.7 "IBM Plex Mono",ui-monospace,monospace;
-    background-image:
-      radial-gradient(900px 420px at 72% -10%, rgba(79,142,247,.13), transparent 70%),
-      linear-gradient(rgba(122,162,255,.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(122,162,255,.045) 1px, transparent 1px);
-    background-size:auto,44px 44px,44px 44px;
-  }
-  .wrap{max-width:1180px;margin:0 auto;padding:52px 20px 90px}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rarify · System Flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a101e;
+        --panel: #101a30;
+        --line: #223052;
+        --wire: #2b3c63;
+        --ink: #e8eef9;
+        --mut: #8fa1c2;
+        --client: #45d6b8;
+        --server: #8f9bff;
+        --steam: #66c0f4;
+        --db: #f2c14e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html.js .flow {
+        opacity: 0;
+        transform: translateY(26px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease;
+      }
+      html.js .flow.in-view {
+        opacity: 1;
+        transform: none;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font:
+          400 13.5px/1.7 "IBM Plex Mono",
+          ui-monospace,
+          monospace;
+        background-image:
+          radial-gradient(900px 420px at 72% -10%, rgba(79, 142, 247, 0.13), transparent 70%),
+          linear-gradient(rgba(122, 162, 255, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(122, 162, 255, 0.045) 1px, transparent 1px);
+        background-size:
+          auto,
+          44px 44px,
+          44px 44px;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 52px 20px 90px;
+      }
 
-  .eyebrow{font:600 11px/1 "IBM Plex Mono";letter-spacing:.24em;color:var(--client)}
-  h1{font:700 clamp(30px,4.6vw,44px)/1.12 "Chakra Petch";margin:12px 0 14px;letter-spacing:-.01em}
-  .lede{max-width:70ch;color:var(--mut);margin:0}
+      .eyebrow {
+        font: 600 11px/1 "IBM Plex Mono";
+        letter-spacing: 0.24em;
+        color: var(--client);
+      }
+      h1 {
+        font: 700 clamp(30px, 4.6vw, 44px)/1.12 "Chakra Petch";
+        margin: 12px 0 14px;
+        letter-spacing: -0.01em;
+      }
+      .lede {
+        max-width: 70ch;
+        color: var(--mut);
+        margin: 0;
+      }
 
-  .legend{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;margin-top:26px;
-    padding:13px 16px;border:1px solid var(--line);border-radius:12px;background:rgba(16,26,48,.55)}
-  .item{display:inline-flex;align-items:center;gap:8px;font:500 11px/1 "IBM Plex Mono";
-    letter-spacing:.06em;color:var(--mut)}
-  .dot{width:10px;height:10px;border-radius:3px;flex:none}
-  .dot.d-client{background:var(--client)} .dot.d-server{background:var(--server)}
-  .dot.d-steam{background:var(--steam)}   .dot.d-db{background:var(--db)}
-  .dot.d-pkt{background:#fff;border-radius:50%;box-shadow:0 0 8px #9db4ff}
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 20px;
+        align-items: center;
+        margin-top: 26px;
+        padding: 13px 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(16, 26, 48, 0.55);
+      }
+      .item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font: 500 11px/1 "IBM Plex Mono";
+        letter-spacing: 0.06em;
+        color: var(--mut);
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        flex: none;
+      }
+      .dot.d-client {
+        background: var(--client);
+      }
+      .dot.d-server {
+        background: var(--server);
+      }
+      .dot.d-steam {
+        background: var(--steam);
+      }
+      .dot.d-db {
+        background: var(--db);
+      }
+      .dot.d-pkt {
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #9db4ff;
+      }
 
-  /* ---- layer stack ---- */
-  .stack{margin-top:26px;border:1px solid var(--line);border-radius:12px;
-    background:rgba(16,26,48,.55);padding:18px 16px}
-  .stack-title{font:600 11px/1 "IBM Plex Mono";letter-spacing:.22em;color:#7e93ba;margin-bottom:14px}
-  .lane{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
-  .layer{flex:1 1 150px;min-width:150px;border:1px solid var(--line);border-radius:10px;
-    background:var(--panel);padding:10px 12px}
-  .layer b{display:block;font:600 13px/1.3 "Chakra Petch";letter-spacing:.02em}
-  .layer span{display:block;font:400 10.5px/1.5 "IBM Plex Mono";color:var(--mut)}
-  .layer.l-client{border-color:var(--client)} .layer.l-client b{color:var(--client)}
-  .layer.l-server{border-color:var(--server)} .layer.l-server b{color:var(--server)}
-  .layer.l-steam{border-color:var(--steam)}   .layer.l-steam b{color:var(--steam)}
-  .layer.l-db{border-color:var(--db)}         .layer.l-db b{color:var(--db)}
-  .arrow{align-self:center;color:#557199;font:600 14px "IBM Plex Mono";flex:none}
-  @media (max-width:760px){.arrow{transform:rotate(90deg)}.lane{justify-content:center}}
+      /* ---- layer stack ---- */
+      .stack {
+        margin-top: 26px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(16, 26, 48, 0.55);
+        padding: 18px 16px;
+      }
+      .stack-title {
+        font: 600 11px/1 "IBM Plex Mono";
+        letter-spacing: 0.22em;
+        color: #7e93ba;
+        margin-bottom: 14px;
+      }
+      .lane {
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .layer {
+        flex: 1 1 150px;
+        min-width: 150px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 10px 12px;
+      }
+      .layer b {
+        display: block;
+        font: 600 13px/1.3 "Chakra Petch";
+        letter-spacing: 0.02em;
+      }
+      .layer span {
+        display: block;
+        font: 400 10.5px/1.5 "IBM Plex Mono";
+        color: var(--mut);
+      }
+      .layer.l-client {
+        border-color: var(--client);
+      }
+      .layer.l-client b {
+        color: var(--client);
+      }
+      .layer.l-server {
+        border-color: var(--server);
+      }
+      .layer.l-server b {
+        color: var(--server);
+      }
+      .layer.l-steam {
+        border-color: var(--steam);
+      }
+      .layer.l-steam b {
+        color: var(--steam);
+      }
+      .layer.l-db {
+        border-color: var(--db);
+      }
+      .layer.l-db b {
+        color: var(--db);
+      }
+      .arrow {
+        align-self: center;
+        color: #557199;
+        font: 600 14px "IBM Plex Mono";
+        flex: none;
+      }
+      @media (max-width: 760px) {
+        .arrow {
+          transform: rotate(90deg);
+        }
+        .lane {
+          justify-content: center;
+        }
+      }
 
-  .flow{margin-top:64px}
-  .flow-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-  .kick{font:600 12px/1 "IBM Plex Mono";letter-spacing:.2em}
-  .kick.k-server{color:var(--server)} .kick.k-mixed{color:var(--client)} .kick.k-db{color:var(--db)}
-  h2{font:600 22px/1.2 "Chakra Petch";margin:0}
-  .caption{color:var(--mut);max-width:86ch;margin:9px 0 18px;font-size:12.5px}
-  .caption code{color:#bcd0f5;background:rgba(122,162,255,.09);padding:1px 5px;border-radius:5px;font-size:11.5px}
+      .flow {
+        margin-top: 64px;
+      }
+      .flow-head {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+      .kick {
+        font: 600 12px/1 "IBM Plex Mono";
+        letter-spacing: 0.2em;
+      }
+      .kick.k-server {
+        color: var(--server);
+      }
+      .kick.k-mixed {
+        color: var(--client);
+      }
+      .kick.k-db {
+        color: var(--db);
+      }
+      h2 {
+        font: 600 22px/1.2 "Chakra Petch";
+        margin: 0;
+      }
+      .caption {
+        color: var(--mut);
+        max-width: 86ch;
+        margin: 9px 0 18px;
+        font-size: 12.5px;
+      }
+      .caption code {
+        color: #bcd0f5;
+        background: rgba(122, 162, 255, 0.09);
+        padding: 1px 5px;
+        border-radius: 5px;
+        font-size: 11.5px;
+      }
 
-  .diagram-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:16px;
-    background:linear-gradient(180deg, rgba(16,26,48,.6), rgba(10,16,30,.35));padding:8px}
-  .diagram-scroll:focus-visible{outline:2px solid var(--server);outline-offset:2px}
-  svg{display:block;min-width:860px;width:100%;height:auto}
+      .diagram-scroll {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(16, 26, 48, 0.6), rgba(10, 16, 30, 0.35));
+        padding: 8px;
+      }
+      .diagram-scroll:focus-visible {
+        outline: 2px solid var(--server);
+        outline-offset: 2px;
+      }
+      svg {
+        display: block;
+        min-width: 860px;
+        width: 100%;
+        height: auto;
+      }
 
-  .wire{stroke:var(--wire);stroke-width:2;fill:none}
-  .ovl{fill:none;stroke-width:2;stroke-dasharray:5 9;stroke-linecap:round;
-    animation:march 1.1s linear infinite;opacity:.9}
-  .c-client{stroke:var(--client)} .c-server{stroke:var(--server)}
-  .c-steam{stroke:var(--steam)}   .c-db{stroke:var(--db)}
-  @keyframes march{to{stroke-dashoffset:-14}}
+      .wire {
+        stroke: var(--wire);
+        stroke-width: 2;
+        fill: none;
+      }
+      .ovl {
+        fill: none;
+        stroke-width: 2;
+        stroke-dasharray: 5 9;
+        stroke-linecap: round;
+        animation: march 1.1s linear infinite;
+        opacity: 0.9;
+      }
+      .c-client {
+        stroke: var(--client);
+      }
+      .c-server {
+        stroke: var(--server);
+      }
+      .c-steam {
+        stroke: var(--steam);
+      }
+      .c-db {
+        stroke: var(--db);
+      }
+      @keyframes march {
+        to {
+          stroke-dashoffset: -14;
+        }
+      }
 
-  .arr{fill:#557199}
-  .node .box{fill:var(--panel);stroke-width:1.4;transition:filter .2s}
-  .node:hover .box{filter:brightness(1.25)}
-  .ln-client{stroke:var(--client)} .ln-server{stroke:var(--server)}
-  .ln-steam{stroke:var(--steam)}   .ln-db{stroke:var(--db)}
-  .node .bar{stroke:none;opacity:.95}
-  .node .t{font:600 15px "Chakra Petch";fill:var(--ink)}
-  .node .s{font:400 10.5px "IBM Plex Mono";fill:var(--mut)}
+      .arr {
+        fill: #557199;
+      }
+      .node .box {
+        fill: var(--panel);
+        stroke-width: 1.4;
+        transition: filter 0.2s;
+      }
+      .node:hover .box {
+        filter: brightness(1.25);
+      }
+      .ln-client {
+        stroke: var(--client);
+      }
+      .ln-server {
+        stroke: var(--server);
+      }
+      .ln-steam {
+        stroke: var(--steam);
+      }
+      .ln-db {
+        stroke: var(--db);
+      }
+      .node .bar {
+        stroke: none;
+        opacity: 0.95;
+      }
+      .node .t {
+        font: 600 15px "Chakra Petch";
+        fill: var(--ink);
+      }
+      .node .s {
+        font: 400 10.5px "IBM Plex Mono";
+        fill: var(--mut);
+      }
 
-  .chip rect{fill:rgba(102,192,244,.07);stroke:rgba(102,192,244,.45);stroke-width:1.2}
-  .chip .t{font:600 13px "Chakra Petch";fill:#d9edfb}
-  .chip .s{font:400 10px "IBM Plex Mono";fill:#7fa8c9}
-  .zone>rect{fill:rgba(102,192,244,.045);stroke:rgba(102,192,244,.3);stroke-width:1.2}
-  .zone .zl{font:600 11px "Chakra Petch";letter-spacing:.22em;fill:rgba(160,210,245,.85)}
-  .zone .zr{font:400 10px "IBM Plex Mono";fill:#6f93b5}
+      .chip rect {
+        fill: rgba(102, 192, 244, 0.07);
+        stroke: rgba(102, 192, 244, 0.45);
+        stroke-width: 1.2;
+      }
+      .chip .t {
+        font: 600 13px "Chakra Petch";
+        fill: #d9edfb;
+      }
+      .chip .s {
+        font: 400 10px "IBM Plex Mono";
+        fill: #7fa8c9;
+      }
+      .zone > rect {
+        fill: rgba(102, 192, 244, 0.045);
+        stroke: rgba(102, 192, 244, 0.3);
+        stroke-width: 1.2;
+      }
+      .zone .zl {
+        font: 600 11px "Chakra Petch";
+        letter-spacing: 0.22em;
+        fill: rgba(160, 210, 245, 0.85);
+      }
+      .zone .zr {
+        font: 400 10px "IBM Plex Mono";
+        fill: #6f93b5;
+      }
 
-  .diamond{fill:var(--panel);stroke:var(--server);stroke-width:1.4}
-  .dtext{font:600 11.5px "IBM Plex Mono";fill:var(--ink)}
-  .wlabel{font:500 10.5px "IBM Plex Mono";fill:#7e93ba;letter-spacing:.04em}
+      .diamond {
+        fill: var(--panel);
+        stroke: var(--server);
+        stroke-width: 1.4;
+      }
+      .dtext {
+        font: 600 11.5px "IBM Plex Mono";
+        fill: var(--ink);
+      }
+      .wlabel {
+        font: 500 10.5px "IBM Plex Mono";
+        fill: #7e93ba;
+        letter-spacing: 0.04em;
+      }
 
-  .bdg circle{fill:#0b1322;stroke-width:1.2;stroke-opacity:.75}
-  .bdg text{font:600 10px "IBM Plex Mono";text-anchor:middle}
-  .bdg.b-client circle{stroke:var(--client)} .bdg.b-client text{fill:var(--client)}
-  .bdg.b-server circle{stroke:var(--server)} .bdg.b-server text{fill:var(--server)}
-  .bdg.b-steam circle{stroke:var(--steam)}  .bdg.b-steam text{fill:var(--steam)}
-  .bdg.b-db circle{stroke:var(--db)}        .bdg.b-db text{fill:var(--db)}
+      .bdg circle {
+        fill: #0b1322;
+        stroke-width: 1.2;
+        stroke-opacity: 0.75;
+      }
+      .bdg text {
+        font: 600 10px "IBM Plex Mono";
+        text-anchor: middle;
+      }
+      .bdg.b-client circle {
+        stroke: var(--client);
+      }
+      .bdg.b-client text {
+        fill: var(--client);
+      }
+      .bdg.b-server circle {
+        stroke: var(--server);
+      }
+      .bdg.b-server text {
+        fill: var(--server);
+      }
+      .bdg.b-steam circle {
+        stroke: var(--steam);
+      }
+      .bdg.b-steam text {
+        fill: var(--steam);
+      }
+      .bdg.b-db circle {
+        stroke: var(--db);
+      }
+      .bdg.b-db text {
+        fill: var(--db);
+      }
 
-  .pkt{filter:drop-shadow(0 0 6px currentColor)}
-  .pkt .core{fill:#fff}
-  .pkt .halo{fill:currentColor;opacity:.28}
-  .p-neutral{color:#9db4ff} .p-server{color:var(--server)} .p-steam{color:var(--steam)}
-  .p-client{color:var(--client)} .p-db{color:var(--db)}
+      .pkt {
+        filter: drop-shadow(0 0 6px currentColor);
+      }
+      .pkt .core {
+        fill: #fff;
+      }
+      .pkt .halo {
+        fill: currentColor;
+        opacity: 0.28;
+      }
+      .p-neutral {
+        color: #9db4ff;
+      }
+      .p-server {
+        color: var(--server);
+      }
+      .p-steam {
+        color: var(--steam);
+      }
+      .p-client {
+        color: var(--client);
+      }
+      .p-db {
+        color: var(--db);
+      }
 
-  /* ---- routes table ---- */
-  .routes{overflow-x:auto;border:1px solid var(--line);border-radius:16px;
-    background:linear-gradient(180deg, rgba(16,26,48,.6), rgba(10,16,30,.35))}
-  table{width:100%;border-collapse:collapse;min-width:820px}
-  th{font:600 11px/1 "IBM Plex Mono";letter-spacing:.16em;text-align:left;
-    color:#7e93ba;padding:14px 16px;border-bottom:1px solid var(--line)}
-  td{padding:13px 16px;border-bottom:1px solid rgba(34,48,82,.55);
-    font-size:12.5px;vertical-align:top}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:rgba(122,162,255,.04)}
-  td.route{font-weight:600;color:#dfe9fb;white-space:nowrap}
-  td.fn code{color:#bcd0f5;background:rgba(122,162,255,.09);padding:1px 5px;border-radius:5px;font-size:11.5px}
-  td.note{color:var(--mut);font-size:11.5px}
-  .gate{display:inline-block;font:600 10px/1 "IBM Plex Mono";color:var(--client);
-    border:1px solid rgba(69,214,184,.45);border-radius:999px;padding:4px 9px;background:rgba(69,214,184,.07)}
+      /* ---- routes table ---- */
+      .routes {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: linear-gradient(180deg, rgba(16, 26, 48, 0.6), rgba(10, 16, 30, 0.35));
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 820px;
+      }
+      th {
+        font: 600 11px/1 "IBM Plex Mono";
+        letter-spacing: 0.16em;
+        text-align: left;
+        color: #7e93ba;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        padding: 13px 16px;
+        border-bottom: 1px solid rgba(34, 48, 82, 0.55);
+        font-size: 12.5px;
+        vertical-align: top;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover td {
+        background: rgba(122, 162, 255, 0.04);
+      }
+      td.route {
+        font-weight: 600;
+        color: #dfe9fb;
+        white-space: nowrap;
+      }
+      td.fn code {
+        color: #bcd0f5;
+        background: rgba(122, 162, 255, 0.09);
+        padding: 1px 5px;
+        border-radius: 5px;
+        font-size: 11.5px;
+      }
+      td.note {
+        color: var(--mut);
+        font-size: 11.5px;
+      }
+      .gate {
+        display: inline-block;
+        font: 600 10px/1 "IBM Plex Mono";
+        color: var(--client);
+        border: 1px solid rgba(69, 214, 184, 0.45);
+        border-radius: 999px;
+        padding: 4px 9px;
+        background: rgba(69, 214, 184, 0.07);
+      }
 
-  /* ---- mutations ---- */
-  .mut-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
-  .mut{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px}
-  .method{display:inline-block;font:600 10px/1 "IBM Plex Mono";letter-spacing:.08em;
-    border-radius:5px;padding:4px 8px;margin-right:6px}
-  .m-post{color:#7ee2a8;border:1px solid rgba(126,226,168,.4);background:rgba(126,226,168,.08)}
-  .m-del{color:#f49a9a;border:1px solid rgba(244,154,154,.4);background:rgba(244,154,154,.08)}
-  .m-put{color:#f2c14e;border:1px solid rgba(242,193,78,.4);background:rgba(242,193,78,.08)}
-  .m-get{color:#8f9bff;border:1px solid rgba(143,155,255,.4);background:rgba(143,155,255,.08)}
-  .mut .ep{font:500 12px/1.6 "IBM Plex Mono";color:#dfe9fb}
-  .mut .what{font:400 11.5px/1.6 "IBM Plex Mono";color:var(--mut);margin-top:6px}
-  .mut .what code{color:#bcd0f5;background:rgba(122,162,255,.09);padding:1px 4px;border-radius:4px;font-size:10.5px}
+      /* ---- mutations ---- */
+      .mut-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 14px;
+      }
+      .mut {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        padding: 14px 16px;
+      }
+      .method {
+        display: inline-block;
+        font: 600 10px/1 "IBM Plex Mono";
+        letter-spacing: 0.08em;
+        border-radius: 5px;
+        padding: 4px 8px;
+        margin-right: 6px;
+      }
+      .m-post {
+        color: #7ee2a8;
+        border: 1px solid rgba(126, 226, 168, 0.4);
+        background: rgba(126, 226, 168, 0.08);
+      }
+      .m-del {
+        color: #f49a9a;
+        border: 1px solid rgba(244, 154, 154, 0.4);
+        background: rgba(244, 154, 154, 0.08);
+      }
+      .m-put {
+        color: #f2c14e;
+        border: 1px solid rgba(242, 193, 78, 0.4);
+        background: rgba(242, 193, 78, 0.08);
+      }
+      .m-get {
+        color: #8f9bff;
+        border: 1px solid rgba(143, 155, 255, 0.4);
+        background: rgba(143, 155, 255, 0.08);
+      }
+      .mut .ep {
+        font: 500 12px/1.6 "IBM Plex Mono";
+        color: #dfe9fb;
+      }
+      .mut .what {
+        font: 400 11.5px/1.6 "IBM Plex Mono";
+        color: var(--mut);
+        margin-top: 6px;
+      }
+      .mut .what code {
+        color: #bcd0f5;
+        background: rgba(122, 162, 255, 0.09);
+        padding: 1px 4px;
+        border-radius: 4px;
+        font-size: 10.5px;
+      }
 
-  footer{margin-top:74px;padding-top:18px;border-top:1px solid var(--line);
-    color:#5f7194;font-size:11.5px;line-height:1.9}
+      footer {
+        margin-top: 74px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+        color: #5f7194;
+        font-size: 11.5px;
+        line-height: 1.9;
+      }
 
-  @media (prefers-reduced-motion: reduce){
-    .ovl{animation:none}
-    .pkt{display:none}
-    html.js .flow{opacity:1;transform:none;transition:none}
-  }
-</style>
-</head>
-<body>
-<div class="wrap">
+      @media (prefers-reduced-motion: reduce) {
+        .ovl {
+          animation: none;
+        }
+        .pkt {
+          display: none;
+        }
+        html.js .flow {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="eyebrow">RARIFY · SYSTEM MAP</div>
+        <h1>How Rarify flows</h1>
+        <p class="lede">
+          Four circuits keep the dashboard alive: signing in through Steam, one deep data module
+          feeding every page, browser mutations that round-trip through API routes, and a nightly
+          snapshot job that powers the deltas. Follow the light.
+        </p>
 
-  <header>
-    <div class="eyebrow">RARIFY · SYSTEM MAP</div>
-    <h1>How Rarify flows</h1>
-    <p class="lede">Four circuits keep the dashboard alive: signing in through Steam,
-      one deep data module feeding every page, browser mutations that round-trip through
-      API routes, and a nightly snapshot job that powers the deltas.
-      Follow the light.</p>
+        <div class="legend" aria-label="Diagram legend">
+          <span class="item"><span class="dot d-client"></span>Client / browser</span>
+          <span class="item"><span class="dot d-server"></span>Next.js server</span>
+          <span class="item"><span class="dot d-steam"></span>Steam Web API</span>
+          <span class="item"><span class="dot d-db"></span>Turso · Drizzle</span>
+          <span class="item"><span class="dot d-pkt"></span>data in flight</span>
+        </div>
 
-    <div class="legend" aria-label="Diagram legend">
-      <span class="item"><span class="dot d-client"></span>Client / browser</span>
-      <span class="item"><span class="dot d-server"></span>Next.js server</span>
-      <span class="item"><span class="dot d-steam"></span>Steam Web API</span>
-      <span class="item"><span class="dot d-db"></span>Turso · Drizzle</span>
-      <span class="item"><span class="dot d-pkt"></span>data in flight</span>
+        <div class="stack" aria-label="Layer stack overview">
+          <div class="stack-title">REQUEST STACK · OUTER → INNER</div>
+          <div class="lane">
+            <div class="layer l-client"><b>Browser</b><span>session cookie · hydrate</span></div>
+            <div class="arrow">→</div>
+            <div class="layer l-server">
+              <b>App Router pages</b><span>force-dynamic · getSession()</span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="layer l-server">
+              <b>lib/dashboard</b><span>thin projections per page</span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="layer l-server">
+              <b>getLibrarySnapshot()</b><span>deep module · react cache()</span>
+            </div>
+            <div class="arrow">→</div>
+            <div class="layer l-steam"><b>lib/steam</b><span>cached fetch wrappers</span></div>
+            <div class="arrow">→</div>
+            <div class="layer l-steam"><b>Steam Web API</b><span>api.steampowered.com</span></div>
+          </div>
+          <div class="lane" style="margin-top: 10px">
+            <div class="layer l-db" style="flex: 5 1 320px">
+              <b>lib/db · Drizzle ORM</b>
+              <span
+                >users · tracked_games · snapshots · library_snapshots · user_preferences → Turso /
+                libSQL</span
+              >
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <!-- ============================ 01 · SIGN IN ============================ -->
+        <section class="flow" id="signin">
+          <div class="flow-head">
+            <span class="kick k-server">01 · SIGN IN</span>
+            <h2>Steam OpenID</h2>
+          </div>
+          <p class="caption">
+            Every page starts with <code>getSession()</code>: no valid JWT cookie → redirect to
+            <code>/login</code>. Steam verifies you, <code>/auth/steam/callback</code> re-verifies
+            the OpenID signature, pulls your persona via <code>GetPlayerSummaries</code>, upserts
+            the <code>users</code> row, and signs a 30-day JWT (<code>jose</code>, HS256) into an
+            httpOnly cookie before redirecting home. Signing out: <code>POST /auth/logout</code> →
+            <code>clearSession()</code> → <code>/login</code>.
+          </p>
+
+          <div class="diagram-scroll" tabindex="0" role="region" aria-label="Sign-in flow diagram">
+            <svg
+              viewBox="0 0 1200 430"
+              role="img"
+              aria-label="Sign-in flow: browser to login to Steam OpenID to callback, database upsert, session cookie, redirect home"
+            >
+              <!-- base wires -->
+              <path class="wire" d="M 216 124 H 1006" />
+              <path class="wire" d="M 1085 158 V 330" />
+              <path class="wire" d="M 985 330 H 506" />
+              <path class="wire" d="M 286 330 H 138 Q 126 330 126 318 V 164" />
+              <!-- marching overlays -->
+              <path class="ovl c-client" d="M 216 124 H 1006" />
+              <path class="ovl c-steam" d="M 1085 158 V 330" />
+              <path class="ovl c-server" d="M 985 330 H 506" />
+              <path class="ovl c-server" d="M 286 330 H 138 Q 126 330 126 318 V 164" />
+              <!-- arrowheads -->
+              <polygon class="arr" points="240,119 252,124 240,129" />
+              <polygon class="arr" points="500,119 512,124 500,129" />
+              <polygon class="arr" points="730,119 742,124 730,129" />
+              <polygon class="arr" points="970,119 982,124 970,129" />
+              <polygon class="arr" points="1000,119 1012,124 1000,129" />
+              <polygon class="arr" points="1079,296 1085,284 1091,296" />
+              <polygon class="arr" points="818,325 806,330 818,335" />
+              <polygon class="arr" points="892,325 880,330 892,335" />
+              <polygon class="arr" points="518,325 506,330 518,335" />
+              <polygon class="arr" points="574,325 562,330 574,335" />
+              <polygon class="arr" points="120,176 126,164 132,176" />
+              <!-- wire labels -->
+              <text class="wlabel" x="506" y="82" text-anchor="middle">302 /login</text>
+              <text class="wlabel" x="736" y="108" text-anchor="middle">sign in</text>
+              <text class="wlabel" x="976" y="82" text-anchor="middle">302 back</text>
+              <text class="wlabel" x="886" y="315" text-anchor="middle">openid.claimed_id</text>
+              <text class="wlabel" x="566" y="315" text-anchor="middle">persona + avatar</text>
+              <text class="wlabel" x="142" y="252">302 / · rarify_session cookie</text>
+
+              <!-- packets -->
+              <g class="pkt p-neutral">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="8s"
+                  begin="0s"
+                  repeatCount="indefinite"
+                  path="M 216 124 H 1085 V 330 H 138 Q 126 330 126 318 V 164"
+                />
+              </g>
+              <g class="pkt p-neutral">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="8s"
+                  begin="-4s"
+                  repeatCount="indefinite"
+                  path="M 216 124 H 1085 V 330 H 138 Q 126 330 126 318 V 164"
+                />
+              </g>
+
+              <!-- nodes: top row -->
+              <g class="node" transform="translate(36,90)">
+                <rect class="box ln-client" width="180" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#45d6b8" />
+                <text class="t" x="16" y="29">Browser</text>
+                <text class="s" x="16" y="49">visits any page</text>
+                <g class="bdg b-client">
+                  <circle cx="162" cy="18" r="9" />
+                  <text x="162" y="21.5">1</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(276,90)">
+                <rect class="box ln-server" width="200" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">getSession()</text>
+                <text class="s" x="16" y="49">no JWT → redirect</text>
+                <g class="bdg b-server">
+                  <circle cx="182" cy="18" r="9" />
+                  <text x="182" y="21.5">2</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(536,90)">
+                <rect class="box ln-server" width="170" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">/login</text>
+                <text class="s" x="16" y="49">sign-in screen</text>
+                <g class="bdg b-server">
+                  <circle cx="152" cy="18" r="9" />
+                  <text x="152" y="21.5">3</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(766,90)">
+                <rect class="box ln-server" width="180" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">/auth/steam</text>
+                <text class="s" x="16" y="49">302 → openid/login</text>
+                <g class="bdg b-server">
+                  <circle cx="162" cy="18" r="9" />
+                  <text x="162" y="21.5">4</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(1006,90)">
+                <rect class="box ln-steam" width="158" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#66c0f4" />
+                <text class="t" x="16" y="29">Steam OpenID</text>
+                <text class="s" x="16" y="49">checkid_setup</text>
+                <g class="bdg b-steam">
+                  <circle cx="140" cy="18" r="9" />
+                  <text x="140" y="21.5">5</text>
+                </g>
+              </g>
+
+              <!-- nodes: bottom row -->
+              <g class="node" transform="translate(985,296)">
+                <rect class="box ln-server" width="200" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">/auth/steam/callback</text>
+                <text class="s" x="16" y="49">verify · extract steamid</text>
+                <g class="bdg b-server">
+                  <circle cx="182" cy="18" r="9" />
+                  <text x="182" y="21.5">6</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(626,296)">
+                <rect class="box ln-db" width="180" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e" />
+                <text class="t" x="16" y="29">users</text>
+                <text class="s" x="16" y="49">upsert · summaries</text>
+                <g class="bdg b-db">
+                  <circle cx="162" cy="18" r="9" />
+                  <text x="162" y="21.5">7</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(286,296)">
+                <rect class="box ln-server" width="220" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">createSession()</text>
+                <text class="s" x="16" y="49">JWT 30d → httpOnly cookie</text>
+                <g class="bdg b-server">
+                  <circle cx="202" cy="18" r="9" />
+                  <text x="202" y="21.5">8</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <!-- ============================ 02 · DATA PIPELINE ============================ -->
+        <section class="flow" id="pipeline">
+          <div class="flow-head">
+            <span class="kick k-mixed">02 · DATA PIPELINE</span>
+            <h2>getLibrarySnapshot() — one deep module</h2>
+          </div>
+          <p class="caption">
+            Thin projections (<code>getDashboardData</code>, <code>getGamesData</code>,
+            <code>getAchievementsData</code>, …) all funnel into <code>getLibrarySnapshot</code>,
+            deduped per request by <code>react cache()</code>. It serves the enriched library from a
+            15-minute DB-backed snapshot (<code>library_snapshots</code>); a miss fans out to Steam
+            in batches of five, and a Steam outage falls back to serving stale data.
+          </p>
+
+          <div
+            class="diagram-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Data pipeline flow diagram"
+          >
+            <svg
+              viewBox="0 0 1240 770"
+              role="img"
+              aria-label="Data pipeline: session check, library snapshot cache decision, Steam fan-out on miss, DB-backed snapshot persistence, tracked-game flags, stats computation"
+            >
+              <!-- base wires -->
+              <path class="wire" d="M 200 104 H 1032" />
+              <path class="wire" d="M 1110 150 V 214 Q 1110 226 1098 226 H 762 Q 750 226 750 232" />
+              <path
+                class="wire"
+                d="M 1188 104 H 1212 Q 1224 104 1224 116 V 492 Q 1224 504 1212 504 H 1204"
+              />
+              <path class="wire" d="M 820 442 V 474" />
+              <path class="wire" d="M 700 514 H 648" />
+              <path class="wire" d="M 940 514 H 946" />
+              <path class="wire" d="M 1075 538 V 650" />
+              <path class="wire" d="M 920 684 H 742" />
+              <path class="wire" d="M 470 684 H 115 Q 103 684 103 672 V 152" />
+              <!-- marching overlays -->
+              <path class="ovl c-server" d="M 200 104 H 1032" />
+              <path
+                class="ovl c-steam"
+                d="M 1110 150 V 214 Q 1110 226 1098 226 H 762 Q 750 226 750 232"
+              />
+              <path
+                class="ovl c-server"
+                d="M 1188 104 H 1212 Q 1224 104 1224 116 V 492 Q 1224 504 1212 504 H 1204"
+              />
+              <path class="ovl c-db" d="M 820 442 V 474" />
+              <path class="ovl c-db" d="M 700 514 H 648" />
+              <path class="ovl c-server" d="M 940 514 H 946" />
+              <path class="ovl c-server" d="M 1075 538 V 650" />
+              <path class="ovl c-client" d="M 470 684 H 115 Q 103 684 103 672 V 152" />
+              <!-- arrowheads -->
+              <polygon class="arr" points="224,99 236,104 224,109" />
+              <polygon class="arr" points="479,99 491,104 479,109" />
+              <polygon class="arr" points="749,99 761,104 749,109" />
+              <polygon class="arr" points="1014,99 1026,104 1014,109" />
+              <polygon class="arr" points="744,220 750,232 756,220" />
+              <polygon class="arr" points="1212,498 1200,504 1212,510" />
+              <polygon class="arr" points="814,462 820,474 826,462" />
+              <polygon class="arr" points="660,508 648,514 660,520" />
+              <polygon class="arr" points="934,508 946,514 934,520" />
+              <polygon class="arr" points="1069,638 1075,650 1081,638" />
+              <polygon class="arr" points="754,679 742,684 754,689" />
+              <polygon class="arr" points="97,164 103,152 109,164" />
+              <!-- wire labels -->
+              <text class="wlabel" x="1090" y="242" text-anchor="end">miss · stale</text>
+              <text
+                class="wlabel"
+                x="1240"
+                y="228"
+                text-anchor="middle"
+                transform="rotate(-90 1240 228)"
+              >
+                hit · fresh
+              </text>
+              <text class="wlabel" x="834" y="468">persist · best-effort</text>
+              <text class="wlabel" x="1087" y="600">flags on</text>
+              <text class="wlabel" x="119" y="420">HTML → hydrate</text>
+
+              <!-- packets -->
+              <g class="pkt p-server">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="3s"
+                  begin="0s"
+                  repeatCount="indefinite"
+                  path="M 200 104 H 1032"
+                />
+              </g>
+              <g class="pkt p-steam">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="8s"
+                  begin="-2s"
+                  repeatCount="indefinite"
+                  path="M 1110 150 V 214 Q 1110 226 1098 226 L 762 226 Q 750 226 750 238 L 750 442 L 820 442 L 820 470"
+                />
+              </g>
+              <g class="pkt p-steam">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="8s"
+                  begin="-6s"
+                  repeatCount="indefinite"
+                  path="M 1110 150 V 214 Q 1110 226 1098 226 L 762 226 Q 750 226 750 238 L 750 442 L 820 442 L 820 470"
+                />
+              </g>
+              <g class="pkt p-server">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="9s"
+                  begin="-4s"
+                  repeatCount="indefinite"
+                  path="M 940 514 L 948 514 L 948 556 L 1075 556 L 1075 646"
+                />
+              </g>
+              <g class="pkt p-client">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="6s"
+                  begin="-1s"
+                  repeatCount="indefinite"
+                  path="M 920 684 L 742 684 L 115 684 Q 103 684 103 672 L 103 156"
+                />
+              </g>
+              <!-- Steam cluster -->
+              <g class="zone">
+                <rect x="470" y="238" width="560" height="204" rx="12" />
+                <text class="zl" x="494" y="266">STEAM WEB API · lib/steam.ts</text>
+                <text class="zr" x="1006" y="266" text-anchor="end">
+                  fetch cache · 5–60 min · react cache()
+                </text>
+              </g>
+              <g class="chip" transform="translate(494,288)">
+                <rect width="250" height="44" rx="8" />
+                <text class="t" x="14" y="19">GetOwnedGames</text>
+                <text class="s" x="14" y="35">library · playtime · 300s</text>
+              </g>
+              <g class="chip" transform="translate(764,288)">
+                <rect width="242" height="44" rx="8" />
+                <text class="t" x="14" y="19">GetPlayerAchievements</text>
+                <text class="s" x="14" y="35">per game · 600s</text>
+              </g>
+              <g class="chip" transform="translate(494,348)">
+                <rect width="250" height="44" rx="8" />
+                <text class="t" x="14" y="19">GlobalAchievement%</text>
+                <text class="s" x="14" y="35">rarity · 3600s</text>
+              </g>
+              <g class="chip" transform="translate(764,348)">
+                <rect width="242" height="44" rx="8" />
+                <text class="t" x="14" y="19">GetSchemaForGame</text>
+                <text class="s" x="14" y="35">names · icons · 3600s</text>
+              </g>
+              <text class="wlabel" x="494" y="428">detailed slice → batches of 5 concurrent</text>
+
+              <!-- nodes: top row -->
+              <g class="node" transform="translate(30,70)">
+                <rect class="box ln-client" width="170" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#45d6b8" />
+                <text class="t" x="16" y="29">Browser</text>
+                <text class="s" x="16" y="49">GET / · cookie</text>
+              </g>
+              <g class="node" transform="translate(260,70)">
+                <rect class="box ln-server" width="190" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">SSR page</text>
+                <text class="s" x="16" y="49">force-dynamic · session ✓</text>
+              </g>
+              <g class="node" transform="translate(510,70)">
+                <rect class="box ln-server" width="210" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">thin projection</text>
+                <text class="s" x="16" y="49">getDashboardData · getGamesData…</text>
+              </g>
+              <g class="node" transform="translate(780,70)">
+                <rect class="box ln-server" width="220" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">getLibrarySnapshot()</text>
+                <text class="s" x="16" y="49">react cache() · once/request</text>
+              </g>
+              <!-- decision diamond -->
+              <polygon class="diamond" points="1032,104 1110,58 1188,104 1110,150" />
+              <text class="dtext" x="1110" y="99" text-anchor="middle">snapshot</text>
+              <text class="dtext" x="1110" y="115" text-anchor="middle">fresh?</text>
+
+              <!-- nodes: middle -->
+              <g class="node" transform="translate(950,470)">
+                <rect class="box ln-server" width="250" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">applyTrackedState()</text>
+                <text class="s" x="16" y="49">tracked_games → game.tracked</text>
+              </g>
+              <g class="node" transform="translate(400,480)">
+                <rect class="box ln-db" width="240" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e" />
+                <text class="t" x="16" y="29">library_snapshots</text>
+                <text class="s" x="16" y="49">TTL 15 min · JSON payload</text>
+              </g>
+              <g class="node" transform="translate(700,480)">
+                <rect class="box ln-db" width="240" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e" />
+                <text class="t" x="16" y="29">writeCachedSnapshot()</text>
+                <text class="s" x="16" y="49">version-gated upsert · steamId</text>
+              </g>
+
+              <!-- annotation cards: left column -->
+              <g class="node" transform="translate(30,300)">
+                <rect class="box ln-db" width="250" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e" />
+                <text class="t" x="16" y="29">snapshots</text>
+                <text class="s" x="16" y="49">nightly rows → avgCompletionΔ · ownedΔ</text>
+              </g>
+              <g class="node" transform="translate(30,440)">
+                <rect class="box ln-server" width="250" height="52" rx="10" />
+                <rect class="bar" width="3" height="52" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="22" style="font-size: 13px">Steam outage?</text>
+                <text class="s" x="16" y="40">serve stale snapshot if present</text>
+              </g>
+
+              <!-- nodes: bottom row -->
+              <g class="node" transform="translate(920,650)">
+                <rect class="box ln-server" width="240" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">compute stats</text>
+                <text class="s" x="16" y="49">recent · rarest · rarity mix</text>
+              </g>
+              <g class="node" transform="translate(470,650)">
+                <rect class="box ln-server" width="260" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">props-driven view</text>
+                <text class="s" x="16" y="49">&lt;DashboardView&gt; · SSR stream → hydrate</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <!-- ============================ 03 · PAGE SURFACE ============================ -->
+        <section class="flow" id="surface">
+          <div class="flow-head">
+            <span class="kick k-mixed">03 · PAGE SURFACE</span>
+            <h2>Routes → projections → views</h2>
+          </div>
+          <p class="caption">
+            Every route is <code>force-dynamic</code> and session-gated; unauthenticated visits
+            bounce to <code>/login</code>. Each page calls exactly one thin projection over the
+            shared library snapshot — except the per-game page, which queries Steam live.
+          </p>
+
+          <div
+            class="routes"
+            tabindex="0"
+            role="region"
+            aria-label="Route to data-layer to component mapping"
+          >
+            <table>
+              <thead>
+                <tr>
+                  <th>ROUTE</th>
+                  <th>GATE</th>
+                  <th>DATA LAYER</th>
+                  <th>VIEW COMPONENT</th>
+                  <th>NOTES</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="route">/</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn"><code>getDashboardData()</code></td>
+                  <td class="fn"><code>&lt;DashboardView&gt;</code></td>
+                  <td class="note">
+                    stats · filterable games · recent/rarest unlocks · rarity mix
+                  </td>
+                </tr>
+                <tr>
+                  <td class="route">/games</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn"><code>getGamesData()</code></td>
+                  <td class="fn"><code>&lt;GamesView&gt;</code></td>
+                  <td class="note">full library list, no stats pass</td>
+                </tr>
+                <tr>
+                  <td class="route">/games/[appId]</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn"><code>getGameAchievements()</code></td>
+                  <td class="fn"><code>&lt;AchievementList&gt;</code></td>
+                  <td class="note">live Steam: player achievements + global % + schema</td>
+                </tr>
+                <tr>
+                  <td class="route">/achievements</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn"><code>getAchievementsData()</code></td>
+                  <td class="fn"><code>&lt;AchievementsOverview&gt;</code></td>
+                  <td class="note">recent 20 · rarest 10 · rarest-per-game</td>
+                </tr>
+                <tr>
+                  <td class="route">/insights</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn"><code>getDashboardData()</code></td>
+                  <td class="fn"><code>&lt;InsightsView&gt;</code></td>
+                  <td class="note">same data as / — different lens</td>
+                </tr>
+                <tr>
+                  <td class="route">/friends</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn"><code>getFriendsData()</code></td>
+                  <td class="fn"><code>&lt;FriendsView&gt;</code></td>
+                  <td class="note">friend list → summaries → probes each via GetOwnedGames</td>
+                </tr>
+                <tr>
+                  <td class="route">/friends/[steamId]</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn">
+                    <code>getDashboardData() ×2</code> + <code>getFriendsData()</code>
+                  </td>
+                  <td class="fn"><code>&lt;FriendCompareView&gt;</code></td>
+                  <td class="note">side-by-side: you vs friend (parallel)</td>
+                </tr>
+                <tr>
+                  <td class="route">/settings</td>
+                  <td><span class="gate">session</span></td>
+                  <td class="fn"><code>getPreferences()</code></td>
+                  <td class="fn"><code>&lt;SettingsView&gt;</code></td>
+                  <td class="note">reads <code>user_preferences.default_filter</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============================ 04 · MUTATIONS ============================ -->
+        <section class="flow" id="mutations">
+          <div class="flow-head">
+            <span class="kick k-mixed">04 · MUTATIONS</span>
+            <h2>Browser → API routes → DB</h2>
+          </div>
+          <p class="caption">
+            Writes never touch Steam — they land straight in Turso and take effect on the next
+            render, because tracking flags are re-applied onto the cached library on every request.
+          </p>
+
+          <div class="mut-grid">
+            <div class="mut">
+              <div class="ep"><span class="method m-post">POST</span>/api/tracked-games</div>
+              <div class="what">
+                body <code>{appId}</code> → INSERT INTO
+                <code>tracked_games</code> (onConflictDoNothing)
+              </div>
+            </div>
+            <div class="mut">
+              <div class="ep">
+                <span class="method m-del">DELETE</span>/api/tracked-games?appId=…
+              </div>
+              <div class="what">
+                removes the <code>(steamId, appId)</code> row → game flips untracked
+              </div>
+            </div>
+            <div class="mut">
+              <div class="ep"><span class="method m-put">PUT</span>/api/settings</div>
+              <div class="what">
+                body <code>{defaultFilter}</code> → upsert <code>user_preferences</code>; validated
+                against all·owned·tracked
+              </div>
+            </div>
+            <div class="mut">
+              <div class="ep"><span class="method m-get">GET</span>/api/dashboard?filter=…</div>
+              <div class="what">
+                JSON projection of <code>getDashboardData()</code> — same deep module as SSR
+              </div>
+            </div>
+            <div class="mut">
+              <div class="ep"><span class="method m-post">POST</span>/auth/logout</div>
+              <div class="what">
+                <code>clearSession()</code> zeroes the cookie → redirect <code>/login</code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================ 05 · NIGHTLY ============================ -->
+        <section class="flow" id="cron">
+          <div class="flow-head">
+            <span class="kick k-db">05 · NIGHTLY</span>
+            <h2>Snapshot cron</h2>
+          </div>
+          <p class="caption">
+            A daily cron authenticates with a bearer secret, walks every user, and pins a
+            <code>snapshots</code> row (earned, avg completion ×10, owned). Those historical rows
+            are what let the dashboard show real <code>Δ</code> deltas instead of frozen nulls.
+          </p>
+
+          <div
+            class="diagram-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Nightly snapshot cron flow diagram"
+          >
+            <svg
+              viewBox="0 0 1200 340"
+              role="img"
+              aria-label="Nightly cron flow: schedule to authenticated endpoint to per-user snapshot written to the snapshots table, powering delta chips"
+            >
+              <!-- base wires -->
+              <path class="wire" d="M 216 124 H 1056" />
+              <path
+                class="wire"
+                d="M 946 158 V 210 Q 946 222 934 222 H 688 Q 676 222 676 234 V 240"
+              />
+              <path class="wire" d="M 776 274 H 836" />
+              <!-- marching overlays -->
+              <path class="ovl c-server" d="M 216 124 H 1056" />
+              <path
+                class="ovl c-db"
+                d="M 946 158 V 210 Q 946 222 934 222 H 688 Q 676 222 676 234 V 274 H 836"
+              />
+              <!-- arrowheads -->
+              <polygon class="arr" points="240,119 252,124 240,129" />
+              <polygon class="arr" points="540,119 552,124 540,129" />
+              <polygon class="arr" points="800,119 812,124 800,129" />
+              <polygon class="arr" points="1050,119 1062,124 1050,129" />
+              <polygon class="arr" points="670,246 676,234 682,246" />
+              <polygon class="arr" points="824,269 836,274 824,279" />
+              <!-- wire labels -->
+              <text class="wlabel" x="810" y="214" text-anchor="middle">nightly snapshot rows</text>
+
+              <!-- packets -->
+              <g class="pkt p-db">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="6s"
+                  begin="0s"
+                  repeatCount="indefinite"
+                  path="M 216 124 H 946 L 946 210 Q 946 222 934 222 L 688 222 Q 676 222 676 234 L 676 274 L 776 274 L 836 274"
+                />
+              </g>
+              <g class="pkt p-db">
+                <circle class="halo" r="7" />
+                <circle class="core" r="3" />
+                <animateMotion
+                  dur="6s"
+                  begin="-3s"
+                  repeatCount="indefinite"
+                  path="M 216 124 H 946 L 946 210 Q 946 222 934 222 L 688 222 Q 676 222 676 234 L 676 274 L 776 274 L 836 274"
+                />
+              </g>
+
+              <!-- nodes: top row -->
+              <g class="node" transform="translate(36,90)">
+                <rect class="box ln-client" width="180" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#45d6b8" />
+                <text class="t" x="16" y="29">Vercel Cron</text>
+                <text class="s" x="16" y="49">daily schedule</text>
+                <g class="bdg b-client">
+                  <circle cx="162" cy="18" r="9" />
+                  <text x="162" y="21.5">1</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(276,90)">
+                <rect class="box ln-server" width="240" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">/api/cron/snapshot</text>
+                <text class="s" x="16" y="49">Bearer CRON_SECRET</text>
+                <g class="bdg b-server">
+                  <circle cx="222" cy="18" r="9" />
+                  <text x="222" y="21.5">2</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(576,90)">
+                <rect class="box ln-server" width="200" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">snapshotUser()</text>
+                <text class="s" x="16" y="49">for each user</text>
+                <g class="bdg b-server">
+                  <circle cx="182" cy="18" r="9" />
+                  <text x="182" y="21.5">3</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(836,90)">
+                <rect class="box ln-server" width="220" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff" />
+                <text class="t" x="16" y="29">getLibrarySnapshot()</text>
+                <text class="s" x="16" y="49">cached library read</text>
+                <g class="bdg b-server">
+                  <circle cx="202" cy="18" r="9" />
+                  <text x="202" y="21.5">4</text>
+                </g>
+              </g>
+
+              <!-- nodes: bottom row -->
+              <g class="node" transform="translate(576,240)">
+                <rect class="box ln-db" width="200" height="68" rx="10" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e" />
+                <text class="t" x="16" y="29">writeSnapshot()</text>
+                <text class="s" x="16" y="49">computeStats → INSERT</text>
+                <g class="bdg b-db">
+                  <circle cx="182" cy="18" r="9" />
+                  <text x="182" y="21.5">5</text>
+                </g>
+              </g>
+              <g class="node" transform="translate(836,240)">
+                <rect class="box ln-db" width="220" height="68" rx="10" stroke-dasharray="5 4" />
+                <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e" />
+                <text class="t" x="16" y="29">Δ delta chips</text>
+                <text class="s" x="16" y="49">avg completion · games owned</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        Source of truth: app/page.tsx ·
+        app/{games,games/[appId],achievements,insights,friends,friends/[steamId],settings}/page.tsx
+        · app/auth/steam/* · app/auth/logout/route.ts ·
+        app/api/{dashboard,tracked-games,settings,cron/snapshot}/route.ts · lib/auth.ts ·
+        lib/dashboard.ts · lib/steam.ts · lib/settings.ts · lib/db/schema.ts
+      </footer>
     </div>
 
-    <div class="stack" aria-label="Layer stack overview">
-      <div class="stack-title">REQUEST STACK · OUTER → INNER</div>
-      <div class="lane">
-        <div class="layer l-client"><b>Browser</b><span>session cookie · hydrate</span></div>
-        <div class="arrow">→</div>
-        <div class="layer l-server"><b>App Router pages</b><span>force-dynamic · getSession()</span></div>
-        <div class="arrow">→</div>
-        <div class="layer l-server"><b>lib/dashboard</b><span>thin projections per page</span></div>
-        <div class="arrow">→</div>
-        <div class="layer l-server"><b>getLibrarySnapshot()</b><span>deep module · react cache()</span></div>
-        <div class="arrow">→</div>
-        <div class="layer l-steam"><b>lib/steam</b><span>cached fetch wrappers</span></div>
-        <div class="arrow">→</div>
-        <div class="layer l-steam"><b>Steam Web API</b><span>api.steampowered.com</span></div>
-      </div>
-      <div class="lane" style="margin-top:10px">
-        <div class="layer l-db" style="flex:5 1 320px"><b>lib/db · Drizzle ORM</b>
-          <span>users · tracked_games · snapshots · library_snapshots · user_preferences → Turso / libSQL</span></div>
-      </div>
-    </div>
-  </header>
-
-  <main>
-
-    <!-- ============================ 01 · SIGN IN ============================ -->
-    <section class="flow" id="signin">
-      <div class="flow-head">
-        <span class="kick k-server">01 · SIGN IN</span>
-        <h2>Steam OpenID</h2>
-      </div>
-      <p class="caption">Every page starts with <code>getSession()</code>: no valid JWT cookie →
-        redirect to <code>/login</code>. Steam verifies you,
-        <code>/auth/steam/callback</code> re-verifies the OpenID signature, pulls your persona via
-        <code>GetPlayerSummaries</code>, upserts the <code>users</code> row, and signs a 30-day JWT
-        (<code>jose</code>, HS256) into an httpOnly cookie before redirecting home.
-        Signing out: <code>POST /auth/logout</code> → <code>clearSession()</code> → <code>/login</code>.</p>
-
-      <div class="diagram-scroll" tabindex="0" role="region" aria-label="Sign-in flow diagram">
-      <svg viewBox="0 0 1200 430" role="img" aria-label="Sign-in flow: browser to login to Steam OpenID to callback, database upsert, session cookie, redirect home">
-        <!-- base wires -->
-        <path class="wire" d="M 216 124 H 1006"/>
-        <path class="wire" d="M 1085 158 V 330"/>
-        <path class="wire" d="M 985 330 H 506"/>
-        <path class="wire" d="M 286 330 H 138 Q 126 330 126 318 V 164"/>
-        <!-- marching overlays -->
-        <path class="ovl c-client" d="M 216 124 H 1006"/>
-        <path class="ovl c-steam"  d="M 1085 158 V 330"/>
-        <path class="ovl c-server" d="M 985 330 H 506"/>
-        <path class="ovl c-server" d="M 286 330 H 138 Q 126 330 126 318 V 164"/>
-        <!-- arrowheads -->
-        <polygon class="arr" points="240,119 252,124 240,129"/>
-        <polygon class="arr" points="500,119 512,124 500,129"/>
-        <polygon class="arr" points="730,119 742,124 730,129"/>
-        <polygon class="arr" points="970,119 982,124 970,129"/>
-        <polygon class="arr" points="1000,119 1012,124 1000,129"/>
-        <polygon class="arr" points="1079,296 1085,284 1091,296"/>
-        <polygon class="arr" points="818,325 806,330 818,335"/>
-        <polygon class="arr" points="892,325 880,330 892,335"/>
-        <polygon class="arr" points="518,325 506,330 518,335"/>
-        <polygon class="arr" points="574,325 562,330 574,335"/>
-        <polygon class="arr" points="120,176 126,164 132,176"/>
-        <!-- wire labels -->
-        <text class="wlabel" x="506" y="82" text-anchor="middle">302 /login</text>
-        <text class="wlabel" x="736" y="108" text-anchor="middle">sign in</text>
-        <text class="wlabel" x="976" y="82" text-anchor="middle">302 back</text>
-        <text class="wlabel" x="886" y="315" text-anchor="middle">openid.claimed_id</text>
-        <text class="wlabel" x="566" y="315" text-anchor="middle">persona + avatar</text>
-        <text class="wlabel" x="142" y="252">302 / · rarify_session cookie</text>
-
-        <!-- packets -->
-        <g class="pkt p-neutral">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="8s" begin="0s" repeatCount="indefinite"
-            path="M 216 124 H 1085 V 330 H 138 Q 126 330 126 318 V 164"/>
-        </g>
-        <g class="pkt p-neutral">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="8s" begin="-4s" repeatCount="indefinite"
-            path="M 216 124 H 1085 V 330 H 138 Q 126 330 126 318 V 164"/>
-        </g>
-
-        <!-- nodes: top row -->
-        <g class="node" transform="translate(36,90)">
-          <rect class="box ln-client" width="180" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#45d6b8"/>
-          <text class="t" x="16" y="29">Browser</text>
-          <text class="s" x="16" y="49">visits any page</text>
-          <g class="bdg b-client"><circle cx="162" cy="18" r="9"/><text x="162" y="21.5">1</text></g>
-        </g>
-        <g class="node" transform="translate(276,90)">
-          <rect class="box ln-server" width="200" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">getSession()</text>
-          <text class="s" x="16" y="49">no JWT → redirect</text>
-          <g class="bdg b-server"><circle cx="182" cy="18" r="9"/><text x="182" y="21.5">2</text></g>
-        </g>
-        <g class="node" transform="translate(536,90)">
-          <rect class="box ln-server" width="170" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">/login</text>
-          <text class="s" x="16" y="49">sign-in screen</text>
-          <g class="bdg b-server"><circle cx="152" cy="18" r="9"/><text x="152" y="21.5">3</text></g>
-        </g>
-        <g class="node" transform="translate(766,90)">
-          <rect class="box ln-server" width="180" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">/auth/steam</text>
-          <text class="s" x="16" y="49">302 → openid/login</text>
-          <g class="bdg b-server"><circle cx="162" cy="18" r="9"/><text x="162" y="21.5">4</text></g>
-        </g>
-        <g class="node" transform="translate(1006,90)">
-          <rect class="box ln-steam" width="158" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#66c0f4"/>
-          <text class="t" x="16" y="29">Steam OpenID</text>
-          <text class="s" x="16" y="49">checkid_setup</text>
-          <g class="bdg b-steam"><circle cx="140" cy="18" r="9"/><text x="140" y="21.5">5</text></g>
-        </g>
-
-        <!-- nodes: bottom row -->
-        <g class="node" transform="translate(985,296)">
-          <rect class="box ln-server" width="200" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">/auth/steam/callback</text>
-          <text class="s" x="16" y="49">verify · extract steamid</text>
-          <g class="bdg b-server"><circle cx="182" cy="18" r="9"/><text x="182" y="21.5">6</text></g>
-        </g>
-        <g class="node" transform="translate(626,296)">
-          <rect class="box ln-db" width="180" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e"/>
-          <text class="t" x="16" y="29">users</text>
-          <text class="s" x="16" y="49">upsert · summaries</text>
-          <g class="bdg b-db"><circle cx="162" cy="18" r="9"/><text x="162" y="21.5">7</text></g>
-        </g>
-        <g class="node" transform="translate(286,296)">
-          <rect class="box ln-server" width="220" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">createSession()</text>
-          <text class="s" x="16" y="49">JWT 30d → httpOnly cookie</text>
-          <g class="bdg b-server"><circle cx="202" cy="18" r="9"/><text x="202" y="21.5">8</text></g>
-        </g>
-      </svg>
-      </div>
-    </section>
-
-    <!-- ============================ 02 · DATA PIPELINE ============================ -->
-    <section class="flow" id="pipeline">
-      <div class="flow-head">
-        <span class="kick k-mixed">02 · DATA PIPELINE</span>
-        <h2>getLibrarySnapshot() — one deep module</h2>
-      </div>
-      <p class="caption">Thin projections (<code>getDashboardData</code>,
-        <code>getGamesData</code>, <code>getAchievementsData</code>, …) all funnel into
-        <code>getLibrarySnapshot</code>, deduped per request by <code>react cache()</code>.
-        It serves the enriched library from a 15-minute DB-backed snapshot
-        (<code>library_snapshots</code>); a miss fans out to Steam in batches of five, and a Steam
-        outage falls back to serving stale data.</p>
-
-      <div class="diagram-scroll" tabindex="0" role="region" aria-label="Data pipeline flow diagram">
-      <svg viewBox="0 0 1240 770" role="img" aria-label="Data pipeline: session check, library snapshot cache decision, Steam fan-out on miss, DB-backed snapshot persistence, tracked-game flags, stats computation">
-        <!-- base wires -->
-        <path class="wire" d="M 200 104 H 1032"/>
-        <path class="wire" d="M 1110 150 V 214 Q 1110 226 1098 226 H 762 Q 750 226 750 232"/>
-        <path class="wire" d="M 1188 104 H 1212 Q 1224 104 1224 116 V 492 Q 1224 504 1212 504 H 1204"/>
-        <path class="wire" d="M 820 442 V 474"/>
-        <path class="wire" d="M 700 514 H 648"/>
-        <path class="wire" d="M 940 514 H 946"/>
-        <path class="wire" d="M 1075 538 V 650"/>
-        <path class="wire" d="M 920 684 H 742"/>
-        <path class="wire" d="M 470 684 H 115 Q 103 684 103 672 V 152"/>
-        <!-- marching overlays -->
-        <path class="ovl c-server" d="M 200 104 H 1032"/>
-        <path class="ovl c-steam"  d="M 1110 150 V 214 Q 1110 226 1098 226 H 762 Q 750 226 750 232"/>
-        <path class="ovl c-server" d="M 1188 104 H 1212 Q 1224 104 1224 116 V 492 Q 1224 504 1212 504 H 1204"/>
-        <path class="ovl c-db"     d="M 820 442 V 474"/>
-        <path class="ovl c-db"     d="M 700 514 H 648"/>
-        <path class="ovl c-server" d="M 940 514 H 946"/>
-        <path class="ovl c-server" d="M 1075 538 V 650"/>
-        <path class="ovl c-client" d="M 470 684 H 115 Q 103 684 103 672 V 152"/>
-        <!-- arrowheads -->
-        <polygon class="arr" points="224,99 236,104 224,109"/>
-        <polygon class="arr" points="479,99 491,104 479,109"/>
-        <polygon class="arr" points="749,99 761,104 749,109"/>
-        <polygon class="arr" points="1014,99 1026,104 1014,109"/>
-        <polygon class="arr" points="744,220 750,232 756,220"/>
-        <polygon class="arr" points="1212,498 1200,504 1212,510"/>
-        <polygon class="arr" points="814,462 820,474 826,462"/>
-        <polygon class="arr" points="660,508 648,514 660,520"/>
-        <polygon class="arr" points="934,508 946,514 934,520"/>
-        <polygon class="arr" points="1069,638 1075,650 1081,638"/>
-        <polygon class="arr" points="754,679 742,684 754,689"/>
-        <polygon class="arr" points="97,164 103,152 109,164"/>
-        <!-- wire labels -->
-        <text class="wlabel" x="1090" y="242" text-anchor="end">miss · stale</text>
-        <text class="wlabel" x="1240" y="228" text-anchor="middle" transform="rotate(-90 1240 228)">hit · fresh</text>
-        <text class="wlabel" x="834" y="468">persist · best-effort</text>
-        <text class="wlabel" x="1087" y="600">flags on</text>
-        <text class="wlabel" x="119" y="420">HTML → hydrate</text>
-
-        <!-- packets -->
-        <g class="pkt p-server">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="3s" begin="0s" repeatCount="indefinite" path="M 200 104 H 1032"/>
-        </g>
-        <g class="pkt p-steam">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="8s" begin="-2s" repeatCount="indefinite"
-            path="M 1110 150 V 214 Q 1110 226 1098 226 L 762 226 Q 750 226 750 238 L 750 442 L 820 442 L 820 470"/>
-        </g>
-        <g class="pkt p-steam">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="8s" begin="-6s" repeatCount="indefinite"
-            path="M 1110 150 V 214 Q 1110 226 1098 226 L 762 226 Q 750 226 750 238 L 750 442 L 820 442 L 820 470"/>
-        </g>
-        <g class="pkt p-server">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="9s" begin="-4s" repeatCount="indefinite"
-            path="M 940 514 L 948 514 L 948 556 L 1075 556 L 1075 646"/>
-        </g>
-        <g class="pkt p-client">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="6s" begin="-1s" repeatCount="indefinite"
-            path="M 920 684 L 742 684 L 115 684 Q 103 684 103 672 L 103 156"/>
-        </g>
-        <!-- Steam cluster -->
-        <g class="zone">
-          <rect x="470" y="238" width="560" height="204" rx="12"/>
-          <text class="zl" x="494" y="266">STEAM WEB API · lib/steam.ts</text>
-          <text class="zr" x="1006" y="266" text-anchor="end">fetch cache · 5–60 min · react cache()</text>
-        </g>
-        <g class="chip" transform="translate(494,288)">
-          <rect width="250" height="44" rx="8"/>
-          <text class="t" x="14" y="19">GetOwnedGames</text>
-          <text class="s" x="14" y="35">library · playtime · 300s</text>
-        </g>
-        <g class="chip" transform="translate(764,288)">
-          <rect width="242" height="44" rx="8"/>
-          <text class="t" x="14" y="19">GetPlayerAchievements</text>
-          <text class="s" x="14" y="35">per game · 600s</text>
-        </g>
-        <g class="chip" transform="translate(494,348)">
-          <rect width="250" height="44" rx="8"/>
-          <text class="t" x="14" y="19">GlobalAchievement%</text>
-          <text class="s" x="14" y="35">rarity · 3600s</text>
-        </g>
-        <g class="chip" transform="translate(764,348)">
-          <rect width="242" height="44" rx="8"/>
-          <text class="t" x="14" y="19">GetSchemaForGame</text>
-          <text class="s" x="14" y="35">names · icons · 3600s</text>
-        </g>
-        <text class="wlabel" x="494" y="428">detailed slice → batches of 5 concurrent</text>
-
-        <!-- nodes: top row -->
-        <g class="node" transform="translate(30,70)">
-          <rect class="box ln-client" width="170" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#45d6b8"/>
-          <text class="t" x="16" y="29">Browser</text>
-          <text class="s" x="16" y="49">GET / · cookie</text>
-        </g>
-        <g class="node" transform="translate(260,70)">
-          <rect class="box ln-server" width="190" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">SSR page</text>
-          <text class="s" x="16" y="49">force-dynamic · session ✓</text>
-        </g>
-        <g class="node" transform="translate(510,70)">
-          <rect class="box ln-server" width="210" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">thin projection</text>
-          <text class="s" x="16" y="49">getDashboardData · getGamesData…</text>
-        </g>
-        <g class="node" transform="translate(780,70)">
-          <rect class="box ln-server" width="220" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">getLibrarySnapshot()</text>
-          <text class="s" x="16" y="49">react cache() · once/request</text>
-        </g>
-        <!-- decision diamond -->
-        <polygon class="diamond" points="1032,104 1110,58 1188,104 1110,150"/>
-        <text class="dtext" x="1110" y="99" text-anchor="middle">snapshot</text>
-        <text class="dtext" x="1110" y="115" text-anchor="middle">fresh?</text>
-
-        <!-- nodes: middle -->
-        <g class="node" transform="translate(950,470)">
-          <rect class="box ln-server" width="250" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">applyTrackedState()</text>
-          <text class="s" x="16" y="49">tracked_games → game.tracked</text>
-        </g>
-        <g class="node" transform="translate(400,480)">
-          <rect class="box ln-db" width="240" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e"/>
-          <text class="t" x="16" y="29">library_snapshots</text>
-          <text class="s" x="16" y="49">TTL 15 min · JSON payload</text>
-        </g>
-        <g class="node" transform="translate(700,480)">
-          <rect class="box ln-db" width="240" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e"/>
-          <text class="t" x="16" y="29">writeCachedSnapshot()</text>
-          <text class="s" x="16" y="49">version-gated upsert · steamId</text>
-        </g>
-
-        <!-- annotation cards: left column -->
-        <g class="node" transform="translate(30,300)">
-          <rect class="box ln-db" width="250" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e"/>
-          <text class="t" x="16" y="29">snapshots</text>
-          <text class="s" x="16" y="49">nightly rows → avgCompletionΔ · ownedΔ</text>
-        </g>
-        <g class="node" transform="translate(30,440)">
-          <rect class="box ln-server" width="250" height="52" rx="10"/>
-          <rect class="bar" width="3" height="52" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="22" style="font-size:13px">Steam outage?</text>
-          <text class="s" x="16" y="40">serve stale snapshot if present</text>
-        </g>
-
-        <!-- nodes: bottom row -->
-        <g class="node" transform="translate(920,650)">
-          <rect class="box ln-server" width="240" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">compute stats</text>
-          <text class="s" x="16" y="49">recent · rarest · rarity mix</text>
-        </g>
-        <g class="node" transform="translate(470,650)">
-          <rect class="box ln-server" width="260" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">props-driven view</text>
-          <text class="s" x="16" y="49">&lt;DashboardView&gt; · SSR stream → hydrate</text>
-        </g>
-      </svg>
-      </div>
-    </section>
-
-    <!-- ============================ 03 · PAGE SURFACE ============================ -->
-    <section class="flow" id="surface">
-      <div class="flow-head">
-        <span class="kick k-mixed">03 · PAGE SURFACE</span>
-        <h2>Routes → projections → views</h2>
-      </div>
-      <p class="caption">Every route is <code>force-dynamic</code> and session-gated; unauthenticated
-        visits bounce to <code>/login</code>. Each page calls exactly one thin projection over the
-        shared library snapshot — except the per-game page, which queries Steam live.</p>
-
-      <div class="routes" tabindex="0" role="region" aria-label="Route to data-layer to component mapping">
-        <table>
-          <thead>
-            <tr><th>ROUTE</th><th>GATE</th><th>DATA LAYER</th><th>VIEW COMPONENT</th><th>NOTES</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="route">/</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getDashboardData()</code></td>
-              <td class="fn"><code>&lt;DashboardView&gt;</code></td>
-              <td class="note">stats · filterable games · recent/rarest unlocks · rarity mix</td>
-            </tr>
-            <tr>
-              <td class="route">/games</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getGamesData()</code></td>
-              <td class="fn"><code>&lt;GamesView&gt;</code></td>
-              <td class="note">full library list, no stats pass</td>
-            </tr>
-            <tr>
-              <td class="route">/games/[appId]</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getGameAchievements()</code></td>
-              <td class="fn"><code>&lt;AchievementList&gt;</code></td>
-              <td class="note">live Steam: player achievements + global % + schema</td>
-            </tr>
-            <tr>
-              <td class="route">/achievements</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getAchievementsData()</code></td>
-              <td class="fn"><code>&lt;AchievementsOverview&gt;</code></td>
-              <td class="note">recent 20 · rarest 10 · rarest-per-game</td>
-            </tr>
-            <tr>
-              <td class="route">/insights</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getDashboardData()</code></td>
-              <td class="fn"><code>&lt;InsightsView&gt;</code></td>
-              <td class="note">same data as / — different lens</td>
-            </tr>
-            <tr>
-              <td class="route">/friends</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getFriendsData()</code></td>
-              <td class="fn"><code>&lt;FriendsView&gt;</code></td>
-              <td class="note">friend list → summaries → probes each via GetOwnedGames</td>
-            </tr>
-            <tr>
-              <td class="route">/friends/[steamId]</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getDashboardData() ×2</code> + <code>getFriendsData()</code></td>
-              <td class="fn"><code>&lt;FriendCompareView&gt;</code></td>
-              <td class="note">side-by-side: you vs friend (parallel)</td>
-            </tr>
-            <tr>
-              <td class="route">/settings</td><td><span class="gate">session</span></td>
-              <td class="fn"><code>getPreferences()</code></td>
-              <td class="fn"><code>&lt;SettingsView&gt;</code></td>
-              <td class="note">reads <code>user_preferences.default_filter</code></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ============================ 04 · MUTATIONS ============================ -->
-    <section class="flow" id="mutations">
-      <div class="flow-head">
-        <span class="kick k-mixed">04 · MUTATIONS</span>
-        <h2>Browser → API routes → DB</h2>
-      </div>
-      <p class="caption">Writes never touch Steam — they land straight in Turso and take effect on
-        the next render, because tracking flags are re-applied onto the cached library on every request.</p>
-
-      <div class="mut-grid">
-        <div class="mut">
-          <div class="ep"><span class="method m-post">POST</span>/api/tracked-games</div>
-          <div class="what">body <code>{appId}</code> → INSERT INTO <code>tracked_games</code>
-            (onConflictDoNothing)</div>
-        </div>
-        <div class="mut">
-          <div class="ep"><span class="method m-del">DELETE</span>/api/tracked-games?appId=…</div>
-          <div class="what">removes the <code>(steamId, appId)</code> row → game flips untracked</div>
-        </div>
-        <div class="mut">
-          <div class="ep"><span class="method m-put">PUT</span>/api/settings</div>
-          <div class="what">body <code>{defaultFilter}</code> → upsert <code>user_preferences</code>;
-            validated against all·owned·tracked</div>
-        </div>
-        <div class="mut">
-          <div class="ep"><span class="method m-get">GET</span>/api/dashboard?filter=…</div>
-          <div class="what">JSON projection of <code>getDashboardData()</code> — same deep module as SSR</div>
-        </div>
-        <div class="mut">
-          <div class="ep"><span class="method m-post">POST</span>/auth/logout</div>
-          <div class="what"><code>clearSession()</code> zeroes the cookie → redirect <code>/login</code></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================ 05 · NIGHTLY ============================ -->
-    <section class="flow" id="cron">
-      <div class="flow-head">
-        <span class="kick k-db">05 · NIGHTLY</span>
-        <h2>Snapshot cron</h2>
-      </div>
-      <p class="caption">A daily cron authenticates with a bearer secret, walks every user, and pins a
-        <code>snapshots</code> row (earned, avg completion ×10, owned). Those historical rows are what
-        let the dashboard show real <code>Δ</code> deltas instead of frozen nulls.</p>
-
-      <div class="diagram-scroll" tabindex="0" role="region" aria-label="Nightly snapshot cron flow diagram">
-      <svg viewBox="0 0 1200 340" role="img" aria-label="Nightly cron flow: schedule to authenticated endpoint to per-user snapshot written to the snapshots table, powering delta chips">
-        <!-- base wires -->
-        <path class="wire" d="M 216 124 H 1056"/>
-        <path class="wire" d="M 946 158 V 210 Q 946 222 934 222 H 688 Q 676 222 676 234 V 240"/>
-        <path class="wire" d="M 776 274 H 836"/>
-        <!-- marching overlays -->
-        <path class="ovl c-server" d="M 216 124 H 1056"/>
-        <path class="ovl c-db" d="M 946 158 V 210 Q 946 222 934 222 H 688 Q 676 222 676 234 V 274 H 836"/>
-        <!-- arrowheads -->
-        <polygon class="arr" points="240,119 252,124 240,129"/>
-        <polygon class="arr" points="540,119 552,124 540,129"/>
-        <polygon class="arr" points="800,119 812,124 800,129"/>
-        <polygon class="arr" points="1050,119 1062,124 1050,129"/>
-        <polygon class="arr" points="670,246 676,234 682,246"/>
-        <polygon class="arr" points="824,269 836,274 824,279"/>
-        <!-- wire labels -->
-        <text class="wlabel" x="810" y="214" text-anchor="middle">nightly snapshot rows</text>
-
-        <!-- packets -->
-        <g class="pkt p-db">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="6s" begin="0s" repeatCount="indefinite"
-            path="M 216 124 H 946 L 946 210 Q 946 222 934 222 L 688 222 Q 676 222 676 234 L 676 274 L 776 274 L 836 274"/>
-        </g>
-        <g class="pkt p-db">
-          <circle class="halo" r="7"/><circle class="core" r="3"/>
-          <animateMotion dur="6s" begin="-3s" repeatCount="indefinite"
-            path="M 216 124 H 946 L 946 210 Q 946 222 934 222 L 688 222 Q 676 222 676 234 L 676 274 L 776 274 L 836 274"/>
-        </g>
-
-        <!-- nodes: top row -->
-        <g class="node" transform="translate(36,90)">
-          <rect class="box ln-client" width="180" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#45d6b8"/>
-          <text class="t" x="16" y="29">Vercel Cron</text>
-          <text class="s" x="16" y="49">daily schedule</text>
-          <g class="bdg b-client"><circle cx="162" cy="18" r="9"/><text x="162" y="21.5">1</text></g>
-        </g>
-        <g class="node" transform="translate(276,90)">
-          <rect class="box ln-server" width="240" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">/api/cron/snapshot</text>
-          <text class="s" x="16" y="49">Bearer CRON_SECRET</text>
-          <g class="bdg b-server"><circle cx="222" cy="18" r="9"/><text x="222" y="21.5">2</text></g>
-        </g>
-        <g class="node" transform="translate(576,90)">
-          <rect class="box ln-server" width="200" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">snapshotUser()</text>
-          <text class="s" x="16" y="49">for each user</text>
-          <g class="bdg b-server"><circle cx="182" cy="18" r="9"/><text x="182" y="21.5">3</text></g>
-        </g>
-        <g class="node" transform="translate(836,90)">
-          <rect class="box ln-server" width="220" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#8f9bff"/>
-          <text class="t" x="16" y="29">getLibrarySnapshot()</text>
-          <text class="s" x="16" y="49">cached library read</text>
-          <g class="bdg b-server"><circle cx="202" cy="18" r="9"/><text x="202" y="21.5">4</text></g>
-        </g>
-
-        <!-- nodes: bottom row -->
-        <g class="node" transform="translate(576,240)">
-          <rect class="box ln-db" width="200" height="68" rx="10"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e"/>
-          <text class="t" x="16" y="29">writeSnapshot()</text>
-          <text class="s" x="16" y="49">computeStats → INSERT</text>
-          <g class="bdg b-db"><circle cx="182" cy="18" r="9"/><text x="182" y="21.5">5</text></g>
-        </g>
-        <g class="node" transform="translate(836,240)">
-          <rect class="box ln-db" width="220" height="68" rx="10" stroke-dasharray="5 4"/>
-          <rect class="bar" width="3" height="68" rx="1.5" fill="#f2c14e"/>
-          <text class="t" x="16" y="29">Δ delta chips</text>
-          <text class="s" x="16" y="49">avg completion · games owned</text>
-        </g>
-      </svg>
-      </div>
-    </section>
-
-  </main>
-
-  <footer>
-    Source of truth: app/page.tsx · app/{games,games/[appId],achievements,insights,friends,friends/[steamId],settings}/page.tsx ·
-    app/auth/steam/* · app/auth/logout/route.ts · app/api/{dashboard,tracked-games,settings,cron/snapshot}/route.ts ·
-    lib/auth.ts · lib/dashboard.ts · lib/steam.ts · lib/settings.ts · lib/db/schema.ts
-  </footer>
-</div>
-
-<script>
-  document.documentElement.classList.add('js');
-  const io = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      e.target.classList.toggle('in-view', e.isIntersecting);
-      e.target.querySelectorAll('svg').forEach((svg) => {
-        if (e.isIntersecting) svg.unpauseAnimations?.();
-        else svg.pauseAnimations?.();
-      });
-    }
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.flow').forEach((el) => io.observe(el));
-</script>
-</body>
+    <script>
+      document.documentElement.classList.add("js");
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            e.target.classList.toggle("in-view", e.isIntersecting);
+            e.target.querySelectorAll("svg").forEach((svg) => {
+              if (e.isIntersecting) svg.unpauseAnimations?.();
+              else svg.pauseAnimations?.();
+            });
+          }
+        },
+        { threshold: 0.15 },
+      );
+      document.querySelectorAll(".flow").forEach((el) => io.observe(el));
+    </script>
+  </body>
 </html>

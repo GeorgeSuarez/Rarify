@@ -35,8 +35,7 @@ export const GameAchievementSchemaValueSchema = Schema.Struct({
 });
 
 /** Display metadata cached for one achievement API name. */
-export type GameAchievementSchemaValue =
-  typeof GameAchievementSchemaValueSchema.Type;
+export type GameAchievementSchemaValue = typeof GameAchievementSchemaValueSchema.Type;
 
 /**
  * Runtime schema for a game's achievement display metadata keyed by API name.
@@ -50,8 +49,7 @@ export const GameAchievementSchemaMapSchema = Schema.Record(
 );
 
 /** Achievement display metadata cached for one game. */
-export type GameAchievementSchemaMap =
-  typeof GameAchievementSchemaMapSchema.Type;
+export type GameAchievementSchemaMap = typeof GameAchievementSchemaMapSchema.Type;
 
 /** Achievement data cached for one Steam account and game. */
 export type GameAchievementCacheEntry = typeof GameAchievementCacheEntrySchema.Type;

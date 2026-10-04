@@ -18,19 +18,14 @@ import type { Game } from "@/lib/types";
 
 export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
   const tracked = useMemo(
-    () =>
-      [...games]
-        .filter((g) => g.tracked)
-        .sort((a, b) => b.hours - a.hours),
+    () => [...games].filter((g) => g.tracked).sort((a, b) => b.hours - a.hours),
     [games],
   );
 
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
-          Tracked Games
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">Tracked Games</CardTitle>
         <span className="text-xs text-muted-foreground">
           {tracked.length} game{tracked.length !== 1 ? "s" : ""}
         </span>
@@ -68,9 +63,7 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-foreground">
-                        {game.name}
-                      </p>
+                      <p className="truncate font-semibold text-foreground">{game.name}</p>
                       <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="size-3" />
@@ -94,9 +87,7 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
                   <div className="mt-2 px-4">
                     <Progress
                       value={game.completion}
-                      indicatorClassName={
-                        completionTierOf(game.completion).barClassName
-                      }
+                      indicatorClassName={completionTierOf(game.completion).barClassName}
                       aria-label={`${game.completion}% completion`}
                     />
                   </div>

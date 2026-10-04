@@ -70,9 +70,7 @@ export default Cloudflare.Worker(
 
     // Steam Web API and the persistence capability are stable for the
     // lifetime of the isolate; build them once during init.
-    const steamClient = yield* SteamClient.Service.pipe(
-      Effect.provide(steamWebApiLayer),
-    );
+    const steamClient = yield* SteamClient.Service.pipe(Effect.provide(steamWebApiLayer));
 
     const dashboard = yield* DashboardService.Service.pipe(
       Effect.provide(
@@ -88,13 +86,9 @@ export default Cloudflare.Worker(
       Effect.provide(trackedGamesServiceLayer.pipe(Layer.provide(storeLayer))),
     );
 
-    const session = yield* SessionService.Service.pipe(
-      Effect.provide(sessionTokenLayer),
-    );
+    const session = yield* SessionService.Service.pipe(Effect.provide(sessionTokenLayer));
 
-    const steamOpenId = yield* SteamOpenId.Service.pipe(
-      Effect.provide(steamOpenIdLayer),
-    );
+    const steamOpenId = yield* SteamOpenId.Service.pipe(Effect.provide(steamOpenIdLayer));
 
     const steamLogin = yield* SteamLogin.Service.pipe(
       Effect.provide(
@@ -115,10 +109,7 @@ export default Cloudflare.Worker(
       Effect.provide(
         snapshotJobLayer.pipe(
           Layer.provide(
-            Layer.mergeAll(
-              Layer.succeed(DashboardService.Service, dashboard),
-              storeLayer,
-            ),
+            Layer.mergeAll(Layer.succeed(DashboardService.Service, dashboard), storeLayer),
           ),
         ),
       ),
@@ -152,9 +143,6 @@ export default Cloudflare.Worker(
       fetch: yield* HttpRouter.toHttpEffect(Layer.mergeAll(api, auth)),
     };
   }).pipe(
-    Effect.provide([
-      Cloudflare.D1.QueryDatabaseBinding,
-      Cloudflare.Workers.CronEventSourceLive,
-    ]),
+    Effect.provide([Cloudflare.D1.QueryDatabaseBinding, Cloudflare.Workers.CronEventSourceLive]),
   ),
 );

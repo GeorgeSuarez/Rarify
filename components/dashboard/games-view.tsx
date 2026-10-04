@@ -21,11 +21,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Progress } from "@/components/ui/progress";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { completionTierOf } from "@/lib/completion-tiers";
 import { cn } from "@/lib/utils";
 import type { Game } from "@/lib/types";
@@ -76,19 +72,11 @@ function CompletionRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className={cn(
-            "transition-all duration-500 ease-out",
-            tier.textClassName,
-          )}
+          className={cn("transition-all duration-500 ease-out", tier.textClassName)}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span
-          className={cn(
-            "text-[10px] font-semibold tabular-nums",
-            tier.textClassName,
-          )}
-        >
+        <span className={cn("text-[10px] font-semibold tabular-nums", tier.textClassName)}>
           {value}%
         </span>
       </div>
@@ -126,10 +114,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
 
   return (
     <div className="group relative block overflow-hidden rounded-xl border border-border/50 bg-card transition-colors hover:border-border">
-      <Link
-        href={`/games/${initialGame.appId}`}
-        className="block"
-      >
+      <Link href={`/games/${initialGame.appId}`} className="block">
         <div className="relative aspect-[460/215] w-full overflow-hidden">
           <Image
             src={initialGame.image}
@@ -158,15 +143,10 @@ function GameCard({ game: initialGame }: { game: Game }) {
           )}
         </Button>
       </div>
-      <Link
-        href={`/games/${initialGame.appId}`}
-        className="block p-4"
-      >
+      <Link href={`/games/${initialGame.appId}`} className="block p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-semibold text-foreground">
-              {initialGame.name}
-            </h3>
+            <h3 className="truncate text-sm font-semibold text-foreground">{initialGame.name}</h3>
             <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Clock className="size-3" />
@@ -180,17 +160,13 @@ function GameCard({ game: initialGame }: { game: Game }) {
               )}
             </div>
           </div>
-          {initialGame.achievements.total > 0 && (
-            <CompletionRing value={initialGame.completion} />
-          )}
+          {initialGame.achievements.total > 0 && <CompletionRing value={initialGame.completion} />}
         </div>
         {initialGame.achievements.total > 0 && (
           <div className="mt-3">
             <Progress
               value={initialGame.completion}
-              indicatorClassName={
-                completionTierOf(initialGame.completion).barClassName
-              }
+              indicatorClassName={completionTierOf(initialGame.completion).barClassName}
               aria-label={`${initialGame.completion}% completion`}
             />
           </div>
@@ -233,9 +209,7 @@ export function GamesView({
         result.sort((a, b) => b.completion - a.completion);
         break;
       case "achievements":
-        result.sort(
-          (a, b) => b.achievements.earned - a.achievements.earned,
-        );
+        result.sort((a, b) => b.achievements.earned - a.achievements.earned);
         break;
       case "name":
         result.sort((a, b) => a.name.localeCompare(b.name));
@@ -262,8 +236,7 @@ export function GamesView({
               Your Library
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              {games.length} game{games.length !== 1 ? "s" : ""} in your Steam
-              library
+              {games.length} game{games.length !== 1 ? "s" : ""} in your Steam library
             </p>
           </div>
 

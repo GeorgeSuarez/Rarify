@@ -21,16 +21,17 @@ export function InsightsView({ initialData }: { initialData: DashboardData }) {
 
           {/* Header */}
           <div className="pb-6">
-            <h2 className="hidden text-2xl font-bold text-foreground lg:block">
-              Insights
-            </h2>
+            <h2 className="hidden text-2xl font-bold text-foreground lg:block">Insights</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Detailed achievement progress and trends over time.
             </p>
           </div>
 
           {data.error ? (
-            <Alert variant="destructive" className="flex flex-col items-center gap-2 py-8 text-center">
+            <Alert
+              variant="destructive"
+              className="flex flex-col items-center gap-2 py-8 text-center"
+            >
               <AlertTitle>Couldn&apos;t fetch your Steam data</AlertTitle>
               <AlertDescription>
                 Steam API returned status {data.error.status ?? "(network error)"}.

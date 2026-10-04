@@ -2,28 +2,16 @@ import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
-import type {
-  AppId,
-  Stats,
-  SteamId,
-  UserPreferences,
-  UserProfile,
-} from "../../lib/types.ts";
+import type { AppId, Stats, SteamId, UserPreferences, UserProfile } from "../../lib/types.ts";
 import type { PersistedSnapshot } from "../domain/library.ts";
-import type {
-  GameAchievementCacheEntry,
-  GameAchievementSchemaMap,
-} from "../domain/library.ts";
+import type { GameAchievementCacheEntry, GameAchievementSchemaMap } from "../domain/library.ts";
 
 /** Typed failure from D1 reads, writes, or row decoding. */
-export class PersistenceError extends Schema.TaggedError<PersistenceError>()(
-  "PersistenceError",
-  {
-    operation: Schema.String,
-    message: Schema.String,
-    cause: Schema.Defect(),
-  },
-) {}
+export class PersistenceError extends Schema.TaggedError<PersistenceError>()("PersistenceError", {
+  operation: Schema.String,
+  message: Schema.String,
+  cause: Schema.Defect(),
+}) {}
 
 /** Numeric values retained from a daily dashboard snapshot. */
 export interface AchievementSnapshot {
@@ -83,21 +71,13 @@ export interface Interface {
   ) => Effect.Effect<ReadonlyArray<AppId>, PersistenceError>;
 
   /** Pin a game for a Steam account; repeated calls are safe. */
-  readonly trackGame: (
-    steamId: SteamId,
-    appId: AppId,
-  ) => Effect.Effect<void, PersistenceError>;
+  readonly trackGame: (steamId: SteamId, appId: AppId) => Effect.Effect<void, PersistenceError>;
 
   /** Remove a pinned game for a Steam account; repeated calls are safe. */
-  readonly untrackGame: (
-    steamId: SteamId,
-    appId: AppId,
-  ) => Effect.Effect<void, PersistenceError>;
+  readonly untrackGame: (steamId: SteamId, appId: AppId) => Effect.Effect<void, PersistenceError>;
 
   /** Read the user's saved dashboard filter. */
-  readonly getPreferences: (
-    steamId: SteamId,
-  ) => Effect.Effect<UserPreferences, PersistenceError>;
+  readonly getPreferences: (steamId: SteamId) => Effect.Effect<UserPreferences, PersistenceError>;
 
   /** Save the user's normalized dashboard preferences. */
   readonly savePreferences: (
@@ -175,6 +155,4 @@ export interface Interface {
  * Effect service for Rarify's user, tracked-game, preference, cache, and
  * historical snapshot persistence.
  */
-export class Service extends Context.Service<Service, Interface>()(
-  "@rarify/RarifyStore",
-) {}
+export class Service extends Context.Service<Service, Interface>()("@rarify/RarifyStore") {}

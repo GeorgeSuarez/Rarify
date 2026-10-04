@@ -7,11 +7,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Trophy, Award } from "lucide-react";
 import { Image } from "@/src/spa/next-compat";
 import type { RecentAchievement } from "@/lib/types";
@@ -44,9 +40,7 @@ export function RarestAchievements({
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
-          Rarest Achievements
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">Rarest Achievements</CardTitle>
       </CardHeader>
       <CardContent className="pt-2">
         {achievements.length === 0 ? (
@@ -56,18 +50,13 @@ export function RarestAchievements({
                 <Award />
               </EmptyMedia>
               <EmptyTitle>No rare achievements yet</EmptyTitle>
-              <EmptyDescription>
-                Unlock achievements that few players have earned.
-              </EmptyDescription>
+              <EmptyDescription>Unlock achievements that few players have earned.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
           <ul className="flex flex-col">
             {achievements.map((ach, i) => (
-              <li
-                key={`${ach.appId}-${ach.name}-${i}`}
-                className="flex items-center gap-4 py-3"
-              >
+              <li key={`${ach.appId}-${ach.name}-${i}`} className="flex items-center gap-4 py-3">
                 <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
                   {ach.icon ? (
                     <Image
@@ -84,12 +73,8 @@ export function RarestAchievements({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-foreground">
-                    {ach.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {ach.gameName}
-                  </p>
+                  <p className="truncate font-semibold text-foreground">{ach.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{ach.gameName}</p>
                   {ach.description && (
                     <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground/70">
                       {ach.description}

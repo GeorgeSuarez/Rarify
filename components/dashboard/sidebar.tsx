@@ -56,9 +56,7 @@ export function SidebarContent({
           <Gamepad2 className="size-5 text-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-lg font-semibold leading-tight text-foreground">
-            Rarify
-          </h1>
+          <h1 className="text-lg font-semibold leading-tight text-foreground">Rarify</h1>
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Dashboard
           </p>
@@ -117,14 +115,10 @@ export function SidebarContent({
           <div className="flex items-center gap-3 px-2 py-5">
             <Avatar className="size-9 border border-sidebar-border">
               <AvatarImage src={user.avatar} />
-              <AvatarFallback>
-                {user.personaName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
+              <AvatarFallback>{user.personaName.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                {user.personaName}
-              </p>
+              <p className="text-sm font-medium text-foreground truncate">{user.personaName}</p>
             </div>
           </div>
         )}

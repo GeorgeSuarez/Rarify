@@ -11,21 +11,16 @@ export interface Session {
 }
 
 /** Typed failure while creating or verifying a signed session token. */
-export class SessionError extends Schema.TaggedError<SessionError>()(
-  "SessionError",
-  {
-    operation: Schema.String,
-    message: Schema.String,
-    cause: Schema.Defect(),
-  },
-) {}
+export class SessionError extends Schema.TaggedError<SessionError>()("SessionError", {
+  operation: Schema.String,
+  message: Schema.String,
+  cause: Schema.Defect(),
+}) {}
 
 /** Signed cookie-token operations independent of HTTP cookie mechanics. */
 export interface Interface {
   /** Create a 30-day signed token for one Steam account. */
-  readonly create: (
-    steamId: SteamId,
-  ) => Effect.Effect<Redacted.Redacted<string>, SessionError>;
+  readonly create: (steamId: SteamId) => Effect.Effect<Redacted.Redacted<string>, SessionError>;
 
   /**
    * Verify a cookie token; invalid, expired, or malformed tokens are ordinary
@@ -40,6 +35,4 @@ export interface Interface {
  * Effect service for signed session tokens; the HTTP adapter owns cookie flags
  * and response headers.
  */
-export class Service extends Context.Service<Service, Interface>()(
-  "@rarify/SessionService",
-) {}
+export class Service extends Context.Service<Service, Interface>()("@rarify/SessionService") {}

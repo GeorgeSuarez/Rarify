@@ -40,9 +40,7 @@ describe("D1 baseline migration", () => {
     );
 
     insert.run("76561198000000001", "2023-11-14", 100, 500, 10);
-    expect(() =>
-      insert.run("76561198000000001", "2023-11-14", 101, 510, 11),
-    ).toThrow();
+    expect(() => insert.run("76561198000000001", "2023-11-14", 101, 510, 11)).toThrow();
     // A different day or account is still allowed.
     insert.run("76561198000000001", "2023-11-15", 101, 510, 11);
     insert.run("76561198000000002", "2023-11-14", 20, 100, 2);
@@ -102,9 +100,7 @@ describe("D1 schema-cache migration", () => {
     const database = new DatabaseSync(":memory:");
     database.exec("PRAGMA foreign_keys = ON");
     database.exec(readFileSync("migrations/0000_initial_schema.sql", "utf8"));
-    database.exec(
-      readFileSync("migrations/0001_game_achievement_cache.sql", "utf8"),
-    );
+    database.exec(readFileSync("migrations/0001_game_achievement_cache.sql", "utf8"));
     database.exec(readFileSync("migrations/0002_game_schema_cache.sql", "utf8"));
 
     return database;
@@ -123,8 +119,8 @@ describe("D1 schema-cache migration", () => {
 
     upsert.run(1245620, '{"ELD_1":{"displayName":"Elden Lord"}}', 100);
     // A second fetch for the same game replaces the row instead of adding one.
-    upsert.run(1245620, '{}', 200);
-    upsert.run(292030, '{}', 200);
+    upsert.run(1245620, "{}", 200);
+    upsert.run(292030, "{}", 200);
 
     const rows = database
       .prepare("SELECT app_id AS appId, payload FROM game_schemas ORDER BY appId")

@@ -68,10 +68,9 @@ describe("computeStats", () => {
 
   it("returns 0 avgCompletion when no games have achievements", () => {
     expect(computeStats([]).avgCompletion).toBe(0);
-    expect(
-      computeStats([makeGame({ achievements: { earned: 0, total: 0 } })])
-        .avgCompletion,
-    ).toBe(0);
+    expect(computeStats([makeGame({ achievements: { earned: 0, total: 0 } })]).avgCompletion).toBe(
+      0,
+    );
   });
 
   it("counts perfect games (earned >= total, total > 0)", () => {
@@ -100,9 +99,7 @@ describe("computeStats", () => {
     const recentUnlock = Math.floor((NOW - 5 * 86400000) / 1000);
     const oldUnlock = Math.floor((NOW - 60 * 86400000) / 1000);
 
-    const games = [
-      makeGame({ unlocktimes: [recentUnlock, oldUnlock, recentUnlock] }),
-    ];
+    const games = [makeGame({ unlocktimes: [recentUnlock, oldUnlock, recentUnlock] })];
 
     expect(computeStats(games).achievementsEarnedDelta).toBe(2);
   });
@@ -255,8 +252,7 @@ describe("computeStats with fixture-derived games", () => {
       name: owned.name,
       hours: Math.round(owned.playtime_forever / 60),
       completion: completionByIndex.get(i) ?? 50,
-      achievements:
-        achievementsByIndex.get(i) ?? { earned: 20, total: 40 },
+      achievements: achievementsByIndex.get(i) ?? { earned: 20, total: 40 },
       comparison: { text: "You're ahead of", percent: 40, isPositive: true },
       image: `https://cdn.cloudflare.steamstatic.com/steam/apps/${owned.appid}/header.jpg`,
       owned: true,
@@ -323,10 +319,8 @@ describe("buildAlphabetIndex", () => {
   });
 
   it("returns an empty index when no game has achievements", () => {
-    expect(
-      buildAlphabetIndex([
-        makeGame({ achievements: { earned: 0, total: 0 } }),
-      ]),
-    ).toStrictEqual([]);
+    expect(buildAlphabetIndex([makeGame({ achievements: { earned: 0, total: 0 } })])).toStrictEqual(
+      [],
+    );
   });
 });

@@ -1,11 +1,6 @@
 import * as Option from "effect/Option";
 import * as Schema from "effect/Schema";
-import {
-  AppIdFromStringSchema,
-  SteamIdSchema,
-  type AppId,
-  type SteamId,
-} from "../../lib/types.ts";
+import { AppIdFromStringSchema, SteamIdSchema, type AppId, type SteamId } from "../../lib/types.ts";
 
 /**
  * Parse the `:appId` route parameter into the domain application identifier.

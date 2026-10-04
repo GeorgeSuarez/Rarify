@@ -63,9 +63,7 @@ export const authRoutesLayer = (services: {
               Effect.annotateLogs({ errorTag: outcome.failure._tag }),
             );
 
-            return HttpServerResponse.redirect(
-              `${services.publicAppUrl}/login?error=auth_failed`,
-            );
+            return HttpServerResponse.redirect(`${services.publicAppUrl}/login?error=auth_failed`);
           }
 
           return yield* withSessionCookie(

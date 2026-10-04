@@ -38,18 +38,24 @@ function CompareRow({
       <TableCell className="py-3 pr-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </TableCell>
-      <TableCell className={`py-3 text-right ${youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}>
+      <TableCell
+        className={`py-3 text-right ${youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}
+      >
         {format === "percent" ? `${yourValue}%` : yourValue}
       </TableCell>
       <TableCell className="w-8 px-2 text-center text-[10px] text-muted-foreground">vs</TableCell>
-      <TableCell className={`py-3 text-left ${!tie && !youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}>
+      <TableCell
+        className={`py-3 text-left ${!tie && !youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}
+      >
         {format === "percent" ? `${friendValue}%` : friendValue}
       </TableCell>
       <TableCell className="py-3 pl-4">
         {!tie && (
           <Badge
             variant="secondary"
-            className={youWin ? "bg-green-500/10 text-green-400" : "bg-orange-500/10 text-orange-400"}
+            className={
+              youWin ? "bg-green-500/10 text-green-400" : "bg-orange-500/10 text-orange-400"
+            }
           >
             <Trophy data-icon="inline-start" />
             {youWin ? "You" : "Them"}
@@ -89,7 +95,8 @@ export function FriendCompareView({
               variant="destructive"
               className="flex flex-col items-center gap-3 py-8 text-center"
             >
-              {yourData.error?.type === "private_profile" || friendData.error?.type === "private_profile" ? (
+              {yourData.error?.type === "private_profile" ||
+              friendData.error?.type === "private_profile" ? (
                 <>
                   <EyeOff className="size-8" />
                   <AlertTitle>
@@ -152,13 +159,9 @@ export function FriendCompareView({
             <div className="flex flex-col items-center gap-2">
               <Avatar className="size-16 border-2 border-muted-foreground">
                 {friendAvatar && <AvatarImage src={friendAvatar} />}
-                <AvatarFallback>
-                  {friendName.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
+                <AvatarFallback>{friendName.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
-              <p className="text-sm font-semibold text-foreground">
-                {friendName}
-              </p>
+              <p className="text-sm font-semibold text-foreground">{friendName}</p>
             </div>
           </div>
 
@@ -172,18 +175,41 @@ export function FriendCompareView({
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead>Stat</TableHead>
-                    <TableHead className="text-right">{yourData.user?.personaName ?? "You"}</TableHead>
+                    <TableHead className="text-right">
+                      {yourData.user?.personaName ?? "You"}
+                    </TableHead>
                     <TableHead className="w-8 px-2" />
                     <TableHead>{friendName}</TableHead>
                     <TableHead className="pl-4">Leader</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <CompareRow label="Achievements Earned" yourValue={yourStats.achievementsEarned} friendValue={friendStats.achievementsEarned} />
-                  <CompareRow label="Avg Completion" yourValue={yourStats.avgCompletion} friendValue={friendStats.avgCompletion} format="percent" />
-                  <CompareRow label="Games Owned" yourValue={yourStats.gamesOwned} friendValue={friendStats.gamesOwned} />
-                  <CompareRow label="Perfect Games" yourValue={yourStats.perfectGames} friendValue={friendStats.perfectGames} />
-                  <CompareRow label="Games Tracked" yourValue={yourStats.gamesTracked} friendValue={friendStats.gamesTracked} />
+                  <CompareRow
+                    label="Achievements Earned"
+                    yourValue={yourStats.achievementsEarned}
+                    friendValue={friendStats.achievementsEarned}
+                  />
+                  <CompareRow
+                    label="Avg Completion"
+                    yourValue={yourStats.avgCompletion}
+                    friendValue={friendStats.avgCompletion}
+                    format="percent"
+                  />
+                  <CompareRow
+                    label="Games Owned"
+                    yourValue={yourStats.gamesOwned}
+                    friendValue={friendStats.gamesOwned}
+                  />
+                  <CompareRow
+                    label="Perfect Games"
+                    yourValue={yourStats.perfectGames}
+                    friendValue={friendStats.perfectGames}
+                  />
+                  <CompareRow
+                    label="Games Tracked"
+                    yourValue={yourStats.gamesTracked}
+                    friendValue={friendStats.gamesTracked}
+                  />
                 </TableBody>
               </Table>
             </CardContent>

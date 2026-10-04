@@ -50,9 +50,7 @@ const runWithSteam = <A, E>(
     Effect.provide(steamWebApiLayer),
     Effect.provideService(FetchHttpClient.Fetch, fetchImpl),
     Effect.provide(
-      ConfigProvider.layer(
-        ConfigProvider.fromUnknown({ STEAM_API_KEY: "test-steam-key" }),
-      ),
+      ConfigProvider.layer(ConfigProvider.fromUnknown({ STEAM_API_KEY: "test-steam-key" })),
     ),
   );
 
@@ -95,8 +93,7 @@ describe("Steam Web API adapter", () => {
   });
 
   it("classifies a missing games array as a private profile", async () => {
-    const fetchImpl: typeof globalThis.fetch = async () =>
-      jsonResponse({ response: {} });
+    const fetchImpl: typeof globalThis.fetch = async () => jsonResponse({ response: {} });
 
     const result = await Effect.runPromise(
       runWithSteam(
@@ -113,8 +110,7 @@ describe("Steam Web API adapter", () => {
   });
 
   it("classifies an unexpected payload as an API error", async () => {
-    const fetchImpl: typeof globalThis.fetch = async () =>
-      jsonResponse({ unexpected: true });
+    const fetchImpl: typeof globalThis.fetch = async () => jsonResponse({ unexpected: true });
 
     const result = await Effect.runPromise(
       runWithSteam(
@@ -135,8 +131,7 @@ describe("Steam Web API adapter", () => {
   });
 
   it("returns a typed failure when an endpoint responds with an error status", async () => {
-    const fetchImpl: typeof globalThis.fetch = async () =>
-      jsonResponse({ error: "boom" }, 500);
+    const fetchImpl: typeof globalThis.fetch = async () => jsonResponse({ error: "boom" }, 500);
 
     const result = await Effect.runPromise(
       runWithSteam(
@@ -165,8 +160,7 @@ describe("Steam Web API adapter", () => {
   });
 
   it("parses player summaries into branded Steam IDs", async () => {
-    const fetchImpl: typeof globalThis.fetch = async () =>
-      jsonResponse(summariesBody);
+    const fetchImpl: typeof globalThis.fetch = async () => jsonResponse(summariesBody);
 
     const summaries = await Effect.runPromise(
       runWithSteam(
@@ -316,8 +310,7 @@ describe("Steam Web API adapter", () => {
   });
 
   it("returns no achievements when Steam omits playerstats", async () => {
-    const fetchImpl: typeof globalThis.fetch = async () =>
-      jsonResponse({ playerstats: {} });
+    const fetchImpl: typeof globalThis.fetch = async () => jsonResponse({ playerstats: {} });
 
     const achievements = await Effect.runPromise(
       runWithSteam(
@@ -357,8 +350,7 @@ describe("Steam Web API adapter", () => {
   });
 
   it("returns no friends when the friend list is hidden", async () => {
-    const fetchImpl: typeof globalThis.fetch = async () =>
-      jsonResponse({ friendslist: {} });
+    const fetchImpl: typeof globalThis.fetch = async () => jsonResponse({ friendslist: {} });
 
     const friends = await Effect.runPromise(
       runWithSteam(
@@ -425,10 +417,13 @@ describe("Steam Web API adapter", () => {
 
   it("treats a 403 private game-details response as no achievement data", async () => {
     const fetchImpl: typeof globalThis.fetch = async () =>
-      new Response(JSON.stringify({ playerstats: { error: "Profile is not public", success: false } }), {
-        status: 403,
-        headers: { "content-type": "application/json" },
-      });
+      new Response(
+        JSON.stringify({ playerstats: { error: "Profile is not public", success: false } }),
+        {
+          status: 403,
+          headers: { "content-type": "application/json" },
+        },
+      );
 
     const achievements = await Effect.runPromise(
       runWithSteam(

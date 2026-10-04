@@ -26,10 +26,7 @@ const browserHttpClient = FetchHttpClient.layer.pipe(
  */
 export const api = HttpApiClient.make(RarifyApi, {
   baseUrl: window.location.origin,
-}).pipe(
-  Effect.provide(browserHttpClient),
-  Effect.runSync,
-);
+}).pipe(Effect.provide(browserHttpClient), Effect.runSync);
 
 /** Endpoint methods grouped by their API group for convenient imports. */
 export const apiGroups = {

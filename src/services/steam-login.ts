@@ -9,9 +9,7 @@ import * as SteamClient from "./steam-client.ts";
 import * as SteamOpenId from "./steam-openid.ts";
 
 /** Errors that prevent Steam login from producing a signed session. */
-export type SteamLoginError =
-  | SteamOpenId.SteamOpenIdError
-  | Session.SessionError;
+export type SteamLoginError = SteamOpenId.SteamOpenIdError | Session.SessionError;
 
 /** Application policy for a Steam account's display profile. */
 function profileFor(
@@ -35,18 +33,13 @@ export interface Interface {
 }
 
 /** Effect service for the Steam sign-in workflow. */
-export class Service extends Context.Service<Service, Interface>()(
-  "@rarify/SteamLogin",
-) {}
+export class Service extends Context.Service<Service, Interface>()("@rarify/SteamLogin") {}
 
 /** Build the application-owned Steam sign-in operation from its capabilities. */
 export const make: Effect.Effect<
   Interface,
   never,
-  | SteamOpenId.Service
-  | Session.Service
-  | SteamClient.Service
-  | RarifyStore.Service
+  SteamOpenId.Service | Session.Service | SteamClient.Service | RarifyStore.Service
 > = Effect.gen(function* () {
   const openId = yield* SteamOpenId.Service;
   const session = yield* Session.Service;
@@ -61,9 +54,7 @@ export const make: Effect.Effect<
 
     const summaries = yield* steam
       .getPlayerSummaries([steamId])
-      .pipe(
-        Effect.catchTag("SteamApiError", () => Effect.succeed(noSummaries)),
-      );
+      .pipe(Effect.catchTag("SteamApiError", () => Effect.succeed(noSummaries)));
 
     yield* store.saveUserProfile(steamId, profileFor(steamId, summaries)).pipe(
       Effect.tapError((error) =>

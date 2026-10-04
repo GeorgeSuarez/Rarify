@@ -46,10 +46,7 @@ function CircularProgress({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className={cn(
-            "transition-all duration-1000 ease-out",
-            tier.textClassName,
-          )}
+          className={cn("transition-all duration-1000 ease-out", tier.textClassName)}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
@@ -98,8 +95,17 @@ export function StatsCards({ stats }: { stats: Stats }) {
         value={(stats.achievementsEarned || 0).toLocaleString()}
         subtext={
           stats.achievementsEarnedDelta != null ? (
-            <span className={cn("flex items-center gap-1", stats.achievementsEarnedDelta >= 0 ? "text-green-400" : "text-red-400")}>
-              {stats.achievementsEarnedDelta >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />} 
+            <span
+              className={cn(
+                "flex items-center gap-1",
+                stats.achievementsEarnedDelta >= 0 ? "text-green-400" : "text-red-400",
+              )}
+            >
+              {stats.achievementsEarnedDelta >= 0 ? (
+                <TrendingUp className="size-3" />
+              ) : (
+                <TrendingDown className="size-3" />
+              )}
               {Math.abs(stats.achievementsEarnedDelta)} this month
             </span>
           ) : (
@@ -115,12 +121,19 @@ export function StatsCards({ stats }: { stats: Stats }) {
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Avg Completion
             </p>
-            <p className="mt-1 text-2xl font-bold text-foreground">
-              {stats.avgCompletion || 0}%
-            </p>
+            <p className="mt-1 text-2xl font-bold text-foreground">{stats.avgCompletion || 0}%</p>
             {stats.avgCompletionDelta != null ? (
-              <span className={cn("mt-1 flex items-center gap-1 text-xs", stats.avgCompletionDelta >= 0 ? "text-green-400" : "text-red-400")}>
-                {stats.avgCompletionDelta >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />} 
+              <span
+                className={cn(
+                  "mt-1 flex items-center gap-1 text-xs",
+                  stats.avgCompletionDelta >= 0 ? "text-green-400" : "text-red-400",
+                )}
+              >
+                {stats.avgCompletionDelta >= 0 ? (
+                  <TrendingUp className="size-3" />
+                ) : (
+                  <TrendingDown className="size-3" />
+                )}
                 {Math.abs(stats.avgCompletionDelta)}% vs last month
               </span>
             ) : (
@@ -141,8 +154,10 @@ export function StatsCards({ stats }: { stats: Stats }) {
           stats.gamesOwnedDelta != null ? (
             <span className="text-muted-foreground">
               <span className={cn(stats.gamesOwnedDelta >= 0 ? "text-green-400" : "text-red-400")}>
-                {stats.gamesOwnedDelta >= 0 ? "+" : ""}{stats.gamesOwnedDelta}
-              </span> this month
+                {stats.gamesOwnedDelta >= 0 ? "+" : ""}
+                {stats.gamesOwnedDelta}
+              </span>{" "}
+              this month
             </span>
           ) : (
             <span className="text-muted-foreground">In your library</span>
@@ -155,9 +170,7 @@ export function StatsCards({ stats }: { stats: Stats }) {
         iconBg="bg-green-500/10"
         label="Games Tracked"
         value={String(stats.gamesTracked || 0)}
-        subtext={
-          <span className="text-green-400">{stats.perfectGames || 0} perfect games</span>
-        }
+        subtext={<span className="text-green-400">{stats.perfectGames || 0} perfect games</span>}
       />
     </div>
   );

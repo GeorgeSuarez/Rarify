@@ -5,23 +5,11 @@ import { Clock, Gamepad2, Trophy, TrendingUp } from "lucide-react";
 import { completionTierOf } from "@/lib/completion-tiers";
 import type { DashboardData } from "@/lib/types";
 
-function MiniBar({
-  value,
-  max,
-  color,
-}: {
-  value: number;
-  max: number;
-  color: string;
-}) {
+function MiniBar({ value, max, color }: { value: number; max: number; color: string }) {
   const pct = max > 0 ? (value / max) * 100 : 0;
 
   return (
-    <Progress
-      value={pct}
-      className="gap-0"
-      indicatorStyle={{ backgroundColor: color }}
-    >
+    <Progress value={pct} className="gap-0" indicatorStyle={{ backgroundColor: color }}>
       <span className="sr-only">{pct}%</span>
     </Progress>
   );
@@ -60,9 +48,7 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">
-            {totalHours.toLocaleString()}
-          </span>
+          <span className="text-3xl font-bold text-foreground">{totalHours.toLocaleString()}</span>
           <span className="text-sm text-muted-foreground">total hours</span>
         </div>
         <div className="mb-4 grid grid-cols-2 gap-3">
@@ -74,9 +60,7 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
           <div className="rounded-lg bg-muted/30 p-3">
             <p className="text-xs text-muted-foreground">Avg / game</p>
             <p className="text-xl font-bold text-foreground">
-              {data.games.length > 0
-                ? Math.round(totalHours / data.games.length)
-                : 0}
+              {data.games.length > 0 ? Math.round(totalHours / data.games.length) : 0}
             </p>
             <p className="text-[10px] text-muted-foreground">hours per game</p>
           </div>
@@ -87,15 +71,11 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
           </p>
           {bands.map((b) => (
             <div key={b.label} className="flex items-center gap-3">
-              <span className="w-14 text-right text-xs text-muted-foreground">
-                {b.label}
-              </span>
+              <span className="w-14 text-right text-xs text-muted-foreground">{b.label}</span>
               <div className="flex-1">
                 <MiniBar value={b.count} max={maxBand} color="var(--primary)" />
               </div>
-              <span className="w-8 text-right text-xs font-medium text-foreground">
-                {b.count}
-              </span>
+              <span className="w-8 text-right text-xs font-medium text-foreground">{b.count}</span>
             </div>
           ))}
         </div>
@@ -124,9 +104,7 @@ function RaritySection({ data }: { data: DashboardData }) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">
-            {totalEarned.toLocaleString()}
-          </span>
+          <span className="text-3xl font-bold text-foreground">{totalEarned.toLocaleString()}</span>
           <span className="text-sm text-muted-foreground">achievements</span>
         </div>
         <div className="space-y-3">
@@ -137,10 +115,7 @@ function RaritySection({ data }: { data: DashboardData }) {
                 <span className="text-foreground">
                   {tier.count}
                   <span className="ml-1 text-xs text-muted-foreground">
-                    (
-                    {totalEarned > 0
-                      ? Math.round((tier.count / totalEarned) * 100)
-                      : 0}
+                    ({totalEarned > 0 ? Math.round((tier.count / totalEarned) * 100) : 0}
                     %)
                   </span>
                 </span>
@@ -169,8 +144,7 @@ function CompletionSection({ data }: { data: DashboardData }) {
 
     const bands = bandDefs.map((b) => ({
       ...b,
-      count: games.filter((g) => g.completion >= b.min && g.completion < b.max)
-        .length,
+      count: games.filter((g) => g.completion >= b.min && g.completion < b.max).length,
     }));
 
     const maxBand = Math.max(...bands.map((b) => b.count), 1);
@@ -188,29 +162,17 @@ function CompletionSection({ data }: { data: DashboardData }) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">
-            {data.stats.avgCompletion}%
-          </span>
-          <span className="text-sm text-muted-foreground">
-            average completion
-          </span>
+          <span className="text-3xl font-bold text-foreground">{data.stats.avgCompletion}%</span>
+          <span className="text-sm text-muted-foreground">average completion</span>
         </div>
         <div className="space-y-2">
           {bands.map((b) => (
             <div key={b.label} className="flex items-center gap-3">
-              <span className="w-14 text-right text-xs text-muted-foreground">
-                {b.label}
-              </span>
+              <span className="w-14 text-right text-xs text-muted-foreground">{b.label}</span>
               <div className="flex-1">
-                <MiniBar
-                  value={b.count}
-                  max={maxBand}
-                  color={completionTierOf(b.min).color}
-                />
+                <MiniBar value={b.count} max={maxBand} color={completionTierOf(b.min).color} />
               </div>
-              <span className="w-8 text-right text-xs font-medium text-foreground">
-                {b.count}
-              </span>
+              <span className="w-8 text-right text-xs font-medium text-foreground">{b.count}</span>
             </div>
           ))}
         </div>
@@ -235,9 +197,7 @@ function VelocitySection({ data }: { data: DashboardData }) {
       const weekEnd = nowSec - i * 7 * 86400;
       const label = `-${i}w`;
 
-      const count = allUnlocktimes.filter(
-        (t) => t >= weekStart && t < weekEnd,
-      ).length;
+      const count = allUnlocktimes.filter((t) => t >= weekStart && t < weekEnd).length;
 
       weeks.push({ label, count });
     }
@@ -259,17 +219,13 @@ function VelocitySection({ data }: { data: DashboardData }) {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">
-            {weeklyTotal}
-          </span>
+          <span className="text-3xl font-bold text-foreground">{weeklyTotal}</span>
           <span className="text-sm text-muted-foreground">last 12 weeks</span>
         </div>
         <div className="flex items-end gap-1" style={{ height: 100 }}>
           {weeklyData.map((w) => (
             <div key={w.label} className="flex flex-1 flex-col items-center">
-              <span className="mb-1 text-[10px] font-medium text-foreground">
-                {w.count}
-              </span>
+              <span className="mb-1 text-[10px] font-medium text-foreground">{w.count}</span>
               <div
                 className="w-full rounded-t bg-primary transition-all"
                 style={{

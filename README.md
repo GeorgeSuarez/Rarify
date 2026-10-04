@@ -43,13 +43,13 @@ npx alchemy profile edit --add Cloudflare
 
 ### Environment variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `STEAM_API_KEY` | Yes | Steam Web API key |
-| `AUTH_SECRET` | Yes | Random secret for signing session JWTs (`openssl rand -base64 32`) |
-| `PUBLIC_APP_URL` | Local dev | Base URL for local `npm run dev` + `alchemy dev` (e.g. `http://localhost:5173`). Deploys derive the public URL from `PUBLIC_APP_DOMAIN` instead. |
-| `PUBLIC_APP_DOMAIN` | Deploys | Hostname served by the stack (`rarify.georgejsuarez.com`); omit for local `alchemy dev` |
-| `ENRICH_BATCH_SIZE` | No | Games enriched per request (default 20). Raise it on the Workers Paid plan. |
+| Variable            | Required  | Description                                                                                                                                      |
+| ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `STEAM_API_KEY`     | Yes       | Steam Web API key                                                                                                                                |
+| `AUTH_SECRET`       | Yes       | Random secret for signing session JWTs (`openssl rand -base64 32`)                                                                               |
+| `PUBLIC_APP_URL`    | Local dev | Base URL for local `npm run dev` + `alchemy dev` (e.g. `http://localhost:5173`). Deploys derive the public URL from `PUBLIC_APP_DOMAIN` instead. |
+| `PUBLIC_APP_DOMAIN` | Deploys   | Hostname served by the stack (`rarify.georgejsuarez.com`); omit for local `alchemy dev`                                                          |
+| `ENRICH_BATCH_SIZE` | No        | Games enriched per request (default 20). Raise it on the Workers Paid plan.                                                                      |
 
 ### Commands
 
@@ -157,12 +157,12 @@ Each stage gets its own D1 database (`preview` and `prod` are fully separate). U
 
 Required repository secrets (`Settings → Secrets and variables → Actions`):
 
-| Secret | Source |
-|---|---|
-| `CLOUDFLARE_API_TOKEN` | Minted by `stacks/github.ts` (see below) |
+| Secret                  | Source                                                                  |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `CLOUDFLARE_API_TOKEN`  | Minted by `stacks/github.ts` (see below)                                |
 | `CLOUDFLARE_ACCOUNT_ID` | Minted by `stacks/github.ts` (or `CLOUDFLARE_ACCOUNT_ID` in your shell) |
-| `STEAM_API_KEY` | Your Steam Web API key |
-| `AUTH_SECRET` | Random secret (`openssl rand -base64 32`) |
+| `STEAM_API_KEY`         | Your Steam Web API key                                                  |
+| `AUTH_SECRET`           | Random secret (`openssl rand -base64 32`)                               |
 
 `stacks/github.ts` is a one-shot bootstrap stack that mints the scoped CI token and pushes the Cloudflare secrets to GitHub. It needs an `admin` profile that can create tokens (Global API Key + email). Run once from your laptop:
 

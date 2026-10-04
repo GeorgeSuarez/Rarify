@@ -17,9 +17,7 @@ const SECRET = "test-auth-secret";
 const runWithSession = <A, E>(effect: Effect.Effect<A, E, Session.Service>) =>
   effect.pipe(
     Effect.provide(sessionTokenLayer),
-    Effect.provide(
-      ConfigProvider.layer(ConfigProvider.fromUnknown({ AUTH_SECRET: SECRET })),
-    ),
+    Effect.provide(ConfigProvider.layer(ConfigProvider.fromUnknown({ AUTH_SECRET: SECRET }))),
   );
 
 describe("SessionService", () => {
@@ -47,9 +45,7 @@ describe("SessionService", () => {
           const token = yield* service.create(STEAM_ID);
           const tampered = `${Redacted.value(token).slice(0, -2)}xx`;
 
-          return yield* service.verify(
-            Redacted.make(tampered, { label: "tampered" }),
-          );
+          return yield* service.verify(Redacted.make(tampered, { label: "tampered" }));
         }),
       ),
     );
@@ -66,9 +62,7 @@ describe("SessionService", () => {
       }).pipe(
         Effect.provide(sessionTokenLayer),
         Effect.provide(
-          ConfigProvider.layer(
-            ConfigProvider.fromUnknown({ AUTH_SECRET: "a-different-secret" }),
-          ),
+          ConfigProvider.layer(ConfigProvider.fromUnknown({ AUTH_SECRET: "a-different-secret" })),
         ),
       ),
     );
@@ -113,9 +107,7 @@ describe("SessionService", () => {
         return first === second;
       }).pipe(
         Effect.provide(layer),
-        Effect.provide(
-          ConfigProvider.layer(ConfigProvider.fromUnknown({ AUTH_SECRET: SECRET })),
-        ),
+        Effect.provide(ConfigProvider.layer(ConfigProvider.fromUnknown({ AUTH_SECRET: SECRET }))),
       ),
     );
 
@@ -124,7 +116,6 @@ describe("SessionService", () => {
 });
 
 /** Ensures the Layer type stays usable from the Worker composition root. */
-const layerUsable: Layer.Layer<Session.Service, ConfigError.ConfigError> =
-  sessionTokenLayer;
+const layerUsable: Layer.Layer<Session.Service, ConfigError.ConfigError> = sessionTokenLayer;
 
 void layerUsable;

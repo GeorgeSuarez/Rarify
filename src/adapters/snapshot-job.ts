@@ -29,18 +29,11 @@ export const make: Effect.Effect<
           if (library.error !== null) {
             return yield* Effect.logWarning(
               "Skipping snapshot for a private or unavailable profile",
-            ).pipe(
-              Effect.annotateLogs({ errorType: library.error.type }),
-              Effect.as(false),
-            );
+            ).pipe(Effect.annotateLogs({ errorType: library.error.type }), Effect.as(false));
           }
 
           const nowMs = yield* Clock.currentTimeMillis;
-          yield* store.recordDailySnapshot(
-            steamId,
-            date,
-            computeStats(library.games, nowMs),
-          );
+          yield* store.recordDailySnapshot(steamId, date, computeStats(library.games, nowMs));
 
           return true;
         }).pipe(

@@ -38,9 +38,7 @@ export function FriendsView({
 
           {/* Header */}
           <div className="pb-6">
-            <h2 className="hidden text-2xl font-bold text-foreground lg:block">
-              Friends
-            </h2>
+            <h2 className="hidden text-2xl font-bold text-foreground lg:block">Friends</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {friends.length} friend{friends.length !== 1 ? "s" : ""} with public stats
               {hiddenCount > 0 && (
@@ -52,10 +50,15 @@ export function FriendsView({
           </div>
 
           {error ? (
-            <Alert variant="destructive" className="flex flex-col items-center gap-3 py-8 text-center">
+            <Alert
+              variant="destructive"
+              className="flex flex-col items-center gap-3 py-8 text-center"
+            >
               <AlertTriangle className="size-8" />
               <AlertTitle>Couldn&apos;t fetch your friends list</AlertTitle>
-              <AlertDescription>Make sure your Steam friends list is set to public.</AlertDescription>
+              <AlertDescription>
+                Make sure your Steam friends list is set to public.
+              </AlertDescription>
             </Alert>
           ) : friends.length === 0 ? (
             <Empty className="border border-border/30 bg-card/50">
@@ -84,14 +87,10 @@ export function FriendsView({
                     <div className="flex items-center gap-4">
                       <Avatar className="size-12 border border-border/50">
                         <AvatarImage src={friend.avatar} />
-                        <AvatarFallback>
-                          {friend.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
+                        <AvatarFallback>{friend.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-foreground">
-                          {friend.name}
-                        </p>
+                        <p className="truncate font-semibold text-foreground">{friend.name}</p>
                         <a
                           href={friend.profileUrl}
                           target="_blank"

@@ -15,15 +15,11 @@ export interface Interface {
    * Process every known Steam account for the UTC day containing `scheduledAtMs`.
    * Per-account failures are counted so one player cannot stop the batch.
    */
-  readonly runDaily: (
-    scheduledAtMs: number,
-  ) => Effect.Effect<SnapshotRunResult, PersistenceError>;
+  readonly runDaily: (scheduledAtMs: number) => Effect.Effect<SnapshotRunResult, PersistenceError>;
 }
 
 /**
  * Effect service for the daily snapshot job; Worker scheduling remains an
  * Alchemy/Cloudflare adapter concern.
  */
-export class Service extends Context.Service<Service, Interface>()(
-  "@rarify/SnapshotJob",
-) {}
+export class Service extends Context.Service<Service, Interface>()("@rarify/SnapshotJob") {}

@@ -38,9 +38,7 @@ describe("deployment route patterns", () => {
 
 describe("website deep-link fallback", () => {
   it("serves the SPA shell for unmatched client routes", async () => {
-    const { websiteAssets, websiteDomain, ZONE_NAME } = await import(
-      "@/src/website"
-    );
+    const { websiteAssets, websiteDomain, ZONE_NAME } = await import("@/src/website");
 
     expect(websiteAssets.notFoundHandling).toBe("single-page-application");
     expect(websiteDomain("rarify.georgejsuarez.com")).toEqual({

@@ -36,9 +36,7 @@ const makeStoreLayer = (state: Ref.Ref<StoreState>) =>
       trackGame: (_steamId, appId) =>
         Ref.update(state, (current) => ({
           ...current,
-          tracked: current.tracked.includes(appId)
-            ? current.tracked
-            : [...current.tracked, appId],
+          tracked: current.tracked.includes(appId) ? current.tracked : [...current.tracked, appId],
         })),
       untrackGame: (_steamId, appId) =>
         Ref.update(state, (current) => ({
@@ -75,9 +73,7 @@ describe("PreferencesService", () => {
         const service = yield* Preferences.Service;
 
         return yield* service.get(STEAM_ID);
-      }).pipe(
-        Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state)))),
-      ),
+      }).pipe(Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state))))),
     );
 
     expect(preferences).toEqual({ defaultFilter: "all" });
@@ -91,9 +87,7 @@ describe("PreferencesService", () => {
         const service = yield* Preferences.Service;
 
         return yield* service.save(STEAM_ID, { defaultFilter: "tracked" });
-      }).pipe(
-        Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state)))),
-      ),
+      }).pipe(Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state))))),
     );
 
     expect(saved).toEqual({ defaultFilter: "tracked" });
@@ -114,9 +108,7 @@ describe("PreferencesService", () => {
         const service = yield* Preferences.Service;
 
         return yield* service.save(STEAM_ID, {});
-      }).pipe(
-        Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state)))),
-      ),
+      }).pipe(Effect.provide(preferencesLayer.pipe(Layer.provide(makeStoreLayer(state))))),
     );
 
     expect(saved).toEqual({ defaultFilter: "owned" });
@@ -132,9 +124,7 @@ describe("TrackedGamesService", () => {
         const service = yield* TrackedGames.Service;
         yield* service.track(STEAM_ID, APP_ID);
         yield* service.track(STEAM_ID, APP_ID);
-      }).pipe(
-        Effect.provide(trackedGamesLayer.pipe(Layer.provide(makeStoreLayer(state)))),
-      ),
+      }).pipe(Effect.provide(trackedGamesLayer.pipe(Layer.provide(makeStoreLayer(state))))),
     );
 
     const afterTrack = await Effect.runPromise(Ref.get(state));
@@ -144,9 +134,7 @@ describe("TrackedGamesService", () => {
       Effect.gen(function* () {
         const service = yield* TrackedGames.Service;
         yield* service.untrack(STEAM_ID, APP_ID);
-      }).pipe(
-        Effect.provide(trackedGamesLayer.pipe(Layer.provide(makeStoreLayer(state)))),
-      ),
+      }).pipe(Effect.provide(trackedGamesLayer.pipe(Layer.provide(makeStoreLayer(state))))),
     );
 
     const afterUntrack = await Effect.runPromise(Ref.get(state));

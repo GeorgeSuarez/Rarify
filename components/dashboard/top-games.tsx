@@ -19,15 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Trophy,
-  Clock,
-  ArrowUp,
-  ArrowDown,
-  Gamepad2,
-  Bookmark,
-  BookmarkCheck,
-} from "lucide-react";
+import { Trophy, Clock, ArrowUp, ArrowDown, Gamepad2, Bookmark, BookmarkCheck } from "lucide-react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
 import { completionTierOf } from "@/lib/completion-tiers";
@@ -68,9 +60,7 @@ function CompletionBar({ game }: { game: Game }) {
 
   return (
     <div className="flex w-32 flex-col gap-1">
-      <span className={cn("font-semibold", tier.textClassName)}>
-        {game.completion}%
-      </span>
+      <span className={cn("font-semibold", tier.textClassName)}>{game.completion}%</span>
       <Progress
         value={game.completion}
         indicatorClassName={tier.barClassName}
@@ -163,11 +153,7 @@ function TrackButton({
           : "min-w-[92px] text-muted-foreground hover:text-foreground"
       }
     >
-      {tracked ? (
-        <BookmarkCheck data-icon="inline-start" />
-      ) : (
-        <Bookmark data-icon="inline-start" />
-      )}
+      {tracked ? <BookmarkCheck data-icon="inline-start" /> : <Bookmark data-icon="inline-start" />}
       {tracked ? "Tracked" : "Track"}
     </Button>
   );
@@ -252,9 +238,7 @@ export function TopGames({
                 <Gamepad2 />
               </EmptyMedia>
               <EmptyTitle>No games to show</EmptyTitle>
-              <EmptyDescription>
-                Try changing the filter to see more games.
-              </EmptyDescription>
+              <EmptyDescription>Try changing the filter to see more games.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
@@ -262,8 +246,7 @@ export function TopGames({
             <div className="hidden lg:block">
               <Table>
                 <TableCaption className="sr-only">
-                  Top games by playtime with completion, achievements, and community
-                  comparison
+                  Top games by playtime with completion, achievements, and community comparison
                 </TableCaption>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">

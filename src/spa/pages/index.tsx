@@ -97,10 +97,7 @@ export function GameAchievementsPage() {
 
 /** Aggregated achievements overview. */
 export function AchievementsPage() {
-  const achievements = useApi(
-    () => apiGroups.achievements.getAchievementsOverview(),
-    [],
-  );
+  const achievements = useApi(() => apiGroups.achievements.getAchievementsOverview(), []);
 
   if (achievements.status === "loading") return <LoadingScreen />;
 

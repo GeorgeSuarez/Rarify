@@ -25,10 +25,8 @@ const WebPlatform = Layer.succeed(HttpPlatform.HttpPlatform, {
     algorithms: ["gzip", "deflate"],
     transform: (algorithm) => HttpPlatform.compressionTransformWeb(algorithm),
   }),
-  fileResponse: () =>
-    Effect.die("HttpPlatform.fileResponse is not supported on Workers"),
-  fileWebResponse: () =>
-    Effect.die("HttpPlatform.fileWebResponse is not supported on Workers"),
+  fileResponse: () => Effect.die("HttpPlatform.fileResponse is not supported on Workers"),
+  fileWebResponse: () => Effect.die("HttpPlatform.fileWebResponse is not supported on Workers"),
 });
 
 interface LoggableFailure {
@@ -53,11 +51,7 @@ const failRequest = (
  * @returns The same success value with `ApiFailure` in the error channel.
  */
 const toApiFailure = <A, R>(
-  effect: Effect.Effect<
-    A,
-    PersistenceError | SteamApiError | SessionError | UnauthorizedError,
-    R
-  >,
+  effect: Effect.Effect<A, PersistenceError | SteamApiError | SessionError | UnauthorizedError, R>,
   operation: string,
 ): Effect.Effect<A, ApiFailure | UnauthorizedError, R> =>
   effect.pipe(
@@ -92,9 +86,7 @@ export const handlersLayer = (services: {
       handlers.handle("getSessionStatus", () =>
         requireSession.pipe(
           Effect.map(() => ({ authenticated: true })),
-          Effect.catchTag("UnauthorizedError", () =>
-            Effect.succeed({ authenticated: false }),
-          ),
+          Effect.catchTag("UnauthorizedError", () => Effect.succeed({ authenticated: false })),
         ),
       ),
     ),
@@ -225,11 +217,6 @@ export const handlersLayer = (services: {
 
   return HttpApiBuilder.layer(RarifyApi).pipe(
     Layer.provide(groups),
-    Layer.provide([
-      Etag.layer,
-      WebPlatform,
-      Path.layer,
-      FileSystem.layerNoop({}),
-    ]),
+    Layer.provide([Etag.layer, WebPlatform, Path.layer, FileSystem.layerNoop({})]),
   );
 };

@@ -13,24 +13,18 @@ import { afterAll, test } from "vitest";
  */
 const probeRoot = mkdtempSync(join(tmpdir(), "anti-slop-cli-"));
 
-const oxlintBin = fileURLToPath(
-  new URL("../node_modules/oxlint/bin/oxlint", import.meta.url),
-);
+const oxlintBin = fileURLToPath(new URL("../node_modules/oxlint/bin/oxlint", import.meta.url));
 
-const genericPlugin = fileURLToPath(
-  new URL("../tools/oxlint/anti-slop/index.ts", import.meta.url),
-);
+const genericPlugin = fileURLToPath(new URL("../tools/oxlint/anti-slop/index.ts", import.meta.url));
 
 const effectPlugin = fileURLToPath(
   new URL("../tools/oxlint/anti-slop/effect/index.ts", import.meta.url),
 );
 
 function runOxlint(configPath: string, ...args: string[]) {
-  const result = spawnSync(
-    process.execPath,
-    [oxlintBin, "--config", configPath, ...args],
-    { encoding: "utf8" },
-  );
+  const result = spawnSync(process.execPath, [oxlintBin, "--config", configPath, ...args], {
+    encoding: "utf8",
+  });
 
   return { status: result.status, output: `${result.stdout ?? ""}\n${result.stderr ?? ""}` };
 }

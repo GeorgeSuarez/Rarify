@@ -32,10 +32,9 @@ export class InvalidRequestError extends Schema.TaggedError<InvalidRequestError>
 ) {}
 
 /** HTTP 500 error returned when an application operation cannot be completed. */
-export class ApiFailure extends Schema.TaggedError<ApiFailure>()(
-  "ApiFailure",
-  { message: Schema.String },
-) {}
+export class ApiFailure extends Schema.TaggedError<ApiFailure>()("ApiFailure", {
+  message: Schema.String,
+}) {}
 
 /** Runtime schema for a tracking command response. */
 export const TrackedGameResponseSchema = Schema.Struct({

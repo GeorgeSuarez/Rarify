@@ -9,11 +9,13 @@ A Steam-style achievement dashboard: Vite + React 19 SPA, Effect-native Cloudfla
 - `npm run build` — production build of the SPA
 - `npm run alchemy:deploy` — deploy the Cloudflare stack (Worker, D1, Cron Trigger, custom domain routes)
 - `npm run lint` — run Oxlint (includes the vendored `anti-slop` and `anti-slop-effect` plugins in `tools/oxlint/anti-slop/`; see its `UPSTREAM.md` for provenance and `oxlint.config.ts` for enabled rules)
+- `npm run format` — format the repository with Oxfmt (config: `.oxfmtrc.json`)
+- `npm run format:check` — verify formatting without rewriting files
 - `npm run typecheck` — `tsc --noEmit`
 - `npm run test` — run unit tests once (Vitest)
 - `npm run test:watch` — run tests in watch mode
 
-Always run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` after making changes.
+Always run `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test`, and `npm run build` after making changes.
 
 ## Environment
 

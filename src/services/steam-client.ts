@@ -20,15 +20,12 @@ export interface ProfileSummary {
 }
 
 /** Typed failure from Steam Web API transport, status, or response decoding. */
-export class SteamApiError extends Schema.TaggedError<SteamApiError>()(
-  "SteamApiError",
-  {
-    operation: Schema.String,
-    message: Schema.String,
-    status: Schema.optionalKey(Schema.Number),
-    cause: Schema.Defect(),
-  },
-) {}
+export class SteamApiError extends Schema.TaggedError<SteamApiError>()("SteamApiError", {
+  operation: Schema.String,
+  message: Schema.String,
+  status: Schema.optionalKey(Schema.Number),
+  cause: Schema.Defect(),
+}) {}
 
 /** Expected outcome of reading a player's owned Steam games. */
 export type OwnedGamesResult =
@@ -61,9 +58,7 @@ export interface Interface {
   ) => Effect.Effect<ReadonlyArray<ProfileSummary>, SteamApiError>;
 
   /** Load a player's friend IDs. */
-  readonly getFriendIds: (
-    steamId: SteamId,
-  ) => Effect.Effect<ReadonlyArray<SteamId>, SteamApiError>;
+  readonly getFriendIds: (steamId: SteamId) => Effect.Effect<ReadonlyArray<SteamId>, SteamApiError>;
 
   /** Load localized achievement metadata for one game, indexed by API name. */
   readonly getGameAchievementSchema: (
@@ -82,6 +77,4 @@ export interface Interface {
  *
  * @returns A requirement that must be provided by a Steam client Layer.
  */
-export class Service extends Context.Service<Service, Interface>()(
-  "@rarify/SteamClient",
-) {}
+export class Service extends Context.Service<Service, Interface>()("@rarify/SteamClient") {}

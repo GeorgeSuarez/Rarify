@@ -144,9 +144,7 @@ interface StoreState {
 /** Faithful in-memory implementation of the Rarify persistence contract. */
 const makeStoreLayer = (
   state: Ref.Ref<StoreState>,
-  achievementCache: Ref.Ref<
-    ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>
-  >,
+  achievementCache: Ref.Ref<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>,
 ): Layer.Layer<RarifyStore.Service> =>
   Layer.effect(
     RarifyStore.Service,
@@ -158,10 +156,7 @@ const makeStoreLayer = (
         getUserProfile: Effect.fn("TestStore.getUserProfile")(() =>
           Effect.map(read, (state) => state.profile),
         ),
-        saveUserProfile: Effect.fn("TestStore.saveUserProfile")(function* (
-          _steamId,
-          profile,
-        ) {
+        saveUserProfile: Effect.fn("TestStore.saveUserProfile")(function* (_steamId, profile) {
           yield* update(state, (current) => ({
             ...current,
             profile: Option.some({
@@ -190,10 +185,7 @@ const makeStoreLayer = (
         getPreferences: Effect.fn("TestStore.getPreferences")(() =>
           Effect.map(read, (state) => state.preferences),
         ),
-        savePreferences: Effect.fn("TestStore.savePreferences")(function* (
-          _steamId,
-          preferences,
-        ) {
+        savePreferences: Effect.fn("TestStore.savePreferences")(function* (_steamId, preferences) {
           yield* update(state, (current) => ({ ...current, preferences }));
 
           return preferences;
@@ -201,20 +193,18 @@ const makeStoreLayer = (
         getCachedLibrary: Effect.fn("TestStore.getCachedLibrary")(() =>
           Effect.map(read, (state) => state.cached),
         ),
-        saveCachedLibrary: Effect.fn("TestStore.saveCachedLibrary")(function* (
-          _steamId,
-          snapshot,
-          fetchedAtMs,
-        ) {
-          yield* update(state, (current) => ({
-            ...current,
-            cached: Option.some({
-              ...snapshot,
-              version: 1,
-              fetchedAtMs,
-            }),
-          }));
-        }),
+        saveCachedLibrary: Effect.fn("TestStore.saveCachedLibrary")(
+          function* (_steamId, snapshot, fetchedAtMs) {
+            yield* update(state, (current) => ({
+              ...current,
+              cached: Option.some({
+                ...snapshot,
+                version: 1,
+                fetchedAtMs,
+              }),
+            }));
+          },
+        ),
         getPreviousSnapshot: Effect.fn("TestStore.getPreviousSnapshot")(() =>
           Effect.map(read, (state) => {
             const snapshot = state.snapshots.at(0);
@@ -236,24 +226,21 @@ const makeStoreLayer = (
             }));
           },
         ),
-        listUserSteamIds: Effect.fn("TestStore.listUserSteamIds")(() =>
-          Effect.succeed([STEAM_ID]),
+        listUserSteamIds: Effect.fn("TestStore.listUserSteamIds")(() => Effect.succeed([STEAM_ID])),
+        getGameAchievementCache: Effect.fn("TestStore.getGameAchievementCache")(() =>
+          Effect.map(Ref.get(achievementCache), (cache) => new Map(cache)),
         ),
-        getGameAchievementCache: Effect.fn("TestStore.getGameAchievementCache")(
-          () => Effect.map(Ref.get(achievementCache), (cache) => new Map(cache)),
-        ),
-        saveGameAchievementCache: Effect.fn(
-          "TestStore.saveGameAchievementCache",
-        )((_steamId, entries) =>
-          Ref.update(achievementCache, (current) => {
-            const next = new Map(current);
+        saveGameAchievementCache: Effect.fn("TestStore.saveGameAchievementCache")(
+          (_steamId, entries) =>
+            Ref.update(achievementCache, (current) => {
+              const next = new Map(current);
 
-            for (const { appId, entry, fetchedAtMs } of entries) {
-              next.set(appId, { entry, fetchedAtMs });
-            }
+              for (const { appId, entry, fetchedAtMs } of entries) {
+                next.set(appId, { entry, fetchedAtMs });
+              }
 
-            return next;
-          }),
+              return next;
+            }),
         ),
         getGameSchemaCache: Effect.fn("TestStore.getGameSchemaCache")((appIds) =>
           Effect.map(read, (state) => {
@@ -309,24 +296,22 @@ const makeSteamLayer = (
 
           return (yield* Ref.get(config)).ownedGames;
         }),
-        getPlayerAchievements: Effect.fn("TestSteam.getPlayerAchievements")(
-          (_steamId, appId) =>
-            Effect.succeed(
-              PLAYER_ACHIEVEMENTS.get(appId) ??
-                generatedAchievements(appId).map((apiname) => ({
-                  apiname,
-                  achieved: 1,
-                  unlocktime: NOW / 1000,
-                })),
-            ),
-        ),
-        getGlobalAchievementPercentages: Effect.fn(
-          "TestSteam.getGlobalAchievementPercentages",
-        )((appId) =>
+        getPlayerAchievements: Effect.fn("TestSteam.getPlayerAchievements")((_steamId, appId) =>
           Effect.succeed(
-            GLOBAL_PERCENTAGES.get(appId) ??
-              generatedAchievements(appId).map((name) => ({ name, percent: 50 })),
+            PLAYER_ACHIEVEMENTS.get(appId) ??
+              generatedAchievements(appId).map((apiname) => ({
+                apiname,
+                achieved: 1,
+                unlocktime: NOW / 1000,
+              })),
           ),
+        ),
+        getGlobalAchievementPercentages: Effect.fn("TestSteam.getGlobalAchievementPercentages")(
+          (appId) =>
+            Effect.succeed(
+              GLOBAL_PERCENTAGES.get(appId) ??
+                generatedAchievements(appId).map((name) => ({ name, percent: 50 })),
+            ),
         ),
         getPlayerSummaries: Effect.fn("TestSteam.getPlayerSummaries")(() =>
           Effect.succeed([
@@ -339,9 +324,7 @@ const makeSteamLayer = (
             },
           ]),
         ),
-        getFriendIds: Effect.fn("TestSteam.getFriendIds")(() =>
-          Effect.succeed([OTHER_STEAM_ID]),
-        ),
+        getFriendIds: Effect.fn("TestSteam.getFriendIds")(() => Effect.succeed([OTHER_STEAM_ID])),
         getGameAchievementSchema: Effect.fn("TestSteam.getGameAchievementSchema")(
           function* (appId) {
             yield* Ref.update(config, (current) => ({
@@ -353,8 +336,7 @@ const makeSteamLayer = (
               return yield* Effect.fail(
                 new SteamClient.SteamApiError({
                   operation: "getGameAchievementSchema",
-                  message:
-                    "Steam API returned HTTP 400 during getGameAchievementSchema",
+                  message: "Steam API returned HTTP 400 during getGameAchievementSchema",
                   status: 400,
                   cause: new Error("Steam API returned HTTP 400"),
                 }),
@@ -384,9 +366,7 @@ const runWithServices = <A, E>(
     ownedGames: SteamClient.OwnedGamesResult;
     calls: ReadonlyArray<string>;
   }>,
-  achievementCache: Ref.Ref<
-    ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>
-  >,
+  achievementCache: Ref.Ref<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>,
   schemaFailures: ReadonlySet<number> = new Set(),
 ) =>
   TestClock.setTime(NOW).pipe(
@@ -724,138 +704,140 @@ describe("DashboardService.getGameAchievements", () => {
       globalPercent: 78.5,
     });
   });
-describe("DashboardService.getDashboard", () => {
-  it("applies tracked state and filters the tracked view", async () => {
-    const trackedAppId = Schema.decodeUnknownSync(AppIdSchema)(1245620);
+  describe("DashboardService.getDashboard", () => {
+    it("applies tracked state and filters the tracked view", async () => {
+      const trackedAppId = Schema.decodeUnknownSync(AppIdSchema)(1245620);
 
-    const state = await Effect.runPromise(
-      Ref.make<StoreState>({
-        ...initialState,
-        tracked: [trackedAppId],
-      }),
-    );
-
-    const achievementCache = await Effect.runPromise(
-      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
-    );
-
-    const config = await Effect.runPromise(
-      Ref.make<{
-        ownedGames: SteamClient.OwnedGamesResult;
-        calls: ReadonlyArray<string>;
-      }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
-    );
-
-    const [all, tracked] = await Effect.runPromise(
-      runWithServices(
-        Effect.gen(function* () {
-          const dashboard = yield* DashboardService.Service;
-
-          return yield* Effect.all(
-            [dashboard.getDashboard(STEAM_ID, "all"), dashboard.getDashboard(STEAM_ID, "tracked")],
-            { concurrency: "unbounded" },
-          );
+      const state = await Effect.runPromise(
+        Ref.make<StoreState>({
+          ...initialState,
+          tracked: [trackedAppId],
         }),
-        state,
-        config,
-        achievementCache,
-      ),
-    );
+      );
 
-    expect(all.stats.gamesTracked).toBe(1);
-    expect(all.games.find((game) => game.appId === 1245620)?.tracked).toBe(true);
-    expect(tracked.games.map((game) => game.appId)).toEqual([1245620]);
-    expect(tracked.stats.gamesOwned).toBe(1);
-  });
-});
-describe("DashboardService.getLibrary enrichment failures", () => {
-  it("keeps games whose achievement data could not be read", async () => {
-    const state = await Effect.runPromise(Ref.make(initialState));
+      const achievementCache = await Effect.runPromise(
+        Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+      );
 
-    const achievementCache = await Effect.runPromise(
-      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
-    );
+      const config = await Effect.runPromise(
+        Ref.make<{
+          ownedGames: SteamClient.OwnedGamesResult;
+          calls: ReadonlyArray<string>;
+        }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
+      );
 
-    const config = await Effect.runPromise(
-      Ref.make<{
-        ownedGames: SteamClient.OwnedGamesResult;
-        calls: ReadonlyArray<string>;
-      }>({
-        ownedGames: {
-          ok: true,
-          games: [
-            {
-              appid: 1245620,
-              name: "Elden Ring",
-              playtime_forever: 7200,
-              img_icon_url: "abc",
-              img_logo_url: "",
-              has_community_visible_stats: true,
-            },
-            {
-              appid: 999999,
-              name: "Unreadable Game",
-              playtime_forever: 600,
-              img_icon_url: "xyz",
-              img_logo_url: "",
-              has_community_visible_stats: true,
-            },
-          ],
-        },
-        calls: [],
-      }),
-    );
+      const [all, tracked] = await Effect.runPromise(
+        runWithServices(
+          Effect.gen(function* () {
+            const dashboard = yield* DashboardService.Service;
 
-    const result = await Effect.runPromise(
-      runWithServices(
-        Effect.gen(function* () {
-          const dashboard = yield* DashboardService.Service;
+            return yield* Effect.all(
+              [
+                dashboard.getDashboard(STEAM_ID, "all"),
+                dashboard.getDashboard(STEAM_ID, "tracked"),
+              ],
+              { concurrency: "unbounded" },
+            );
+          }),
+          state,
+          config,
+          achievementCache,
+        ),
+      );
 
-          return yield* dashboard.getLibrary(STEAM_ID);
-        }),
-        state,
-        config,
-        achievementCache,
-      ),
-    );
-
-    expect(result.games.map((game) => game.appId)).toEqual([1245620, 999999]);
-    const unreadable = result.games.find((game) => game.appId === 999999);
-    expect(unreadable?.achievements).toEqual({ earned: 0, total: 0 });
-    expect(unreadable?.completion).toBe(0);
-    expect(result.games.find((game) => game.appId === 1245620)?.completion).toBe(67);
-  });
-});
-describe("DashboardService progressive enrichment", () => {
-  it("enriches the library in bounded batches across requests", async () => {
-    const generatedGames = Array.from({ length: 25 }, (_, index) => {
-      const appId = 1000 + index;
-
-      return {
-        appid: appId,
-        name: `Generated Game ${appId}`,
-        playtime_forever: 600,
-        img_icon_url: "",
-        img_logo_url: "",
-        has_community_visible_stats: true,
-      };
+      expect(all.stats.gamesTracked).toBe(1);
+      expect(all.games.find((game) => game.appId === 1245620)?.tracked).toBe(true);
+      expect(tracked.games.map((game) => game.appId)).toEqual([1245620]);
+      expect(tracked.stats.gamesOwned).toBe(1);
     });
+  });
+  describe("DashboardService.getLibrary enrichment failures", () => {
+    it("keeps games whose achievement data could not be read", async () => {
+      const state = await Effect.runPromise(Ref.make(initialState));
 
-    const state = await Effect.runPromise(Ref.make(initialState));
+      const achievementCache = await Effect.runPromise(
+        Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+      );
 
-    const achievementCache = await Effect.runPromise(
-      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
-    );
+      const config = await Effect.runPromise(
+        Ref.make<{
+          ownedGames: SteamClient.OwnedGamesResult;
+          calls: ReadonlyArray<string>;
+        }>({
+          ownedGames: {
+            ok: true,
+            games: [
+              {
+                appid: 1245620,
+                name: "Elden Ring",
+                playtime_forever: 7200,
+                img_icon_url: "abc",
+                img_logo_url: "",
+                has_community_visible_stats: true,
+              },
+              {
+                appid: 999999,
+                name: "Unreadable Game",
+                playtime_forever: 600,
+                img_icon_url: "xyz",
+                img_logo_url: "",
+                has_community_visible_stats: true,
+              },
+            ],
+          },
+          calls: [],
+        }),
+      );
 
-    const config = await Effect.runPromise(
-      Ref.make<{
-        ownedGames: SteamClient.OwnedGamesResult;
-        calls: ReadonlyArray<string>;
-      }>({ ownedGames: { ok: true, games: generatedGames }, calls: [] }),
-    );
+      const result = await Effect.runPromise(
+        runWithServices(
+          Effect.gen(function* () {
+            const dashboard = yield* DashboardService.Service;
 
-    const { first, second, cacheAfterFirst, cacheAfterSecond } =
-      await Effect.runPromise(
+            return yield* dashboard.getLibrary(STEAM_ID);
+          }),
+          state,
+          config,
+          achievementCache,
+        ),
+      );
+
+      expect(result.games.map((game) => game.appId)).toEqual([1245620, 999999]);
+      const unreadable = result.games.find((game) => game.appId === 999999);
+      expect(unreadable?.achievements).toEqual({ earned: 0, total: 0 });
+      expect(unreadable?.completion).toBe(0);
+      expect(result.games.find((game) => game.appId === 1245620)?.completion).toBe(67);
+    });
+  });
+  describe("DashboardService progressive enrichment", () => {
+    it("enriches the library in bounded batches across requests", async () => {
+      const generatedGames = Array.from({ length: 25 }, (_, index) => {
+        const appId = 1000 + index;
+
+        return {
+          appid: appId,
+          name: `Generated Game ${appId}`,
+          playtime_forever: 600,
+          img_icon_url: "",
+          img_logo_url: "",
+          has_community_visible_stats: true,
+        };
+      });
+
+      const state = await Effect.runPromise(Ref.make(initialState));
+
+      const achievementCache = await Effect.runPromise(
+        Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+      );
+
+      const config = await Effect.runPromise(
+        Ref.make<{
+          ownedGames: SteamClient.OwnedGamesResult;
+          calls: ReadonlyArray<string>;
+        }>({ ownedGames: { ok: true, games: generatedGames }, calls: [] }),
+      );
+
+      const { first, second, cacheAfterFirst, cacheAfterSecond } = await Effect.runPromise(
         runWithServices(
           Effect.gen(function* () {
             const dashboard = yield* DashboardService.Service;
@@ -875,19 +857,19 @@ describe("DashboardService progressive enrichment", () => {
         ),
       );
 
-    const enrichedCount = (library: LibrarySnapshot) =>
-      library.games.filter((game) => game.achievements.total > 0).length;
+      const enrichedCount = (library: LibrarySnapshot) =>
+        library.games.filter((game) => game.achievements.total > 0).length;
 
-    // The per-invocation batch limit keeps a single request inside the
-    // Worker subrequest budget; later requests fill in the remainder.
-    expect(enrichedCount(first)).toBe(20);
-    expect(first.games).toHaveLength(25);
-    expect(cacheAfterFirst.size).toBe(20);
+      // The per-invocation batch limit keeps a single request inside the
+      // Worker subrequest budget; later requests fill in the remainder.
+      expect(enrichedCount(first)).toBe(20);
+      expect(first.games).toHaveLength(25);
+      expect(cacheAfterFirst.size).toBe(20);
 
-    expect(enrichedCount(second)).toBe(25);
-    expect(cacheAfterSecond.size).toBe(25);
+      expect(enrichedCount(second)).toBe(25);
+      expect(cacheAfterSecond.size).toBe(25);
+    });
   });
-});
 });
 
 describe("DashboardService schema resilience", () => {
@@ -921,12 +903,10 @@ describe("DashboardService schema resilience", () => {
 
     expect(result.error).toBeNull();
     // The healthy game's achievements keep their Steam display metadata.
-    expect(result.recentAchievements.map((entry) => entry.name)).toContain(
-      "Elden Lord",
-    );
-    expect(
-      result.recentAchievements.find((entry) => entry.name === "Elden Lord"),
-    ).toMatchObject({ description: "Elden Lord description" });
+    expect(result.recentAchievements.map((entry) => entry.name)).toContain("Elden Lord");
+    expect(result.recentAchievements.find((entry) => entry.name === "Elden Lord")).toMatchObject({
+      description: "Elden Lord description",
+    });
 
     // The failed game's achievements fall back to their Steam API names.
     const witcher = result.recentAchievements.find(
@@ -970,8 +950,8 @@ describe("DashboardService schema resilience", () => {
       ),
     );
 
-    const calls = (await Effect.runPromise(Ref.get(config))).calls.filter(
-      (call) => call.startsWith("getGameAchievementSchema"),
+    const calls = (await Effect.runPromise(Ref.get(config))).calls.filter((call) =>
+      call.startsWith("getGameAchievementSchema"),
     );
 
     expect(calls).toHaveLength(2);
@@ -1052,17 +1032,15 @@ describe("DashboardService achievements overview batching", () => {
     expect(result.rarestAchievements.length).toBeGreaterThan(0);
     // Only Elden Ring and The Witcher 3 have cached achievement data, so the
     // per-game table covers exactly those two games.
-    expect(result.rarestPerGame.map((row) => row.appId).sort()).toEqual([
-      1245620, 292030,
-    ]);
-    expect(
-      result.rarestPerGame.find((row) => row.appId === 1245620)?.achievement.name,
-    ).toBe("Age of Stars");
+    expect(result.rarestPerGame.map((row) => row.appId).sort()).toEqual([1245620, 292030]);
+    expect(result.rarestPerGame.find((row) => row.appId === 1245620)?.achievement.name).toBe(
+      "Age of Stars",
+    );
 
     // Recent, rarest, and per-game sections share one batched resolution:
     // two games, two Steam schema fetches, no duplicates.
-    const schemaCalls = (await Effect.runPromise(Ref.get(config))).calls.filter(
-      (call) => call.startsWith("getGameAchievementSchema"),
+    const schemaCalls = (await Effect.runPromise(Ref.get(config))).calls.filter((call) =>
+      call.startsWith("getGameAchievementSchema"),
     );
 
     expect(schemaCalls).toHaveLength(2);
@@ -1116,8 +1094,8 @@ describe("DashboardService achievements overview batching", () => {
 
     // One batched resolution for recent (20) + rarest (10) + per-game (20):
     // every game fetched exactly once, regardless of section overlap.
-    const schemaCalls = (await Effect.runPromise(Ref.get(config))).calls.filter(
-      (call) => call.startsWith("getGameAchievementSchema"),
+    const schemaCalls = (await Effect.runPromise(Ref.get(config))).calls.filter((call) =>
+      call.startsWith("getGameAchievementSchema"),
     );
 
     expect(schemaCalls).toHaveLength(20);

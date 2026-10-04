@@ -7,7 +7,11 @@ export const GameFilterSchema = Schema.Literals(["all", "owned", "tracked"]);
 export type GameFilter = typeof GameFilterSchema.Type;
 
 /** Stable list of filter choices displayed by the dashboard. */
-export const DASHBOARD_FILTERS = ["all", "owned", "tracked"] as const satisfies ReadonlyArray<GameFilter>;
+export const DASHBOARD_FILTERS = [
+  "all",
+  "owned",
+  "tracked",
+] as const satisfies ReadonlyArray<GameFilter>;
 
 /** Runtime schema for a validated Steam 64-bit account identifier. */
 export const SteamIdSchema = Schema.String.pipe(

@@ -7,11 +7,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Trophy } from "lucide-react";
 import { Image } from "@/src/spa/next-compat";
 import type { RecentAchievement } from "@/lib/types";
@@ -44,9 +40,7 @@ export function RecentAchievements({
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">
-          Recent Achievements
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">Recent Achievements</CardTitle>
       </CardHeader>
       <CardContent className="pt-2">
         {achievements.length === 0 ? (
@@ -56,18 +50,13 @@ export function RecentAchievements({
                 <Trophy />
               </EmptyMedia>
               <EmptyTitle>No recent achievements</EmptyTitle>
-              <EmptyDescription>
-                Achievements you earn will appear here.
-              </EmptyDescription>
+              <EmptyDescription>Achievements you earn will appear here.</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (
           <ul className="flex flex-col">
             {achievements.map((ach, i) => (
-              <li
-                key={`${ach.appId}-${ach.name}-${i}`}
-                className="flex items-center gap-4 py-3"
-              >
+              <li key={`${ach.appId}-${ach.name}-${i}`} className="flex items-center gap-4 py-3">
                 <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
                   {ach.icon ? (
                     <Image
@@ -84,12 +73,8 @@ export function RecentAchievements({
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-foreground">
-                    {ach.name}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {ach.gameName}
-                  </p>
+                  <p className="truncate font-semibold text-foreground">{ach.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{ach.gameName}</p>
                   {ach.description && (
                     <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground/70">
                       {ach.description}

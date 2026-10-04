@@ -70,26 +70,19 @@ function fetchSteamJson<S extends Schema.Constraint>(
   operation: string,
   url: URL,
   schema: S,
-): Effect.Effect<
-  SteamFetchResult<S["Type"]>,
-  SteamClient.SteamApiError,
-  S["DecodingServices"]
-> {
+): Effect.Effect<SteamFetchResult<S["Type"]>, SteamClient.SteamApiError, S["DecodingServices"]> {
   return Effect.gen(function* () {
     const response = yield* httpClient
       .execute(HttpClientRequest.get(url))
       .pipe(Effect.mapError((cause) => makeSteamError(operation, cause)));
 
     if (response.status < 200 || response.status >= 300) {
-      const body = yield* response.text.pipe(
-        Effect.catch(() => Effect.succeed("")),
-      );
+      const body = yield* response.text.pipe(Effect.catch(() => Effect.succeed("")));
 
       return {
         ok: false,
         status: response.status,
-        privateProfile:
-          response.status === 403 && body.includes(PRIVATE_PROFILE_MESSAGE),
+        privateProfile: response.status === 403 && body.includes(PRIVATE_PROFILE_MESSAGE),
       };
     }
 
@@ -128,9 +121,7 @@ function failSteamStatus(
  * @param game - Decoded wire record from Steam's owned-games endpoint.
  * @returns A game record with every domain field present.
  */
-function normalizeOwnedGame(
-  game: typeof SteamOwnedGameSchema.Type,
-): SteamOwnedGame {
+function normalizeOwnedGame(game: typeof SteamOwnedGameSchema.Type): SteamOwnedGame {
   return {
     appid: game.appid,
     name: game.name ?? `App ${game.appid}`,
@@ -216,26 +207,24 @@ const make = Effect.gen(function* () {
       },
     ),
 
-    getGlobalAchievementPercentages: Effect.fn(
-      "SteamClient.getGlobalAchievementPercentages",
-    )(function* (appId) {
-      const result = yield* request(
-        "getGlobalAchievementPercentages",
-        "/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/",
-        { gameid: String(appId) },
-        SteamGlobalAchievementsResponseSchema,
-      );
+    getGlobalAchievementPercentages: Effect.fn("SteamClient.getGlobalAchievementPercentages")(
+      function* (appId) {
+        const result = yield* request(
+          "getGlobalAchievementPercentages",
+          "/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v2/",
+          { gameid: String(appId) },
+          SteamGlobalAchievementsResponseSchema,
+        );
 
-      if (!result.ok) {
-        return yield* failSteamStatus("getGlobalAchievementPercentages", result.status);
-      }
+        if (!result.ok) {
+          return yield* failSteamStatus("getGlobalAchievementPercentages", result.status);
+        }
 
-      return result.data.achievementpercentages?.achievements ?? [];
-    }),
+        return result.data.achievementpercentages?.achievements ?? [];
+      },
+    ),
 
-    getPlayerSummaries: Effect.fn("SteamClient.getPlayerSummaries")(function* (
-      steamIds,
-    ) {
+    getPlayerSummaries: Effect.fn("SteamClient.getPlayerSummaries")(function* (steamIds) {
       if (steamIds.length === 0) return [];
 
       const result = yield* request(
@@ -283,39 +272,36 @@ const make = Effect.gen(function* () {
       );
     }),
 
-    getGameAchievementSchema: Effect.fn("SteamClient.getGameAchievementSchema")(
-      function* (appId) {
-        const result = yield* request(
-          "getGameAchievementSchema",
-          "/ISteamUserStats/GetSchemaForGame/v2/",
-          { appid: String(appId), l: "english" },
-          SteamSchemaResponseSchema,
-        );
+    getGameAchievementSchema: Effect.fn("SteamClient.getGameAchievementSchema")(function* (appId) {
+      const result = yield* request(
+        "getGameAchievementSchema",
+        "/ISteamUserStats/GetSchemaForGame/v2/",
+        { appid: String(appId), l: "english" },
+        SteamSchemaResponseSchema,
+      );
 
-        if (!result.ok) return yield* failSteamStatus("getGameAchievementSchema", result.status);
+      if (!result.ok) return yield* failSteamStatus("getGameAchievementSchema", result.status);
 
-        const metadata = new Map<
-          string,
-          Pick<SteamSchemaAchievement, "displayName" | "description" | "icon" | "icongray">
-        >();
+      const metadata = new Map<
+        string,
+        Pick<SteamSchemaAchievement, "displayName" | "description" | "icon" | "icongray">
+      >();
 
-        const achievements =
-          result.data.game?.availableGameStats?.achievements ?? [];
+      const achievements = result.data.game?.availableGameStats?.achievements ?? [];
 
-        for (const achievement of achievements) {
-          // Hidden achievements have no description and some games omit the
-          // display name or icons; normalize so callers always see strings.
-          metadata.set(achievement.name, {
-            displayName: achievement.displayName ?? achievement.name,
-            description: achievement.description ?? "",
-            icon: achievement.icon ?? "",
-            icongray: achievement.icongray ?? "",
-          });
-        }
+      for (const achievement of achievements) {
+        // Hidden achievements have no description and some games omit the
+        // display name or icons; normalize so callers always see strings.
+        metadata.set(achievement.name, {
+          displayName: achievement.displayName ?? achievement.name,
+          description: achievement.description ?? "",
+          icon: achievement.icon ?? "",
+          icongray: achievement.icongray ?? "",
+        });
+      }
 
-        return metadata;
-      },
-    ),
+      return metadata;
+    }),
   });
 });
 
@@ -324,6 +310,4 @@ const layerWithoutDependencies = Layer.effect(SteamClient.Service, make);
 /**
  * Production Steam Web API client Layer using the Worker Fetch implementation.
  */
-export const layer = layerWithoutDependencies.pipe(
-  Layer.provide(FetchHttpClient.layer),
-);
+export const layer = layerWithoutDependencies.pipe(Layer.provide(FetchHttpClient.layer));

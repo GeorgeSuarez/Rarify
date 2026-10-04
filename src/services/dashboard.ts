@@ -23,9 +23,7 @@ export interface Interface {
   ) => Effect.Effect<DashboardData, DashboardServiceError>;
 
   /** Load the enriched library for the games browser. */
-  readonly getLibrary: (
-    steamId: SteamId,
-  ) => Effect.Effect<LibrarySnapshot, DashboardServiceError>;
+  readonly getLibrary: (steamId: SteamId) => Effect.Effect<LibrarySnapshot, DashboardServiceError>;
 
   /** Load the full achievement overview. */
   readonly getAchievementsOverview: (
@@ -39,9 +37,7 @@ export interface Interface {
   ) => Effect.Effect<GameAchievements, DashboardServiceError>;
 
   /** Load visible Steam friends and their privacy summary. */
-  readonly getFriends: (
-    steamId: SteamId,
-  ) => Effect.Effect<FriendsData, DashboardServiceError>;
+  readonly getFriends: (steamId: SteamId) => Effect.Effect<FriendsData, DashboardServiceError>;
 
   /** Load an authenticated player's comparison with one Steam account. */
   readonly getFriendComparison: (
@@ -53,6 +49,4 @@ export interface Interface {
 /**
  * Effect service for dashboard read models and Steam-library enrichment.
  */
-export class Service extends Context.Service<Service, Interface>()(
-  "@rarify/DashboardService",
-) {}
+export class Service extends Context.Service<Service, Interface>()("@rarify/DashboardService") {}
