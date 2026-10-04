@@ -44,6 +44,7 @@ describe("computeStats", () => {
       makeGame({ achievements: { earned: 10, total: 20 } }),
       makeGame({ achievements: { earned: 30, total: 40 } }),
     ];
+
     expect(computeStats(games).achievementsEarned).toBe(40);
   });
 
@@ -52,6 +53,7 @@ describe("computeStats", () => {
       makeGame({ completion: 50, achievements: { earned: 5, total: 10 } }),
       makeGame({ completion: 75, achievements: { earned: 30, total: 40 } }),
     ];
+
     expect(computeStats(games).avgCompletion).toBe(62.5);
   });
 
@@ -60,6 +62,7 @@ describe("computeStats", () => {
       makeGame({ completion: 0, achievements: { earned: 0, total: 0 } }),
       makeGame({ completion: 80, achievements: { earned: 8, total: 10 } }),
     ];
+
     expect(computeStats(games).avgCompletion).toBe(80);
   });
 
@@ -77,6 +80,7 @@ describe("computeStats", () => {
       makeGame({ achievements: { earned: 9, total: 10 } }),
       makeGame({ achievements: { earned: 0, total: 0 } }),
     ];
+
     expect(computeStats(games).perfectGames).toBe(1);
   });
 
@@ -86,6 +90,7 @@ describe("computeStats", () => {
       makeGame({ owned: true, tracked: false }),
       makeGame({ owned: true, tracked: true }),
     ];
+
     const stats = computeStats(games);
     expect(stats.gamesOwned).toBe(3);
     expect(stats.gamesTracked).toBe(2);
@@ -94,9 +99,11 @@ describe("computeStats", () => {
   it("achievementsEarnedDelta counts unlocks in the last 30 days", () => {
     const recentUnlock = Math.floor((NOW - 5 * 86400000) / 1000);
     const oldUnlock = Math.floor((NOW - 60 * 86400000) / 1000);
+
     const games = [
       makeGame({ unlocktimes: [recentUnlock, oldUnlock, recentUnlock] }),
     ];
+
     expect(computeStats(games).achievementsEarnedDelta).toBe(2);
   });
 
@@ -144,6 +151,7 @@ describe("meanGlobalPercent", () => {
       { name: "a2", percent: 40 },
       { name: "a3", percent: 60 },
     ];
+
     expect(meanGlobalPercent(percentages)).toBe(50);
   });
 
@@ -152,6 +160,7 @@ describe("meanGlobalPercent", () => {
       { name: "a1", percent: 33.33 },
       { name: "a2", percent: 22.22 },
     ];
+
     expect(meanGlobalPercent(percentages)).toBe(27.8);
   });
 });
@@ -168,7 +177,9 @@ describe("exported constants", () => {
 
 function getOwnedGamesFixtureGames() {
   const games = ownedGamesFixture.response.games;
+
   if (!games) throw new Error("Owned-games fixture must include its games array");
+
   return games;
 }
 
@@ -201,6 +212,7 @@ describe("Steam fixtures - player achievements", () => {
     const achieved = playerAchievementsFixture.playerstats.achievements.filter(
       (a) => a.achieved === 1,
     );
+
     expect(achieved.every((a) => a.unlocktime > 0)).toBe(true);
   });
 
@@ -208,6 +220,7 @@ describe("Steam fixtures - player achievements", () => {
     const locked = playerAchievementsFixture.playerstats.achievements.filter(
       (a) => a.achieved === 0,
     );
+
     expect(locked.every((a) => a.unlocktime === 0)).toBe(true);
   });
 });
@@ -227,17 +240,23 @@ describe("computeStats with fixture-derived games", () => {
       .filter((a) => a.achieved === 1)
       .map((a) => a.unlocktime);
 
+    const completionByIndex = new Map([
+      [0, 67],
+      [1, 100],
+    ]);
+
+    const achievementsByIndex = new Map<number, Game["achievements"]>([
+      [0, { earned: 4, total: 6 }],
+      [1, { earned: 78, total: 78 }],
+    ]);
+
     const games: Game[] = getOwnedGamesFixtureGames().map((owned, i) => ({
       appId: owned.appid,
       name: owned.name,
       hours: Math.round(owned.playtime_forever / 60),
-      completion: i === 0 ? 67 : i === 1 ? 100 : 50,
+      completion: completionByIndex.get(i) ?? 50,
       achievements:
-        i === 0
-          ? { earned: 4, total: 6 }
-          : i === 1
-            ? { earned: 78, total: 78 }
-            : { earned: 20, total: 40 },
+        achievementsByIndex.get(i) ?? { earned: 20, total: 40 },
       comparison: { text: "You're ahead of", percent: 40, isPositive: true },
       image: `https://cdn.cloudflare.steamstatic.com/steam/apps/${owned.appid}/header.jpg`,
       owned: true,
@@ -279,6 +298,7 @@ describe("buildAlphabetIndex", () => {
       makeGame({ appId: 1, name: "Half-Life" }),
       makeGame({ appId: 3, name: "Half-Life 2" }),
     ];
+
     expect(buildAlphabetIndex(games)).toStrictEqual([
       {
         letter: "H",
@@ -296,6 +316,7 @@ describe("buildAlphabetIndex", () => {
       makeGame({ name: "No Trophies", achievements: { earned: 0, total: 0 } }),
       makeGame({ name: "Portal" }),
     ];
+
     const index = buildAlphabetIndex(games);
     expect(index).toHaveLength(1);
     expect(index[0]?.letter).toBe("P");

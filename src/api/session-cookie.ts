@@ -52,12 +52,13 @@ export interface SessionReader {
  * @param session - Signed session-token capability resolved during init.
  * @returns Cookie readers that fail with `UnauthorizedError` when required.
  */
-export const makeSessionReader = (
+export const createSessionReader = (
   session: SessionService.Interface,
 ): SessionReader => {
   const read: SessionReader["read"] = Effect.gen(function* () {
     const request = yield* HttpServerRequest.HttpServerRequest;
     const token = request.cookies[SESSION_COOKIE];
+
     if (token === undefined || token.length === 0) return Option.none();
 
     return yield* session

@@ -44,6 +44,7 @@ import * as RarifyStore from "../services/rarify-store.ts";
 import * as SteamClient from "../services/steam-client.ts";
 
 const DETAIL_CONCURRENCY = 5;
+
 const RECENT_ACHIEVEMENT_COUNT = 5;
 
 /**
@@ -87,12 +88,12 @@ export const make: Effect.Effect<
 > = Effect.gen(function* () {
   const steam = yield* SteamClient.Service;
   const store = yield* RarifyStore.Service;
+
   const enrichBatchSize = yield* Config.Int("ENRICH_BATCH_SIZE").pipe(
     Config.withDefault(DEFAULT_ENRICH_BATCH_SIZE),
   );
 
   const profileOf = (
-    steamId: SteamId,
     profile: Option.Option<UserProfile>,
   ): { readonly personaName: string; readonly avatar: string } | undefined =>
     Option.match(profile, {
@@ -113,6 +114,7 @@ export const make: Effect.Effect<
       ],
       { concurrency: "unbounded" },
     );
+
     return {
       achievements,
       globalPercentages,
@@ -135,9 +137,11 @@ export const make: Effect.Effect<
       number,
       ReadonlyMap<string, GameAchievementSchemaValue>
     >();
+
     if (appIds.length === 0) return resolved;
 
     const nowMs = yield* Clock.currentTimeMillis;
+
     const cached = yield* store.getGameSchemaCache(appIds).pipe(
       Effect.catchTag("PersistenceError", (error) =>
         Effect.logWarning("Schema cache read failed; refetching").pipe(
@@ -146,17 +150,20 @@ export const make: Effect.Effect<
         ),
       ),
     );
+
     for (const [appId, read] of cached) {
       resolved.set(appId, new Map(Object.entries(read.schema)));
     }
 
     const stale = appIds.filter((appId) => {
       const read = cached.get(appId);
+
       return (
         read === undefined ||
         nowMs - read.fetchedAtMs >= GAME_ACHIEVEMENT_CACHE_TTL_MS
       );
     });
+
     const fetched = yield* Effect.forEach(
       stale,
       (appId) =>
@@ -208,9 +215,11 @@ export const make: Effect.Effect<
           ),
         );
     }
+
     for (const { appId, schema } of fetched) {
       resolved.set(appId, new Map(Object.entries(schema)));
     }
+
     return resolved;
   });
 
@@ -218,6 +227,7 @@ export const make: Effect.Effect<
     "DashboardService.enrichLibraryFromSteam",
   )(function* (steamId: SteamId) {
     const owned = yield* steam.getOwnedGames(steamId);
+
     if (!owned.ok) {
       return {
         persisted: null,
@@ -227,6 +237,7 @@ export const make: Effect.Effect<
             : ({ type: owned.reason, status: owned.status } satisfies DashboardError),
       } as const;
     }
+
     if (owned.games.length === 0) {
       return { persisted: emptyPersisted, error: null } as const;
     }
@@ -234,9 +245,11 @@ export const make: Effect.Effect<
     const sorted = [...owned.games].sort(
       (a, b) => b.playtime_forever - a.playtime_forever,
     );
+
     const detailedSlice = sorted.filter(
       (game) => game.playtime_forever > 0 && game.has_community_visible_stats,
     );
+
     const nowMs = yield* Clock.currentTimeMillis;
 
     const cached = yield* store.getGameAchievementCache(steamId).pipe(
@@ -250,11 +263,13 @@ export const make: Effect.Effect<
 
     const staleGames = detailedSlice.filter((game) => {
       const cachedEntry = cached.get(game.appid);
+
       return (
         cachedEntry === undefined ||
         nowMs - cachedEntry.fetchedAtMs >= GAME_ACHIEVEMENT_CACHE_TTL_MS
       );
     });
+
     // Bound Steam calls per invocation so the Worker stays inside Cloudflare's
     // subrequest budget; remaining games fill in on later loads.
     const batch = staleGames.slice(0, enrichBatchSize);
@@ -263,7 +278,9 @@ export const make: Effect.Effect<
       batch,
       (game) => {
         const appId = parseAppId(game.appid);
+
         if (appId === null) return Effect.succeed(Option.none<FetchedGameAchievements>());
+
         return fetchGameAchievementData(steamId, appId).pipe(
           Effect.map((entry) => Option.some({ appId, entry })),
           Effect.catchTag("SteamApiError", (error) =>
@@ -281,7 +298,10 @@ export const make: Effect.Effect<
       { concurrency: DETAIL_CONCURRENCY },
     );
 
-    const fetchedEntries = fetched.filter(Option.isSome).map((result) => result.value);
+    const fetchedEntries = fetched.flatMap((result) =>
+      Option.isSome(result) ? [result.value] : [],
+    );
+
     yield* store
       .saveGameAchievementCache(
         steamId,
@@ -302,6 +322,7 @@ export const make: Effect.Effect<
     const entryByAppId = new Map<number, GameAchievementCacheEntry>(
       [...cached.entries()].map(([appId, read]) => [appId, read.entry]),
     );
+
     for (const { appId, entry } of fetchedEntries) {
       entryByAppId.set(appId, entry);
     }
@@ -313,6 +334,7 @@ export const make: Effect.Effect<
     const games: ReadonlyArray<Game> = sorted
       .map((game) => {
         const entry = entryByAppId.get(game.appid);
+
         if (entry === undefined) {
           return {
             appId: game.appid,
@@ -327,7 +349,9 @@ export const make: Effect.Effect<
             unlocktimes: [],
           } satisfies Game;
         }
+
         const summary = summarizeAchievementData(entry);
+
         return buildGame(
           game.appid,
           game.name,
@@ -393,6 +417,7 @@ export const make: Effect.Effect<
       const trackedAppIds = yield* readTrackedAppIds(steamId);
       // Compare against the numeric game IDs stored in the cached library.
       const trackedSet = new Set<number>(trackedAppIds);
+
       return {
         ...persisted,
         games: persisted.games.map((game) => ({
@@ -435,17 +460,21 @@ export const make: Effect.Effect<
         ),
       ),
     );
+
     const nowMs = yield* Clock.currentTimeMillis;
     const cachedValue = Option.getOrNull(cached);
+
     if (cachedValue !== null && isSnapshotFresh(cachedValue.fetchedAtMs, nowMs)) {
       return { persisted: yield* withTrackedGames(steamId, cachedValue), error: null } as const;
     }
 
     const outcome = yield* enrichLibraryFromSteam(steamId);
+
     if (outcome.error !== null) {
       if (cachedValue !== null) {
         return { persisted: yield* withTrackedGames(steamId, cachedValue), error: null } as const;
       }
+
       return { persisted: emptyPersisted, error: outcome.error } as const;
     }
 
@@ -458,15 +487,18 @@ export const make: Effect.Effect<
           ),
         ),
       );
+
     return { persisted: yield* withTrackedGames(steamId, outcome.persisted), error: null } as const;
   });
 
   const getLibrary = Effect.fn("DashboardService.getLibrary")(function* (steamId) {
     const read = yield* readLibrary(steamId);
     const profile = yield* readProfile(steamId);
+
     const withProfile = Option.isSome(profile)
       ? { ...read.persisted, user: profile.value }
       : read.persisted;
+
     return yield* toLibrarySnapshot(steamId, withProfile, read.error);
   });
 
@@ -490,12 +522,15 @@ export const make: Effect.Effect<
 
     const games = read.persisted.games.filter((game) => {
       if (filter === "owned") return game.owned;
+
       if (filter === "tracked") return game.tracked;
+
       return true;
     });
 
     const nowMs = yield* Clock.currentTimeMillis;
     const computedStats = computeStats(games, nowMs);
+
     const [recentAchievements, rarestAchievements, previousSnapshot] =
       yield* Effect.all(
         [
@@ -522,7 +557,8 @@ export const make: Effect.Effect<
       }),
     });
 
-    const user = profileOf(steamId, profile);
+    const user = profileOf(profile);
+
     return user === undefined
       ? ({
           stats,
@@ -557,7 +593,7 @@ export const make: Effect.Effect<
         rarestAchievements: [],
         rarestPerGame: [],
         error: read.error,
-        user: profileOf(steamId, profile),
+        user: profileOf(profile),
       } satisfies AchievementsOverview;
     }
 
@@ -572,16 +608,20 @@ export const make: Effect.Effect<
       sort: "recent",
       limit: 20,
     });
+
     const rarestSelection = selectEntries(read.persisted.earnedEntries, {
       sort: "rarest",
       limit: 10,
     });
+
     const entriesByAppId = indexEntriesByAppId(read.persisted.earnedEntries);
     const perGameRarest: Array<{ readonly game: Game; readonly rarest: EarnedEntry }> = [];
+
     for (const game of games) {
       if (game.achievements.total === 0) continue;
       const candidates = entriesByAppId.get(game.appId) ?? [];
       let rarest: EarnedEntry | undefined;
+
       for (const entry of candidates) {
         if (
           entry.globalPercent > 0 &&
@@ -590,11 +630,16 @@ export const make: Effect.Effect<
           rarest = entry;
         }
       }
+
       if (rarest !== undefined) perGameRarest.push({ game, rarest });
     }
-    const perGameAppIds = perGameRarest
-      .map(({ rarest }) => parseAppId(rarest.appId))
-      .filter((appId): appId is AppId => appId !== null);
+
+    const perGameAppIds = perGameRarest.flatMap(({ rarest }) => {
+      const appId = parseAppId(rarest.appId);
+
+      return appId === null ? [] : [appId];
+    });
+
     const schemaByAppId = yield* resolveGameSchemas([
       ...new Set([
         ...recentSelection.appIds,
@@ -605,14 +650,17 @@ export const make: Effect.Effect<
 
     const recentAchievements = renderEntries(schemaByAppId, recentSelection.top);
     const rarestAchievements = renderEntries(schemaByAppId, rarestSelection.top);
+
     const rarestPerGame = perGameRarest.flatMap(({ game, rarest }) => {
       const [achievement] = renderEntries(schemaByAppId, [rarest]);
+
       return achievement === undefined
         ? []
         : [{ appId: game.appId, gameName: game.name, achievement }];
     });
 
-    const user = profileOf(steamId, profile);
+    const user = profileOf(profile);
+
     return user === undefined
       ? ({
           stats,
@@ -659,6 +707,7 @@ export const make: Effect.Effect<
       }
 
       const percentByApiName = new Map<string, number>();
+
       for (const percentage of percentages) {
         percentByApiName.set(percentage.name, percentage.percent);
       }
@@ -666,12 +715,14 @@ export const make: Effect.Effect<
       const ownedGame = owned.ok
         ? owned.games.find((game) => game.appid === appId)
         : undefined;
+
       const schemas = yield* resolveGameSchemas([appId]);
       const schema = schemas.get(appId) ?? new Map();
       const earnedCount = achievements.filter((a) => a.achieved === 1).length;
 
       const rows: ReadonlyArray<GameAchievement> = achievements.map((achievement) => {
         const metadata = schema.get(achievement.apiname);
+
         return {
           apiname: achievement.apiname,
           name: metadata?.displayName ?? achievement.apiname,
@@ -700,11 +751,13 @@ export const make: Effect.Effect<
 
   const getFriends = Effect.fn("DashboardService.getFriends")(function* (steamId) {
     const friendIds = yield* steam.getFriendIds(steamId);
+
     if (friendIds.length === 0) {
       return { friends: [], error: null, hiddenCount: 0 } satisfies FriendsData;
     }
 
     const summaries = yield* steam.getPlayerSummaries(friendIds);
+
     const accessibility = yield* Effect.forEach(
       friendIds,
       (friendId) =>
@@ -720,22 +773,26 @@ export const make: Effect.Effect<
     );
 
     const accessibleIds = new Set(
-      accessibility
-        .filter(Option.isSome)
-        .map((result) => result.value)
-        .filter((result) => result.accessible)
-        .map((result) => result.friendId),
+      accessibility.flatMap((result) =>
+        Option.isSome(result) && result.value.accessible
+          ? [result.value.friendId]
+          : [],
+      ),
     );
 
-    const friends: ReadonlyArray<FriendSummary> = summaries
-      .filter((summary) => accessibleIds.has(summary.steamId))
-      .map((summary) => ({
-        steamId: summary.steamId,
-        name: summary.personaName,
-        avatar: summary.avatar,
-        avatarFull: summary.avatarFull,
-        profileUrl: summary.profileUrl,
-      }));
+    const friends: ReadonlyArray<FriendSummary> = summaries.flatMap((summary) =>
+      accessibleIds.has(summary.steamId)
+        ? [
+            {
+              steamId: summary.steamId,
+              name: summary.personaName,
+              avatar: summary.avatar,
+              avatarFull: summary.avatarFull,
+              profileUrl: summary.profileUrl,
+            },
+          ]
+        : [],
+    );
 
     return {
       friends,
@@ -754,9 +811,11 @@ export const make: Effect.Effect<
         ],
         { concurrency: "unbounded" },
       );
+
       const friendInfo = friends.friends.find(
         (friend) => friend.steamId === friendSteamId,
       );
+
       return friendInfo === undefined
         ? ({ yourData, friendData } satisfies FriendComparison)
         : ({ yourData, friendData, friendInfo } satisfies FriendComparison);
@@ -807,18 +866,28 @@ function selectEntries(
   entries: ReadonlyArray<EarnedEntry>,
   options: EnrichmentOptions,
 ): SelectedEntries {
-  const selected =
-    options.sort === "rarest"
-      ? [...entries]
-          .filter((entry) => entry.globalPercent > 0)
-          .sort((a, b) => a.globalPercent - b.globalPercent)
-      : [...entries].sort((a, b) =>
-          options.sort === "recent" ? b.unlocktime - a.unlocktime : 0,
-        );
+  let selected: ReadonlyArray<EarnedEntry>;
+
+  if (options.sort === "rarest") {
+    selected = [...entries]
+      .filter((entry) => entry.globalPercent > 0)
+      .sort((a, b) => a.globalPercent - b.globalPercent);
+  } else if (options.sort === "recent") {
+    selected = [...entries].sort((a, b) => b.unlocktime - a.unlocktime);
+  } else {
+    selected = [...entries];
+  }
+
   const top = selected.slice(0, options.limit);
-  const appIds = [...new Set(top.map((entry) => entry.appId))]
-    .map(parseAppId)
-    .filter((appId): appId is AppId => appId !== null);
+
+  const appIds = [...new Set(top.map((entry) => entry.appId))].flatMap(
+    (appId) => {
+      const parsed = parseAppId(appId);
+
+      return parsed === null ? [] : [parsed];
+    },
+  );
+
   return { top, appIds };
 }
 
@@ -832,6 +901,7 @@ function renderEntries(
 ): ReadonlyArray<RecentAchievement> {
   return top.map((entry) => {
     const schema = schemaByAppId.get(entry.appId)?.get(entry.apiname);
+
     const base = {
       appId: entry.appId,
       gameName: entry.gameName,
@@ -840,6 +910,7 @@ function renderEntries(
       unlocktime: entry.unlocktime,
       globalPercent: entry.globalPercent,
     };
+
     return schema === undefined
       ? (base satisfies RecentAchievement)
       : ({
@@ -855,11 +926,14 @@ function indexEntriesByAppId(
   entries: ReadonlyArray<EarnedEntry>,
 ): ReadonlyMap<number, ReadonlyArray<EarnedEntry>> {
   const index = new Map<number, Array<EarnedEntry>>();
+
   for (const entry of entries) {
     const list = index.get(entry.appId);
+
     if (list === undefined) index.set(entry.appId, [entry]);
     else list.push(entry);
   }
+
   return index;
 }
 
@@ -874,6 +948,7 @@ function enrichEntries(
   options: EnrichmentOptions,
 ): Effect.Effect<ReadonlyArray<RecentAchievement>, never> {
   const { top, appIds } = selectEntries(entries, options);
+
   return Effect.map(resolveSchemas(appIds), (schemaByAppId) =>
     renderEntries(schemaByAppId, top),
   );

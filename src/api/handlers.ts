@@ -13,7 +13,7 @@ import * as PreferencesService from "../services/preferences.ts";
 import * as SessionService from "../services/session.ts";
 import * as TrackedGamesService from "../services/tracked-games.ts";
 import { ApiFailure, RarifyApi, UnauthorizedError } from "./contracts.ts";
-import { makeSessionReader } from "./session-cookie.ts";
+import { createSessionReader } from "./session-cookie.ts";
 
 /**
  * Worker-safe HTTP platform services. Workers have no filesystem, so file
@@ -85,7 +85,7 @@ export const handlersLayer = (services: {
   readonly preferences: PreferencesService.Interface;
   readonly trackedGames: TrackedGamesService.Interface;
 }) => {
-  const { require: requireSession } = makeSessionReader(services.session);
+  const { require: requireSession } = createSessionReader(services.session);
 
   const groups = Layer.mergeAll(
     HttpApiBuilder.group(RarifyApi, "Session", (handlers) =>

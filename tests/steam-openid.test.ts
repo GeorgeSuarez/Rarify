@@ -3,12 +3,14 @@ import * as Effect from "effect/Effect";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Predicate from "effect/Predicate";
 import * as Schema from "effect/Schema";
 import { SteamIdSchema } from "@/lib/types";
 import { layer as steamOpenIdLayer } from "@/src/adapters/steam-openid";
 import * as SteamOpenId from "@/src/services/steam-openid";
 
 const STEAM_ID = "76561198000000001";
+
 const CLAIMED_ID = `https://steamcommunity.com/openid/id/${STEAM_ID}`;
 
 const assertion = {
@@ -36,8 +38,10 @@ const runWithFetch = <A, E>(
 describe("SteamOpenId adapter", () => {
   it("verifies a valid assertion and returns the claimed Steam ID", async () => {
     const calls: Array<{ readonly url: string; readonly body: string }> = [];
+
     const fetchImpl: typeof globalThis.fetch = async (input, init) => {
       calls.push({ url: String(input), body: String(init?.body ?? "") });
+
       return new Response("ns:http://specs.openid.net/auth/2.0\nis_valid:true\n", {
         status: 200,
       });
@@ -47,6 +51,7 @@ describe("SteamOpenId adapter", () => {
       runWithFetch(
         Effect.gen(function* () {
           const service = yield* SteamOpenId.Service;
+
           return yield* service.verify(assertion);
         }),
         fetchImpl,
@@ -68,6 +73,7 @@ describe("SteamOpenId adapter", () => {
       runWithFetch(
         Effect.gen(function* () {
           const service = yield* SteamOpenId.Service;
+
           return yield* service.verify(assertion);
         }),
         fetchImpl,
@@ -75,7 +81,8 @@ describe("SteamOpenId adapter", () => {
     );
 
     expect(result._tag).toBe("Failure");
-    if (result._tag === "Failure") {
+
+    if (Predicate.isTagged("Failure")(result)) {
       expect(result.failure._tag).toBe("SteamOpenIdError");
       expect(result.failure.operation).toBe("verifyAssertion");
     }
@@ -89,6 +96,7 @@ describe("SteamOpenId adapter", () => {
       runWithFetch(
         Effect.gen(function* () {
           const service = yield* SteamOpenId.Service;
+
           return yield* service.verify({ "openid.mode": "id_res" });
         }),
         fetchImpl,
@@ -96,7 +104,8 @@ describe("SteamOpenId adapter", () => {
     );
 
     expect(result._tag).toBe("Failure");
-    if (result._tag === "Failure") {
+
+    if (Predicate.isTagged("Failure")(result)) {
       expect(result.failure.operation).toBe("extractSteamId");
     }
   });
@@ -110,6 +119,7 @@ describe("SteamOpenId adapter", () => {
       runWithFetch(
         Effect.gen(function* () {
           const service = yield* SteamOpenId.Service;
+
           return yield* service.verify(assertion);
         }),
         fetchImpl,
@@ -117,7 +127,8 @@ describe("SteamOpenId adapter", () => {
     );
 
     expect(result._tag).toBe("Failure");
-    if (result._tag === "Failure") {
+
+    if (Predicate.isTagged("Failure")(result)) {
       expect(result.failure._tag).toBe("SteamOpenIdError");
     }
   });

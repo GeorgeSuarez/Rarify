@@ -3,6 +3,7 @@ import * as ConfigProvider from "effect/ConfigProvider";
 import * as Effect from "effect/Effect";
 import * as FetchHttpClient from "effect/http/FetchHttpClient";
 import * as Option from "effect/Option";
+import * as Predicate from "effect/Predicate";
 import * as Schema from "effect/Schema";
 import { SteamIdSchema } from "@/lib/types";
 import { layer as steamWebApiLayer } from "@/src/adapters/steam-web-api";
@@ -64,8 +65,10 @@ const jsonResponse = (body: Schema.Json, status = 200) =>
 describe("Steam Web API adapter", () => {
   it("parses owned games from a successful response", async () => {
     const urls: string[] = [];
+
     const fetchImpl: typeof globalThis.fetch = async (input) => {
       urls.push(String(input));
+
       return jsonResponse(ownedGamesBody);
     };
 
@@ -73,6 +76,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getOwnedGames(STEAM_ID);
         }),
         fetchImpl,
@@ -80,10 +84,12 @@ describe("Steam Web API adapter", () => {
     );
 
     expect(result.ok).toBe(true);
+
     if (result.ok) {
       expect(result.games).toHaveLength(1);
       expect(result.games[0]?.name).toBe("Elden Ring");
     }
+
     expect(urls[0]).toContain("key=test-steam-key");
     expect(urls[0]).toContain("include_played_free_games=true");
   });
@@ -96,6 +102,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getOwnedGames(STEAM_ID);
         }),
         fetchImpl,
@@ -113,6 +120,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getOwnedGames(STEAM_ID);
         }),
         fetchImpl,
@@ -120,6 +128,7 @@ describe("Steam Web API adapter", () => {
     );
 
     expect(result.ok).toBe(false);
+
     if (!result.ok) {
       expect(result.reason).toBe("api_error");
     }
@@ -133,6 +142,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getPlayerAchievements(
             STEAM_ID,
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1245620),
@@ -143,7 +153,11 @@ describe("Steam Web API adapter", () => {
     );
 
     expect(result._tag).toBe("Failure");
-    if (result._tag === "Failure" && result.failure._tag === "SteamApiError") {
+
+    if (
+      Predicate.isTagged("Failure")(result) &&
+      Predicate.isTagged("SteamApiError")(result.failure)
+    ) {
       expect(result.failure.status).toBe(500);
     } else {
       expect.unreachable("expected a SteamApiError");
@@ -158,6 +172,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getPlayerSummaries([STEAM_ID]);
         }),
         fetchImpl,
@@ -180,6 +195,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getPlayerSummaries([STEAM_ID]);
         }),
         fetchImpl,
@@ -191,8 +207,10 @@ describe("Steam Web API adapter", () => {
 
   it("returns an empty summary list without calling Steam", async () => {
     let called = false;
+
     const fetchImpl: typeof globalThis.fetch = async () => {
       called = true;
+
       return jsonResponse(summariesBody);
     };
 
@@ -200,6 +218,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getPlayerSummaries([]);
         }),
         fetchImpl,
@@ -237,6 +256,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getGameAchievementSchema(
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1245620),
           );
@@ -270,6 +290,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getOwnedGames(STEAM_ID);
         }),
         fetchImpl,
@@ -277,6 +298,7 @@ describe("Steam Web API adapter", () => {
     );
 
     expect(result.ok).toBe(true);
+
     if (!result.ok) return;
     const [halfLife, omitted] = result.games;
     expect(halfLife).toMatchObject({
@@ -301,6 +323,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getPlayerAchievements(
             STEAM_ID,
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1245620),
@@ -321,6 +344,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getGlobalAchievementPercentages(
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1245620),
           );
@@ -340,6 +364,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getFriendIds(STEAM_ID);
         }),
         fetchImpl,
@@ -357,6 +382,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getGameAchievementSchema(
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1245620),
           );
@@ -382,6 +408,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getGlobalAchievementPercentages(
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1086940),
           );
@@ -407,6 +434,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getPlayerAchievements(
             STEAM_ID,
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(240),
@@ -428,6 +456,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getGlobalAchievementPercentages(
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1086940),
           );
@@ -437,7 +466,11 @@ describe("Steam Web API adapter", () => {
     );
 
     expect(result._tag).toBe("Failure");
-    if (result._tag === "Failure" && result.failure._tag === "SteamApiError") {
+
+    if (
+      Predicate.isTagged("Failure")(result) &&
+      Predicate.isTagged("SteamApiError")(result.failure)
+    ) {
       expect(result.failure.operation).toBe("getGlobalAchievementPercentages");
       expect("status" in result.failure).toBe(false);
     } else {
@@ -476,6 +509,7 @@ describe("Steam Web API adapter", () => {
       runWithSteam(
         Effect.gen(function* () {
           const steam = yield* SteamClient.Service;
+
           return yield* steam.getGameAchievementSchema(
             Schema.decodeUnknownSync(Schema.Int.pipe(Schema.brand("AppId")))(1091500),
           );
