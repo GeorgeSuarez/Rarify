@@ -43,16 +43,10 @@ export const TrackedGameResponseSchema = Schema.Struct({
   appId: Schema.Number,
 });
 
-/** Response returned after adding or removing a tracked game. */
-export type TrackedGameResponse = typeof TrackedGameResponseSchema.Type;
-
 /** Runtime schema for the public authentication bootstrap response. */
 export const SessionStatusSchema = Schema.Struct({
   authenticated: Schema.Boolean,
 });
-
-/** Whether the browser currently has a valid Rarify session. */
-export type SessionStatus = typeof SessionStatusSchema.Type;
 
 const standardErrors = [
   HttpApiSchema.status(401)(UnauthorizedError),

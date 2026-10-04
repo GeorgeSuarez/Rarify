@@ -39,18 +39,12 @@ export const AchievementPairSchema = Schema.Struct({
   total: Schema.Number,
 });
 
-/** Achievement counts for one game. */
-export type AchievementPair = typeof AchievementPairSchema.Type;
-
 /** Runtime schema for a game's comparison with community completion. */
 export const GameComparisonSchema = Schema.Struct({
   text: Schema.String,
   percent: Schema.Number,
   isPositive: Schema.Boolean,
 });
-
-/** Community-completion comparison presented for a game. */
-export type GameComparison = typeof GameComparisonSchema.Type;
 
 /** Runtime schema for the game data rendered throughout the dashboard. */
 export const GameSchema = Schema.Struct({
@@ -257,9 +251,6 @@ export const SteamPlayerSummarySchema = Schema.Struct({
   profileurl: Schema.String,
 });
 
-/** Parsed player summary received from Steam. */
-export type SteamPlayerSummary = typeof SteamPlayerSummarySchema.Type;
-
 /** Runtime schema for Steam's player-summaries response envelope. */
 export const SteamPlayerSummariesResponseSchema = Schema.Struct({
   response: Schema.Struct({
@@ -277,9 +268,6 @@ export const SteamFriendSchema = Schema.Struct({
   friend_since: Schema.Number,
 });
 
-/** Parsed friend relationship received from Steam. */
-export type SteamFriend = typeof SteamFriendSchema.Type;
-
 /** Runtime schema for Steam's friend-list response envelope. */
 export const SteamFriendListResponseSchema = Schema.Struct({
   friendslist: Schema.optionalKey(
@@ -288,9 +276,6 @@ export const SteamFriendListResponseSchema = Schema.Struct({
     }),
   ),
 });
-
-/** Parsed response envelope from Steam's friend-list endpoint. */
-export type SteamFriendListResponse = typeof SteamFriendListResponseSchema.Type;
 
 /**
  * Runtime schema for a Steam achievement's localized schema details.
@@ -326,6 +311,3 @@ export const SteamSchemaResponseSchema = Schema.Struct({
     }),
   ),
 });
-
-/** Parsed response envelope from Steam's game-achievement schema endpoint. */
-export type SteamSchemaResponse = typeof SteamSchemaResponseSchema.Type;

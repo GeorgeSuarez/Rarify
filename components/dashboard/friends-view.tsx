@@ -1,5 +1,3 @@
-"use client";
-
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

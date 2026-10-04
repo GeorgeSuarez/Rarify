@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo, useTransition } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";

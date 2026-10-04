@@ -1,5 +1,3 @@
-"use client";
-
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
 import { ArrowLeft, Clock, Trophy, Lock, Unlock } from "lucide-react";

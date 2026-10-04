@@ -57,7 +57,6 @@ export function useApi<A, E>(
     };
     // SAFETY: callers pass a fresh `load` closure for each dependency change; the
     // dependency list is the documented contract of this hook.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   return state;

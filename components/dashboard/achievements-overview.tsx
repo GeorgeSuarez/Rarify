@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState } from "react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";

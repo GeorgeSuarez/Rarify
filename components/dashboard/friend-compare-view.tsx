@@ -1,5 +1,3 @@
-"use client";
-
 import { Link } from "@/src/spa/next-compat";
 import { ArrowLeft, AlertTriangle, EyeOff, Trophy } from "lucide-react";
 import { Sidebar } from "@/components/dashboard/sidebar";

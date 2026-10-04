@@ -1,5 +1,3 @@
-"use client";
-
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { StatsCards } from "@/components/dashboard/stats-cards";
