@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Rarify">
+  <!-- Completion ring on the app's dark navy, matching src/styles/globals.css. -->
+  <defs>
+    <linearGradient id="arc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+
+  <rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#030712" stroke="#1e3a8a" />
+
+  <!-- Track: the untouched portion of the ring. -->
+  <circle cx="16" cy="16" r="7.5" fill="none" stroke="#1e40af" stroke-width="4.5" />
+
+  <!-- 270° arc, clockwise from 12 o'clock: a library three-quarters complete. -->
+  <path
+    d="M 16 8.5 A 7.5 7.5 0 1 1 8.5 16"
+    fill="none"
+    stroke="url(#arc)"
+    stroke-width="4.5"
+    stroke-linecap="round"
+  />
+</svg>
