@@ -1,7 +1,5 @@
 import * as Effect from "effect/Effect";
-import { Link, Navigate, useParams, useRouteError } from "react-router";
-import { Button } from "@/components/ui/button";
-import { Gamepad2 } from "lucide-react";
+import { Navigate, useParams } from "react-router";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { GamesView } from "@/components/dashboard/games-view";
@@ -16,10 +14,7 @@ import { AlertTriangle } from "lucide-react";
 import { apiGroups } from "../api.ts";
 import { appIdFromRouteParam, steamIdFromRouteParam } from "../route-params.ts";
 import { useApi } from "../use-api.ts";
-import { LoginPage } from "./login.tsx";
-import { RequireSession } from "./require-session.tsx";
-
-export { LoginPage, RequireSession };
+import { NotFoundPage } from "./route-screens.tsx";
 
 function LoadingScreen() {
   return <DashboardSkeleton />;
@@ -184,46 +179,4 @@ export function SettingsPage() {
   if (preferences.status === "error") return <ApiErrorScreen message={preferences.message} />;
 
   return <SettingsView initialPrefs={preferences.data} />;
-}
-
-/** Unknown route fallback matching the previous Next.js not-found screen. */
-export function NotFoundPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-6 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary">
-        <Gamepad2 className="h-8 w-8 text-primary-foreground" aria-hidden />
-      </div>
-      <div>
-        <h1 className="text-4xl font-bold text-foreground">404</h1>
-        <p className="mt-2 text-lg font-medium text-foreground">Page not found</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          The page you&apos;re looking for doesn&apos;t exist or has moved.
-        </p>
-      </div>
-      <Button render={<Link to="/">Back to Dashboard</Link>} />
-    </main>
-  );
-}
-
-/** Route-level error boundary matching the previous Next.js error screen. */
-export function RouteErrorPage() {
-  const error = useRouteError();
-
-  const message =
-    error instanceof Error ? error.message : "We hit an unexpected error while loading this page.";
-
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6">
-      <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-xl border border-destructive/30 bg-card p-8 text-center shadow-sm">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
-          <AlertTriangle className="h-7 w-7 text-destructive" />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Something went wrong</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{message}</p>
-        </div>
-        <Button onClick={() => window.location.reload()}>Try again</Button>
-      </div>
-    </main>
-  );
 }
