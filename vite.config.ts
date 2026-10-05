@@ -1,12 +1,13 @@
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
+import { robotsTxt } from "./scripts/robots-txt-plugin.ts";
 
 /**
  * Vite build and local-dev configuration for Rarify's React SPA.
  */
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), robotsTxt()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL(".", import.meta.url)),

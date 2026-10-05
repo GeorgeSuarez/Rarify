@@ -38,6 +38,7 @@ Alchemy reads Cloudflare credentials from its own profile store (`alchemy profil
 - `src/domain/` — pure domain modules: `library.ts` (snapshot and per-game achievement cache schemas + TTLs), `dashboard-calculations.ts` (stats, filters, rarity buckets, achievement summaries, game rows), `dashboard.ts` (read-model schemas), `game-images.ts`.
 - Steam enrichment is bounded: each request enriches at most `ENRICH_BATCH_SIZE` games (default 20; two Steam subrequests each) and stores them in the `game_achievements` D1 table for 24 hours. The rest of the library fills in on later loads, which keeps a Worker invocation inside Cloudflare's subrequest budget. The library snapshot TTL is 60 seconds so successive loads continue the fill; raise `ENRICH_BATCH_SIZE` on the Workers Paid plan.
 - `src/database.ts`, `src/website.ts`, `alchemy.run.ts` — D1 resource (migrations in `migrations/`), Vite website resource, and the Stack.
+- `scripts/robots-txt-plugin.ts` — emits the stage's `robots.txt` at build time: production allows crawling and points at the sitemap, while any other `PUBLIC_APP_URL` (the preview stage) disallows everything.
 - `lib/types.ts` — shared Effect schemas and types (domain + Steam API wire shapes).
 - `components/dashboard/`, `components/ui/` — props-driven React views and shadcn/ui primitives.
 - `tests/` — Vitest unit, HTTP API, and service tests with Steam fixtures.
