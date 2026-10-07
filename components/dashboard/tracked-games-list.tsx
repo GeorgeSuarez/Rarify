@@ -26,7 +26,7 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
     <Card className="border-border/50 bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-semibold">Tracked Games</CardTitle>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {tracked.length} game{tracked.length !== 1 ? "s" : ""}
         </span>
       </CardHeader>
@@ -50,32 +50,32 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
                 {index !== 0 && <Separator />}
                 <Link
                   href={`/games/${game.appId}`}
-                  className="block py-3 transition-colors hover:bg-white/[0.02]"
+                  className="block py-3 transition-[background-color] motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/[0.02]"
                 >
                   <div className="flex items-center gap-4 px-4">
-                    <div className="relative h-12 w-20 shrink-0 overflow-hidden rounded-lg">
+                    <div className="relative aspect-[460/215] w-20 shrink-0 overflow-clip rounded-lg bg-muted">
                       <Image
                         src={game.image}
                         alt={game.name}
                         fill
-                        className="object-cover"
+                        className="h-full w-full object-cover"
                         sizes="80px"
                       />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-foreground">{game.name}</p>
-                      <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="size-3" />
+                      <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
+                        <span className="flex items-center gap-[0.35em]">
+                          <Clock className="size-[1cap] shrink-0" aria-hidden />
                           {game.hours}h
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Trophy className="size-3" />
+                        <span className="flex items-center gap-[0.35em]">
+                          <Trophy className="size-[1cap] shrink-0" aria-hidden />
                           {game.achievements.earned}/{game.achievements.total}
                         </span>
                         <span
                           className={cn(
-                            "ml-auto font-semibold",
+                            "ms-auto font-semibold",
                             completionTierOf(game.completion).textClassName,
                           )}
                         >

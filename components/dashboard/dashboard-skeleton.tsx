@@ -4,8 +4,8 @@ function SidebarSkeleton() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col gap-6 border-r border-sidebar-border bg-sidebar px-4 py-6 lg:flex">
       <div className="flex items-center gap-3 px-2">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <div className="space-y-2">
+        <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
           <Skeleton className="h-4 w-28" />
           <Skeleton className="h-3 w-16" />
         </div>
@@ -24,12 +24,12 @@ function SidebarSkeleton() {
 
 function StatsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="rounded-xl border border-border/50 bg-card p-5">
           <div className="flex items-center gap-4">
-            <Skeleton className="h-12 w-12 rounded-xl" />
-            <div className="flex-1 space-y-2">
+            <Skeleton className="h-12 w-12 shrink-0 rounded-lg" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
               <Skeleton className="h-3 w-24" />
               <Skeleton className="h-6 w-16" />
               <Skeleton className="h-3 w-20" />
@@ -43,26 +43,26 @@ function StatsSkeleton() {
 
 function ChartsSkeleton() {
   return (
-    <div className="mt-6 grid grid-cols-12 gap-6">
-      <div className="col-span-12 rounded-xl border border-border/50 bg-card p-6 lg:col-span-7">
-        <div className="mb-4 flex items-center justify-between">
+    <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] gap-6">
+      <div className="rounded-xl border border-border/50 bg-card p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <Skeleton className="h-5 w-56" />
           <Skeleton className="h-8 w-36 rounded-lg" />
         </div>
-        <Skeleton className="h-[260px] w-full rounded-lg" />
+        <Skeleton className="aspect-[16/10] w-full rounded-lg" />
       </div>
-      <div className="col-span-12 grid grid-cols-1 gap-6 lg:col-span-5">
+      <div className="grid grid-cols-1 gap-6">
         <div className="rounded-xl border border-border/50 bg-card p-6">
           <Skeleton className="mb-4 h-5 w-44" />
-          <Skeleton className="mx-auto h-[220px] max-w-[220px] rounded-full" />
+          <Skeleton className="mx-auto aspect-square w-full max-w-[220px] rounded-full" />
         </div>
         <div className="rounded-xl border border-border/50 bg-card p-6">
           <Skeleton className="mb-4 h-5 w-40" />
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3">
-                <Skeleton className="h-9 w-9 rounded-full" />
-                <div className="flex-1 space-y-2">
+                <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <Skeleton className="h-3 w-32" />
                   <Skeleton className="h-2 w-full" />
                 </div>
@@ -78,21 +78,21 @@ function ChartsSkeleton() {
 function TopGamesSkeleton() {
   return (
     <div className="mt-6 rounded-xl border border-border/50 bg-card p-6">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Skeleton className="h-5 w-28" />
         <Skeleton className="h-4 w-32" />
       </div>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4">
-            <Skeleton className="h-14 w-24 rounded-lg" />
-            <div className="flex-1 space-y-2">
+            <Skeleton className="aspect-[460/215] w-24 shrink-0 rounded-lg" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-3 w-24" />
             </div>
-            <Skeleton className="h-2 w-32" />
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-40" />
+            <Skeleton className="hidden h-2 w-32 @2xl:block" />
+            <Skeleton className="hidden h-4 w-24 @2xl:block" />
+            <Skeleton className="hidden h-4 w-40 @2xl:block" />
           </div>
         ))}
       </div>
@@ -116,8 +116,8 @@ export function DashboardSkeleton() {
       <SidebarSkeleton />
       <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
-          <div className="flex flex-col justify-between gap-4 pb-6 sm:flex-row sm:items-start">
-            <div className="space-y-2">
+          <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
+            <div className="flex min-w-0 flex-col gap-2">
               <Skeleton className="h-7 w-40" />
               <Skeleton className="h-4 w-72" />
             </div>

@@ -72,7 +72,10 @@ function CompletionRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className={cn("transition-all duration-500 ease-out", tier.textClassName)}
+          className={cn(
+            "transition-[stroke-dashoffset] duration-500 ease-out motion-reduce:transition-none",
+            tier.textClassName,
+          )}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
@@ -113,20 +116,24 @@ function GameCard({ game: initialGame }: { game: Game }) {
   }
 
   return (
-    <div className="group relative block overflow-hidden rounded-xl border border-border/50 bg-card transition-colors hover:border-border">
-      <Link href={`/games/${initialGame.appId}`} className="block">
-        <div className="relative aspect-[460/215] w-full overflow-hidden">
+    <div className="group relative block overflow-clip rounded-xl border border-border/50 bg-card transition-[border-color] duration-200 motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:border-border">
+      <Link
+        href={`/games/${initialGame.appId}`}
+        className="block after:absolute after:inset-0 after:content-['']"
+        aria-label={initialGame.name}
+      >
+        <span className="relative block aspect-[460/215] w-full overflow-clip bg-muted" aria-hidden>
           <Image
             src={initialGame.image}
-            alt={initialGame.name}
+            alt=""
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover transition-[transform] duration-300 motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
-        </div>
+          <span className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
+        </span>
       </Link>
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 end-2 z-[1]">
         <Button
           variant="ghost"
           size="icon"
@@ -134,7 +141,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
           disabled={isPending}
           aria-label={tracked ? `Untrack ${initialGame.name}` : `Track ${initialGame.name}`}
           aria-pressed={tracked}
-          className="size-8 rounded-full bg-background/60 backdrop-blur-sm hover:bg-background/80"
+          className="relative size-8 touch-manipulation rounded-full bg-background/60 backdrop-blur-sm transition-[transform,background-color] select-none motion-reduce:transition-none after:absolute after:inset-[min(0px,(100%-44px)/2)] after:content-[''] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-background/80 active:scale-[0.97]"
         >
           {tracked ? (
             <BookmarkCheck data-icon="inline-end" className="fill-primary text-primary" />
@@ -143,18 +150,18 @@ function GameCard({ game: initialGame }: { game: Game }) {
           )}
         </Button>
       </div>
-      <Link href={`/games/${initialGame.appId}`} className="block p-4">
+      <div className="block p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-sm font-semibold text-foreground">{initialGame.name}</h3>
-            <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Clock className="size-3" />
+            <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
+              <span className="flex items-center gap-[0.35em]">
+                <Clock className="size-[1cap] shrink-0" aria-hidden />
                 {initialGame.hours}h
               </span>
               {initialGame.achievements.total > 0 && (
-                <span className="flex items-center gap-1">
-                  <Trophy className="size-3" />
+                <span className="flex items-center gap-[0.35em]">
+                  <Trophy className="size-[1cap] shrink-0" aria-hidden />
                   {initialGame.achievements.earned}/{initialGame.achievements.total}
                 </span>
               )}
@@ -171,7 +178,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
             />
           </div>
         )}
-      </Link>
+      </div>
     </div>
   );
 }
@@ -227,22 +234,24 @@ export function GamesView({
           {/* Mobile top bar */}
           <div className="-mx-4 mb-4 flex items-center gap-3 lg:hidden">
             <MobileSidebar user={user} activeHref="/games" />
-            <h2 className="text-xl font-bold text-foreground">Games</h2>
+            <h2 className="truncate text-xl font-bold text-foreground">{`Games`}</h2>
           </div>
 
           {/* Header */}
-          <div className="pb-6">
-            <h2 className="hidden text-2xl font-bold text-foreground lg:block" aria-hidden>
-              Your Library
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {games.length} game{games.length !== 1 ? "s" : ""} in your Steam library
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
+            <div className="min-w-0">
+              <h2 className="hidden text-2xl font-bold text-foreground lg:block" aria-hidden>
+                Your Library
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                {games.length} game{games.length !== 1 ? "s" : ""} in your Steam library
+              </p>
+            </div>
           </div>
 
           {/* Controls */}
-          <div className="flex flex-col gap-3 pb-6 sm:flex-row sm:items-center">
-            <InputGroup className="flex-1 bg-card">
+          <div className="flex flex-wrap items-center gap-3 pb-6">
+            <InputGroup className="min-w-[min(100%,16rem)] flex-1 bg-card">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -252,7 +261,7 @@ export function GamesView({
                 onChange={(e) => setSearch(e.target.value)}
               />
             </InputGroup>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Select value={filter} onValueChange={(v) => v && setFilter(v)}>
                 <SelectTrigger className="h-9 w-36 border-border/50 bg-card text-xs">
                   <SelectValue placeholder="All Games" />
@@ -306,7 +315,7 @@ export function GamesView({
               </EmptyHeader>
             </Empty>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,18rem),1fr))] gap-4">
               {filteredGames.map((game) => (
                 <GameCard key={game.appId} game={game} />
               ))}
