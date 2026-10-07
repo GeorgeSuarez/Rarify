@@ -32,23 +32,23 @@ function GameHeader({ game, priority }: { game: Game; priority?: boolean }) {
   return (
     <Link
       href={`/games/${game.appId}`}
-      className="flex items-center gap-4 transition-opacity hover:opacity-80"
+      className="flex min-w-0 flex-1 items-center gap-4 [@media(hover:hover)_and_(pointer:fine)]:hover:opacity-80"
     >
-      <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-lg">
+      <div className="relative aspect-[460/215] w-24 shrink-0 overflow-clip rounded-lg bg-muted">
         <Image
           src={game.image}
           alt={game.name}
           fill
           priority={priority}
           fetchPriority={priority ? "high" : undefined}
-          className="object-cover"
+          className="h-full w-full object-cover"
           sizes="(max-width: 1024px) 96px, 96px"
         />
       </div>
-      <div>
-        <p className="font-semibold text-foreground">{game.name}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-          <Clock className="size-3" /> {game.hours} hrs
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-semibold text-foreground">{game.name}</p>
+        <p className="mt-0.5 flex items-center gap-[0.5em] text-xs text-muted-foreground tabular-nums">
+          <Clock className="size-[1cap] shrink-0" aria-hidden /> {game.hours} hrs
         </p>
       </div>
     </Link>
@@ -60,7 +60,9 @@ function CompletionBar({ game }: { game: Game }) {
 
   return (
     <div className="flex w-32 flex-col gap-1">
-      <span className={cn("font-semibold", tier.textClassName)}>{game.completion}%</span>
+      <span className={cn("font-semibold tabular-nums", tier.textClassName)}>
+        {game.completion}%
+      </span>
       <Progress
         value={game.completion}
         indicatorClassName={tier.barClassName}
@@ -72,8 +74,8 @@ function CompletionBar({ game }: { game: Game }) {
 
 function AchievementCount({ game }: { game: Game }) {
   return (
-    <div className="flex items-center gap-2 text-foreground">
-      <Trophy className="size-4 text-muted-foreground" />
+    <div className="flex items-center gap-[0.5em] text-foreground tabular-nums">
+      <Trophy className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
       <span className="font-semibold">{game.achievements.earned}</span>
       <span className="text-muted-foreground">/ {game.achievements.total}</span>
     </div>
@@ -82,11 +84,11 @@ function AchievementCount({ game }: { game: Game }) {
 
 function Comparison({ game }: { game: Game }) {
   return (
-    <p className="flex items-center gap-1.5 text-foreground">
+    <p className="flex items-center gap-[0.35em] text-foreground tabular-nums">
       {game.comparison.isPositive ? (
-        <ArrowUp className="size-4 text-green-400" aria-hidden />
+        <ArrowUp className="size-[1cap] shrink-0 text-green-400" aria-hidden />
       ) : (
-        <ArrowDown className="size-4 text-red-400" aria-hidden />
+        <ArrowDown className="size-[1cap] shrink-0 text-red-400" aria-hidden />
       )}
       <span>
         {game.comparison.text}{" "}
@@ -147,13 +149,18 @@ function TrackButton({
       disabled={isPending}
       aria-label={tracked ? `Untrack ${game.name}` : `Track ${game.name}`}
       aria-pressed={tracked}
-      className={
+      className={cn(
+        "relative min-w-[92px] touch-manipulation transition-[transform,color] select-none motion-reduce:transition-none after:absolute after:inset-[min(0px,(100%-44px)/2)] after:content-[''] active:scale-[0.97]",
         tracked
-          ? "min-w-[92px] text-primary"
-          : "min-w-[92px] text-muted-foreground hover:text-foreground"
-      }
+          ? "text-primary"
+          : "text-muted-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:text-foreground",
+      )}
     >
-      {tracked ? <BookmarkCheck data-icon="inline-start" /> : <Bookmark data-icon="inline-start" />}
+      {tracked ? (
+        <BookmarkCheck data-icon="inline-start" className="shrink-0" />
+      ) : (
+        <Bookmark data-icon="inline-start" className="shrink-0" />
+      )}
       {tracked ? "Tracked" : "Track"}
     </Button>
   );
@@ -169,7 +176,10 @@ function TopGameTableRow({
   priority?: boolean;
 }) {
   return (
-    <TableRow key={game.appId} className="hover:bg-white/[0.02]">
+    <TableRow
+      key={game.appId}
+      className="relative [@media(hover:hover)_and_(pointer:fine)]:hover:bg-white/[0.02]"
+    >
       <TableCell className="py-4">
         <GameHeader game={game} priority={priority} />
       </TableCell>
@@ -226,7 +236,7 @@ export function TopGames({
   const topGames = [...games].sort((a, b) => b.hours - a.hours).slice(0, TOP_GAMES_LIMIT);
 
   return (
-    <Card className="border-border/50 bg-card">
+    <Card className="@container border-border/50 bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-semibold">Top Games</CardTitle>
       </CardHeader>
@@ -243,7 +253,7 @@ export function TopGames({
           </Empty>
         ) : (
           <>
-            <div className="hidden lg:block">
+            <div className="hidden @2xl:block">
               <Table>
                 <TableCaption className="sr-only">
                   Top games by playtime with completion, achievements, and community comparison
@@ -269,7 +279,7 @@ export function TopGames({
                 </TableBody>
               </Table>
             </div>
-            <div className="lg:hidden">
+            <div className="@2xl:hidden">
               {topGames.map((game, index) => (
                 <TopGameCard
                   key={game.appId}

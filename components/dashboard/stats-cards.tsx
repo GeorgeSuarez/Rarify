@@ -19,7 +19,7 @@ function CircularProgress({
   const offset = circumference - (value / 100) * circumference;
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
+    <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg
         width={size}
         height={size}
@@ -46,11 +46,14 @@ function CircularProgress({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className={cn("transition-all duration-1000 ease-out", tier.textClassName)}
+          className={cn(
+            "transition-[stroke-dashoffset] duration-1000 ease-out motion-reduce:transition-none",
+            tier.textClassName,
+          )}
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-sm font-semibold">{value}%</span>
+        <span className="text-sm font-semibold tabular-nums">{value}%</span>
       </div>
     </div>
   );
@@ -68,15 +71,15 @@ function StatCard({ icon, iconBg, label, value, subtext }: StatCardProps) {
   return (
     <Card className="border-border/50 bg-card">
       <CardContent className="flex items-center gap-4 p-5">
-        <div className={cn("flex size-12 shrink-0 items-center justify-center rounded-xl", iconBg)}>
+        <div className={cn("flex size-12 shrink-0 items-center justify-center rounded-lg", iconBg)}>
           {icon}
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {label}
           </p>
-          <p className="mt-1 text-2xl font-bold text-foreground">{value}</p>
-          <div className="mt-1 text-xs">{subtext}</div>
+          <p className="text-2xl font-bold text-foreground tabular-nums">{value}</p>
+          <div className="mt-auto pt-1 text-xs">{subtext}</div>
         </div>
       </CardContent>
     </Card>
@@ -87,9 +90,9 @@ export function StatsCards({ stats }: { stats: Stats }) {
   const completionValue = Math.round(stats.avgCompletion) || 0;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,16rem),1fr))] gap-4">
       <StatCard
-        icon={<Trophy className="size-6 text-blue-400" />}
+        icon={<Trophy className="size-6 shrink-0 text-blue-400" />}
         iconBg="bg-blue-500/10"
         label="Achievements Earned"
         value={(stats.achievementsEarned || 0).toLocaleString()}
@@ -97,14 +100,14 @@ export function StatsCards({ stats }: { stats: Stats }) {
           stats.achievementsEarnedDelta != null ? (
             <span
               className={cn(
-                "flex items-center gap-1",
+                "flex items-center gap-[0.35em] tabular-nums",
                 stats.achievementsEarnedDelta >= 0 ? "text-green-400" : "text-red-400",
               )}
             >
               {stats.achievementsEarnedDelta >= 0 ? (
-                <TrendingUp className="size-3" />
+                <TrendingUp className="size-[1cap] shrink-0" aria-hidden />
               ) : (
-                <TrendingDown className="size-3" />
+                <TrendingDown className="size-[1cap] shrink-0" aria-hidden />
               )}
               {Math.abs(stats.achievementsEarnedDelta)} this month
             </span>
@@ -117,27 +120,29 @@ export function StatsCards({ stats }: { stats: Stats }) {
       <Card className="border-border/50 bg-card">
         <CardContent className="flex items-center gap-4 p-5">
           <CircularProgress value={completionValue} />
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <p className="truncate text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Avg Completion
             </p>
-            <p className="mt-1 text-2xl font-bold text-foreground">{stats.avgCompletion || 0}%</p>
+            <p className="text-2xl font-bold text-foreground tabular-nums">
+              {stats.avgCompletion || 0}%
+            </p>
             {stats.avgCompletionDelta != null ? (
               <span
                 className={cn(
-                  "mt-1 flex items-center gap-1 text-xs",
+                  "mt-auto flex items-center gap-[0.35em] pt-1 text-xs tabular-nums",
                   stats.avgCompletionDelta >= 0 ? "text-green-400" : "text-red-400",
                 )}
               >
                 {stats.avgCompletionDelta >= 0 ? (
-                  <TrendingUp className="size-3" />
+                  <TrendingUp className="size-[1cap] shrink-0" aria-hidden />
                 ) : (
-                  <TrendingDown className="size-3" />
+                  <TrendingDown className="size-[1cap] shrink-0" aria-hidden />
                 )}
                 {Math.abs(stats.avgCompletionDelta)}% vs last month
               </span>
             ) : (
-              <span className="mt-1 block text-xs text-muted-foreground">
+              <span className="mt-auto block pt-1 text-xs text-muted-foreground">
                 Across all tracked games
               </span>
             )}
@@ -146,13 +151,13 @@ export function StatsCards({ stats }: { stats: Stats }) {
       </Card>
 
       <StatCard
-        icon={<Users className="size-6 text-amber-400" />}
+        icon={<Users className="size-6 shrink-0 text-amber-400" />}
         iconBg="bg-amber-500/10"
         label="Games Owned"
         value={String(stats.gamesOwned || 0)}
         subtext={
           stats.gamesOwnedDelta != null ? (
-            <span className="text-muted-foreground">
+            <span className="text-muted-foreground tabular-nums">
               <span className={cn(stats.gamesOwnedDelta >= 0 ? "text-green-400" : "text-red-400")}>
                 {stats.gamesOwnedDelta >= 0 ? "+" : ""}
                 {stats.gamesOwnedDelta}
@@ -166,11 +171,15 @@ export function StatsCards({ stats }: { stats: Stats }) {
       />
 
       <StatCard
-        icon={<Gamepad2 className="size-6 text-green-400" />}
+        icon={<Gamepad2 className="size-6 shrink-0 text-green-400" />}
         iconBg="bg-green-500/10"
         label="Games Tracked"
         value={String(stats.gamesTracked || 0)}
-        subtext={<span className="text-green-400">{stats.perfectGames || 0} perfect games</span>}
+        subtext={
+          <span className="text-green-400 tabular-nums">
+            {stats.perfectGames || 0} perfect games
+          </span>
+        }
       />
     </div>
   );

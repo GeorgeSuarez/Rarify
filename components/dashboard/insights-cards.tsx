@@ -41,41 +41,47 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <Clock className="size-4 text-muted-foreground" />
+        <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
+          <Clock className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Playtime Overview
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">{totalHours.toLocaleString()}</span>
+          <span className="text-3xl font-bold text-foreground tabular-nums">
+            {totalHours.toLocaleString()}
+          </span>
           <span className="text-sm text-muted-foreground">total hours</span>
         </div>
-        <div className="mb-4 grid grid-cols-2 gap-3">
+        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-3">
           <div className="rounded-lg bg-muted/30 p-3">
             <p className="text-xs text-muted-foreground">Backlog</p>
-            <p className="text-xl font-bold text-foreground">{backlog}</p>
+            <p className="text-xl font-bold text-foreground tabular-nums">{backlog}</p>
             <p className="text-[10px] text-muted-foreground">unplayed games</p>
           </div>
           <div className="rounded-lg bg-muted/30 p-3">
             <p className="text-xs text-muted-foreground">Avg / game</p>
-            <p className="text-xl font-bold text-foreground">
+            <p className="text-xl font-bold text-foreground tabular-nums">
               {data.games.length > 0 ? Math.round(totalHours / data.games.length) : 0}
             </p>
             <p className="text-[10px] text-muted-foreground">hours per game</p>
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Playtime Distribution
           </p>
           {bands.map((b) => (
             <div key={b.label} className="flex items-center gap-3">
-              <span className="w-14 text-right text-xs text-muted-foreground">{b.label}</span>
-              <div className="flex-1">
+              <span className="w-14 shrink-0 text-end text-xs text-muted-foreground tabular-nums">
+                {b.label}
+              </span>
+              <div className="min-w-0 flex-1">
                 <MiniBar value={b.count} max={maxBand} color="var(--primary)" />
               </div>
-              <span className="w-8 text-right text-xs font-medium text-foreground">{b.count}</span>
+              <span className="w-8 shrink-0 text-end text-xs font-medium text-foreground tabular-nums">
+                {b.count}
+              </span>
             </div>
           ))}
         </div>
@@ -87,7 +93,7 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
 function RaritySection({ data }: { data: DashboardData }) {
   const { tiers, totalEarned } = useMemo(() => {
     const tiers = data.rarityDistribution;
-    const totalEarned = tiers.reduce((s, t) => s + t.count, 0);
+    const totalEarned = tiers.reduce((s, t) => t.count, 0);
 
     return { tiers, totalEarned };
   }, [data.rarityDistribution]);
@@ -97,24 +103,28 @@ function RaritySection({ data }: { data: DashboardData }) {
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <Trophy className="size-4 text-muted-foreground" />
+        <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
+          <Trophy className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Rarity Distribution
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">{totalEarned.toLocaleString()}</span>
+          <span className="text-3xl font-bold text-foreground tabular-nums">
+            {totalEarned.toLocaleString()}
+          </span>
           <span className="text-sm text-muted-foreground">achievements</span>
         </div>
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {tiers.map((tier) => (
             <div key={tier.tier}>
-              <div className="mb-1 flex items-center justify-between text-sm">
-                <span style={{ color: tier.color }}>{tier.tier}</span>
-                <span className="text-foreground">
+              <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate" style={{ color: tier.color }}>
+                  {tier.tier}
+                </span>
+                <span className="shrink-0 text-foreground tabular-nums">
                   {tier.count}
-                  <span className="ml-1 text-xs text-muted-foreground">
+                  <span className="ms-1 text-xs text-muted-foreground">
                     ({totalEarned > 0 ? Math.round((tier.count / totalEarned) * 100) : 0}
                     %)
                   </span>
@@ -155,24 +165,30 @@ function CompletionSection({ data }: { data: DashboardData }) {
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <Gamepad2 className="size-4 text-muted-foreground" />
+        <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
+          <Gamepad2 className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Completion Overview
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">{data.stats.avgCompletion}%</span>
+          <span className="text-3xl font-bold text-foreground tabular-nums">
+            {data.stats.avgCompletion}%
+          </span>
           <span className="text-sm text-muted-foreground">average completion</span>
         </div>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {bands.map((b) => (
             <div key={b.label} className="flex items-center gap-3">
-              <span className="w-14 text-right text-xs text-muted-foreground">{b.label}</span>
-              <div className="flex-1">
+              <span className="w-14 shrink-0 text-end text-xs text-muted-foreground tabular-nums">
+                {b.label}
+              </span>
+              <div className="min-w-0 flex-1">
                 <MiniBar value={b.count} max={maxBand} color={completionTierOf(b.min).color} />
               </div>
-              <span className="w-8 text-right text-xs font-medium text-foreground">{b.count}</span>
+              <span className="w-8 shrink-0 text-end text-xs font-medium text-foreground tabular-nums">
+                {b.count}
+              </span>
             </div>
           ))}
         </div>
@@ -212,22 +228,24 @@ function VelocitySection({ data }: { data: DashboardData }) {
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <TrendingUp className="size-4 text-muted-foreground" />
+        <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
+          <TrendingUp className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Unlock Velocity
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="mb-4 flex items-baseline gap-2">
-          <span className="text-3xl font-bold text-foreground">{weeklyTotal}</span>
+          <span className="text-3xl font-bold text-foreground tabular-nums">{weeklyTotal}</span>
           <span className="text-sm text-muted-foreground">last 12 weeks</span>
         </div>
-        <div className="flex items-end gap-1" style={{ height: 100 }}>
+        <div className="flex items-end gap-1 overflow-clip" style={{ height: 100 }}>
           {weeklyData.map((w) => (
-            <div key={w.label} className="flex flex-1 flex-col items-center">
-              <span className="mb-1 text-[10px] font-medium text-foreground">{w.count}</span>
+            <div key={w.label} className="flex min-w-0 flex-1 flex-col items-center">
+              <span className="mb-1 text-[10px] font-medium text-foreground tabular-nums">
+                {w.count}
+              </span>
               <div
-                className="w-full rounded-t bg-primary transition-all"
+                className="w-full rounded-t bg-primary transition-[height,opacity] motion-reduce:transition-none"
                 style={{
                   height: `${(w.count / maxCount) * 70}px`,
                   opacity: Math.max(0.3, w.count / maxCount),
@@ -246,7 +264,7 @@ function VelocitySection({ data }: { data: DashboardData }) {
 
 export function InsightsCards({ data }: { data: DashboardData }) {
   return (
-    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] gap-6">
       <PlaytimeSection data={data} />
       <RaritySection data={data} />
       <CompletionSection data={data} />

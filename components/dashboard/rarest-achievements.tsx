@@ -57,39 +57,42 @@ export function RarestAchievements({
           <ul className="flex flex-col">
             {achievements.map((ach, i) => (
               <li key={`${ach.appId}-${ach.name}-${i}`} className="flex items-center gap-4 py-3">
-                <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                <div className="relative aspect-square size-10 shrink-0 overflow-clip rounded-lg bg-muted outline-1 outline-offset-[-1px] outline-foreground/10">
                   {ach.icon ? (
                     <Image
                       src={ach.icon}
                       alt={ach.name}
                       fill
-                      className="object-cover"
+                      className="h-full w-full object-cover"
                       sizes="40px"
                     />
                   ) : (
                     <div className="flex size-full items-center justify-center">
-                      <Trophy className="size-5 text-muted-foreground" />
+                      <Trophy className="size-5 shrink-0 text-muted-foreground" aria-hidden />
                     </div>
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <p className="truncate font-semibold text-foreground">{ach.name}</p>
                   <p className="truncate text-xs text-muted-foreground">{ach.gameName}</p>
                   {ach.description && (
-                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground/70">
+                    <p className="line-clamp-1 text-xs text-muted-foreground/70">
                       {ach.description}
                     </p>
                   )}
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+                <div className="flex shrink-0 flex-col items-end gap-1 text-end">
                   {ach.globalPercent != null && (
-                    <Badge variant="secondary" className="bg-amber-500/10 text-amber-400">
+                    <Badge
+                      variant="secondary"
+                      className="bg-amber-500/10 text-amber-400 tabular-nums"
+                    >
                       {ach.globalPercent.toFixed(1)}% rare
                     </Badge>
                   )}
                   {ach.unlocktime > 0 && (
                     <Tooltip>
-                      <TooltipTrigger className="text-[10px] text-muted-foreground/60">
+                      <TooltipTrigger className="text-[10px] text-muted-foreground/60 tabular-nums">
                         {timeAgo(ach.unlocktime)}
                       </TooltipTrigger>
                       <TooltipContent>
