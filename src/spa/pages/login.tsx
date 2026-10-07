@@ -1,5 +1,5 @@
 import { Navigate, useSearchParams } from "react-router";
-import { Lock, Star, Target, Trophy, Zap, Flame } from "lucide-react";
+import { Lock, Star, Target, Trophy, Zap, Flame, Gamepad2 } from "lucide-react";
 import { Image } from "../next-compat.tsx";
 import { SignInButton } from "@/components/dashboard/sign-in-button";
 import { useApi } from "../use-api.ts";
@@ -59,6 +59,12 @@ export function LoginPage() {
 
       {/* hero */}
       <section className="relative z-10 flex w-full flex-1 flex-col items-center px-6 pb-[var(--space-section)] pt-[var(--space-section)]">
+        <div className="mb-8 flex items-center gap-[0.6em]">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary">
+            <Gamepad2 className="size-5 shrink-0 text-primary-foreground" aria-hidden />
+          </div>
+          <span className="text-xl font-bold tracking-tight text-foreground">Rarify</span>
+        </div>
         <h1 className="max-w-3xl text-center text-[length:var(--text-hero)] font-extrabold leading-[0.95] tracking-[-0.03em] text-balance">
           Your trophies
           <br />
