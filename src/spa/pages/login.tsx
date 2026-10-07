@@ -59,7 +59,7 @@ export function LoginPage() {
 
       {/* hero */}
       <section className="relative z-10 flex w-full flex-1 flex-col items-center px-6 pb-[var(--space-section)] pt-[var(--space-section)]">
-        <h1 className="max-w-3xl text-center text-[var(--text-hero)] font-extrabold leading-[0.95] tracking-[-0.03em] text-balance">
+        <h1 className="max-w-3xl text-center text-[length:var(--text-hero)] font-extrabold leading-[0.95] tracking-[-0.03em] text-balance">
           Your trophies
           <br />
           <span className="bg-linear-to-r from-chart-1 via-chart-4 to-chart-3 bg-clip-text text-transparent">
@@ -96,7 +96,7 @@ export function LoginPage() {
 
         {/* floating card stack — real Steam header art */}
         <div className="relative mt-10 flex w-full max-w-185 justify-center [justify-content:safe_center]">
-          <div className="absolute top-1/2 h-80 w-130 -translate-y-1/2 place-self-center rounded-[40px] bg-primary/15 blur-[50px]" />
+          <div className="absolute top-1/2 left-1/2 h-80 w-130 -translate-x-1/2 -translate-y-1/2 rounded-[40px] bg-primary/15 blur-[50px]" />
           <div className="relative flex w-full max-w-160 items-end justify-center gap-3 [justify-content:safe_center]">
             {/* left card — BG3 */}
             <div className="hidden w-44 shrink-0 translate-y-3 rotate-[-4deg] flex-col overflow-clip rounded-2xl border border-foreground/10 bg-card/70 backdrop-blur-xl sm:flex">
