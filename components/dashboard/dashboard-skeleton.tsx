@@ -111,7 +111,7 @@ export function DashboardSkeleton() {
   return (
     <div className="flex min-h-screen w-full">
       <SidebarSkeleton />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+      <main className="flex-1 overflow-auto overscroll-contain bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
             <div className="flex min-w-0 flex-col gap-2">

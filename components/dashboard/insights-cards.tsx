@@ -46,14 +46,14 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
           Playtime Overview
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="mb-4 flex items-baseline gap-2">
+      <CardContent className="flex flex-col gap-4 pt-0">
+        <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">
             {totalHours.toLocaleString()}
           </span>
           <span className="text-sm text-muted-foreground">total hours</span>
         </div>
-        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-3">
           <div className="rounded-lg bg-muted/30 p-3">
             <p className="text-xs text-muted-foreground">Backlog</p>
             <p className="text-xl font-bold text-foreground tabular-nums">{backlog}</p>
@@ -108,8 +108,8 @@ function RaritySection({ data }: { data: DashboardData }) {
           Rarity Distribution
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="mb-4 flex items-baseline gap-2">
+      <CardContent className="flex flex-col gap-4 pt-0">
+        <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">
             {totalEarned.toLocaleString()}
           </span>
@@ -117,8 +117,8 @@ function RaritySection({ data }: { data: DashboardData }) {
         </div>
         <div className="flex flex-col gap-3">
           {tiers.map((tier) => (
-            <div key={tier.tier}>
-              <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+            <div key={tier.tier} className="flex flex-col gap-1">
+              <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="min-w-0 truncate" style={{ color: tier.color }}>
                   {tier.tier}
                 </span>
@@ -170,8 +170,8 @@ function CompletionSection({ data }: { data: DashboardData }) {
           Completion Overview
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="mb-4 flex items-baseline gap-2">
+      <CardContent className="flex flex-col gap-4 pt-0">
+        <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">
             {data.stats.avgCompletion}%
           </span>
@@ -233,15 +233,15 @@ function VelocitySection({ data }: { data: DashboardData }) {
           Unlock Velocity
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="mb-4 flex items-baseline gap-2">
+      <CardContent className="flex flex-col gap-4 pt-0">
+        <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">{weeklyTotal}</span>
           <span className="text-sm text-muted-foreground">last 12 weeks</span>
         </div>
         <div className="flex items-end gap-1 overflow-clip" style={{ height: 100 }}>
           {weeklyData.map((w) => (
-            <div key={w.label} className="flex min-w-0 flex-1 flex-col items-center">
-              <span className="mb-1 text-[10px] font-medium text-foreground tabular-nums">
+            <div key={w.label} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+              <span className="text-[10px] font-medium text-foreground tabular-nums">
                 {w.count}
               </span>
               <div
@@ -251,9 +251,7 @@ function VelocitySection({ data }: { data: DashboardData }) {
                   opacity: Math.max(0.3, w.count / maxCount),
                 }}
               />
-              <span className="mt-1 text-[9px] text-muted-foreground">
-                {w.label.replace("w", "")}
-              </span>
+              <span className="text-[9px] text-muted-foreground">{w.label.replace("w", "")}</span>
             </div>
           ))}
         </div>
