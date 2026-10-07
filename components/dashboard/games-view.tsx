@@ -229,7 +229,7 @@ export function GamesView({
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar user={user} activeHref="/games" />
-      <main className="flex-1 overflow-auto overscroll-contain bg-background p-4 lg:p-8">
+      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           {/* Mobile top bar */}
           <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">

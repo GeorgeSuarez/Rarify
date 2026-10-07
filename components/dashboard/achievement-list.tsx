@@ -120,7 +120,7 @@ export function AchievementList({ data }: { data: GameAchievements }) {
 
   return (
     <div className="flex min-h-screen w-full">
-      <main className="flex-1 overflow-auto overscroll-contain bg-background p-4 lg:p-8">
+      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-4xl">
           {/* Back link */}
           <Link
