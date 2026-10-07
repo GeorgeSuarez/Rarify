@@ -51,16 +51,11 @@ export function SidebarContent({
 }) {
   return (
     <div className="flex flex-col px-4 py-6">
-      <div className="flex items-center gap-3 px-2">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary">
-          <Gamepad2 className="size-5 shrink-0 text-primary-foreground" aria-hidden />
-        </div>
-        <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold leading-tight text-foreground">Rarify</h1>
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Dashboard
-          </p>
-        </div>
+      <div className="px-2">
+        <h1 className="truncate text-lg font-semibold leading-tight text-foreground">Rarify</h1>
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Dashboard
+        </p>
       </div>
 
       <nav aria-label="Primary" className="mt-8 flex flex-col gap-1">

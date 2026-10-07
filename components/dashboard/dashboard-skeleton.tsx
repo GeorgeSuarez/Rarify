@@ -3,12 +3,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 function SidebarSkeleton() {
   return (
     <aside className="hidden w-64 shrink-0 flex-col gap-6 border-r border-sidebar-border bg-sidebar px-4 py-6 lg:flex">
-      <div className="flex items-center gap-3 px-2">
-        <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className="h-3 w-16" />
-        </div>
+      <div className="flex flex-col gap-2 px-2">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-3 w-20" />
       </div>
       <nav className="mt-2 flex flex-col gap-1">
         {Array.from({ length: 7 }).map((_, i) => (
