@@ -84,7 +84,7 @@ export function LoginPage() {
             <div className="rounded-[calc(var(--radius)_+_0.375rem)] bg-primary-foreground p-1.5 shadow-[0_12px_40px_color-mix(in_oklch,black_40%,transparent)]">
               <SignInButton />
             </div>
-            <p className="flex items-center gap-[0.5em] text-[11px] text-foreground/40">
+            <p className="flex items-center gap-[0.5em] text-xs font-medium text-foreground/70">
               <Lock className="size-[1cap] shrink-0" /> We never see your password. Profile must be
               public.
             </p>
