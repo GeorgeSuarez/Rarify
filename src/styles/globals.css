@@ -48,50 +48,135 @@
 }
 
 :root {
+  color-scheme: dark;
+  interpolate-size: allow-keywords;
+  scrollbar-gutter: stable;
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
   --font-sans: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --background: #030712;
-  --foreground: #f9fafb;
-  --card: #0b1221;
-  --card-foreground: #f9fafb;
-  --popover: #0b1221;
-  --popover-foreground: #f9fafb;
-  --primary: #3b82f6;
-  --primary-foreground: #ffffff;
-  --secondary: #111827;
-  --secondary-foreground: #f9fafb;
-  --muted: #111827;
-  --muted-foreground: #9ca3af;
-  --accent: #1e3a8a;
-  --accent-foreground: #f9fafb;
-  --destructive: #ef4444;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.1);
-  --ring: #3b82f6;
-  --chart-1: #3b82f6;
-  --chart-2: #60a5fa;
-  --chart-3: #93c5fd;
-  --chart-4: #6366f1;
-  --chart-5: #22c55e;
+  --background: oklch(0.17 0.02 264);
+  --foreground: oklch(0.98 0.005 260);
+  --card: oklch(0.21 0.03 266);
+  --card-foreground: oklch(0.98 0.005 260);
+  --popover: oklch(0.21 0.03 266);
+  --popover-foreground: oklch(0.98 0.005 260);
+  --primary: oklch(0.62 0.19 258);
+  --primary-hover: color-mix(in oklch, var(--primary), black 15%);
+  --primary-subtle: color-mix(in oklch, var(--primary) 12%, transparent);
+  --primary-foreground: oklch(1 0 none);
+  --secondary: oklch(0.24 0.02 260);
+  --secondary-foreground: oklch(0.98 0.005 260);
+  --muted: oklch(0.24 0.02 260);
+  --muted-foreground: oklch(0.71 0.02 260);
+  --accent: oklch(0.38 0.14 270);
+  --accent-foreground: oklch(0.98 0.005 260);
+  --destructive: oklch(0.64 0.22 25);
+  --border: color-mix(in oklch, white 8%, transparent);
+  --input: color-mix(in oklch, white 10%, transparent);
+  --ring: oklch(0.62 0.19 258);
+  --chart-1: oklch(0.62 0.19 258);
+  --chart-2: oklch(0.71 0.14 256);
+  --chart-3: oklch(0.8 0.1 252);
+  --chart-4: oklch(0.6 0.2 277);
+  --chart-5: oklch(0.72 0.19 149);
   --radius: 0.75rem;
-  --sidebar: #030712;
-  --sidebar-foreground: #9ca3af;
-  --sidebar-primary: #3b82f6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #111827;
-  --sidebar-accent-foreground: #f9fafb;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #3b82f6;
+  --sidebar: oklch(0.17 0.02 264);
+  --sidebar-foreground: oklch(0.71 0.02 260);
+  --sidebar-primary: oklch(0.62 0.19 258);
+  --sidebar-primary-foreground: oklch(1 0 none);
+  --sidebar-accent: oklch(0.24 0.02 260);
+  --sidebar-accent-foreground: oklch(0.98 0.005 260);
+  --sidebar-border: color-mix(in oklch, white 8%, transparent);
+  --sidebar-ring: oklch(0.62 0.19 258);
+  --text-hero: clamp(2.25rem, 1.35rem + 5vw, 3.875rem);
+  --space-section: clamp(2.5rem, 1.5rem + 4vw, 4rem);
 }
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    min-width: 0;
+  }
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    margin: 0;
+    min-height: 100svh;
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+  img,
+  svg,
+  video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
+  }
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+  button,
+  [role="button"] {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  :focus-visible {
+    outline: max(2px, 0.08em) solid currentColor;
+    outline-offset: 0.25em;
+  }
+}
+
+@layer components {
+  .content-grid {
+    --gutter: 1.5rem;
+    --content: 64rem;
+    --breakout: 80rem;
+    display: grid;
+    grid-template-columns:
+      [full-width-start] minmax(var(--gutter), 1fr)
+      [breakout-start] minmax(0, calc((var(--breakout) - var(--content)) / 2))
+      [content-start] min(100% - var(--gutter) * 2, var(--content)) [content-end]
+      minmax(0, calc((var(--breakout) - var(--content)) / 2)) [breakout-end]
+      minmax(var(--gutter), 1fr) [full-width-end];
+  }
+  :is(.content-grid, .full-width) > * {
+    grid-column: content;
+  }
+  :is(.content-grid, .full-width) > .breakout {
+    grid-column: breakout;
+  }
+  :is(.content-grid, .full-width) > .full-width {
+    grid-column: full-width;
+    display: grid;
+    grid-template-columns: inherit;
+  }
+  .stack {
+    display: grid;
+  }
+  .stack > * {
+    grid-area: 1 / 1;
   }
 }
 
