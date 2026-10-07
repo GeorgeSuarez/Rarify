@@ -21,18 +21,18 @@ export function SignInButton() {
         }
       }}
       className={
-        "inline-flex items-center gap-3 rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-all hover:bg-foreground/85" +
+        "inline-flex touch-manipulation items-center gap-[0.6em] rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-[transform,background-color] duration-160 ease-out select-none motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:bg-foreground/85 active:scale-[0.97]" +
         (isPending ? " pointer-events-none opacity-60" : "")
       }
     >
       {isPending ? (
         <>
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="size-[1.4cap] shrink-0 animate-spin" aria-hidden />
           Redirecting to Steam...
         </>
       ) : (
         <>
-          <SteamIcon className="h-5 w-5" />
+          <SteamIcon className="size-[1.4cap] shrink-0" />
           Sign in through Steam
         </>
       )}
