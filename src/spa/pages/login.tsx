@@ -89,9 +89,6 @@ export function LoginPage() {
               public.
             </p>
           </div>
-          <p className="text-xs text-foreground/30 tabular-nums">
-            Takes ~10 seconds · Free forever
-          </p>
         </div>
 
         {/* floating card stack — real Steam header art */}
@@ -176,7 +173,7 @@ export function LoginPage() {
         </div>
 
         {/* stats ticker */}
-        <div className="mt-[var(--space-section)] flex w-full max-w-3xl flex-col items-center gap-3">
+        <div className="mt-[var(--space-section)] w-full max-w-3xl">
           <div className="flex w-full items-center gap-2 overflow-clip rounded-2xl border border-border bg-foreground/[0.04] p-1.5 backdrop-blur">
             {STATS.map((s) => (
               <div
@@ -208,9 +205,6 @@ export function LoginPage() {
               </div>
             </div>
           </div>
-          <p className="text-[11px] tracking-wide text-foreground/25">
-            Preview data — replaced by your library after sign-in
-          </p>
         </div>
       </section>
     </main>
