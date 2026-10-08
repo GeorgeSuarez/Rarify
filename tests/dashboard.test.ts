@@ -3,6 +3,7 @@ import {
   buildAlphabetIndex,
   computeStats as computeStatsAt,
   filterGames,
+  hasEarnedAllGameAchievements,
   indexLetterOfName,
   meanGlobalPercent,
 } from "@/src/domain/dashboard-calculations";
@@ -35,6 +36,24 @@ function makeGame(overrides: Partial<Game> = {}): Game {
     ...overrides,
   };
 }
+
+describe("hasEarnedAllGameAchievements", () => {
+  it("checks exact achievement counts rather than rounded completion percent", () => {
+    expect(
+      hasEarnedAllGameAchievements(
+        makeGame({ completion: 100, achievements: { earned: 199, total: 200 } }),
+      ),
+    ).toBe(false);
+    expect(
+      hasEarnedAllGameAchievements(
+        makeGame({ completion: 99, achievements: { earned: 200, total: 200 } }),
+      ),
+    ).toBe(true);
+    expect(hasEarnedAllGameAchievements(makeGame({ achievements: { earned: 0, total: 0 } }))).toBe(
+      false,
+    );
+  });
+});
 
 // --- computeStats ---
 
