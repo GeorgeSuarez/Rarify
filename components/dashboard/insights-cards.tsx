@@ -450,7 +450,7 @@ function VelocitySection({ data }: { data: DashboardData }) {
                 {w.count}
               </span>
               <div
-                className="w-full rounded-t bg-primary transition-[height,opacity] motion-reduce:transition-none"
+                className="w-full rounded-t bg-primary transition-opacity duration-150 ease-out motion-safe:transition-[height,opacity]"
                 style={{
                   height: `${(w.count / maxCount) * 70}px`,
                   opacity: Math.max(0.3, w.count / maxCount),

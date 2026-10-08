@@ -47,7 +47,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           className={cn(
-            "transition-[stroke-dashoffset] duration-1000 ease-out motion-reduce:transition-none",
+            "motion-safe:transition-[stroke-dashoffset] motion-safe:duration-300 motion-safe:ease-out",
             tier.textClassName,
           )}
         />
