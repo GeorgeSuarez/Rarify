@@ -89,7 +89,7 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
             <Lightbulb className="shrink-0" aria-hidden />
             <AlertTitle className="tabular-nums">
               {data.stats.achievementsEarnedDelta != null && data.stats.achievementsEarnedDelta > 0
-                ? `Great job! You've earned ${data.stats.achievementsEarnedDelta} more achievements this month.`
+                ? `Great job! You've earned ${data.stats.achievementsEarnedDelta} achievements in the last 30 days.`
                 : `You've earned ${data.stats.achievementsEarned.toLocaleString()} achievements total.`}
             </AlertTitle>
             <AlertDescription>Keep playing to beat your community average!</AlertDescription>
