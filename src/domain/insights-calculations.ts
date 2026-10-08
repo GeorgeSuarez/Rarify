@@ -1,5 +1,6 @@
 import type { Game, RarityTier } from "../../lib/types.ts";
 import { completionTierOf } from "../../lib/completion-tiers.ts";
+import { hasEarnedAllGameAchievements } from "./dashboard-calculations.ts";
 
 const ACHIEVEMENT_SHORTLIST_LIMIT = 3;
 
@@ -86,9 +87,7 @@ export function summarizeAchievementPortfolio(
     0,
   );
 
-  const perfectGames = eligibleGames.filter(
-    (game) => game.achievements.earned >= game.achievements.total,
-  ).length;
+  const perfectGames = eligibleGames.filter(hasEarnedAllGameAchievements).length;
 
   const completionPercent =
     possibleAchievements === 0

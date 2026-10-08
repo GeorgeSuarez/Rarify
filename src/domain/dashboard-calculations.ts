@@ -77,6 +77,11 @@ export function filterGames(games: ReadonlyArray<Game>, filter: GameFilter): Rea
   }
 }
 
+/** Check exact achievement counts instead of rounded game completion percentages. */
+export function hasEarnedAllGameAchievements(game: Game): boolean {
+  return game.achievements.total > 0 && game.achievements.earned >= game.achievements.total;
+}
+
 /** Compute aggregate achievement and library statistics at a supplied time. */
 export function computeStats(games: ReadonlyArray<Game>, nowMs: number): Stats {
   const gamesWithAchievements = games.filter((game) => game.achievements.total > 0);
@@ -107,9 +112,7 @@ export function computeStats(games: ReadonlyArray<Game>, nowMs: number): Stats {
     gamesOwned: games.filter((game) => game.owned).length,
     gamesOwnedDelta: null,
     gamesTracked: games.filter((game) => game.tracked).length,
-    perfectGames: games.filter(
-      (game) => game.achievements.total > 0 && game.achievements.earned >= game.achievements.total,
-    ).length,
+    perfectGames: games.filter(hasEarnedAllGameAchievements).length,
   };
 }
 

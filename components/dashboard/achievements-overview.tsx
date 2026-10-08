@@ -9,16 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { buildAlphabetIndex } from "@/src/domain/dashboard-calculations";
+import {
+  buildAlphabetIndex,
+  hasEarnedAllGameAchievements,
+} from "@/src/domain/dashboard-calculations";
 import { completionTierOf } from "@/lib/completion-tiers";
 import type { AchievementsOverview } from "@/src/domain/dashboard";
 
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const ACHIEVEMENT_INDEX_LETTERS = ["#", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
 
 /**
  * Achievements overview as an A–Z index: letter jump bar plus search,
@@ -36,18 +39,18 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
     return data.games.filter((game) => game.name.toLowerCase().includes(q));
   }, [data.games, query]);
 
-  const present = useMemo(
-    () => new Set(buildAlphabetIndex(searched).map((group) => group.letter)),
-    [searched],
-  );
+  const groups = useMemo(() => buildAlphabetIndex(searched), [searched]);
+  const present = useMemo(() => new Set(groups.map((group) => group.letter)), [groups]);
 
   const sections = useMemo(
-    () =>
-      buildAlphabetIndex(searched).filter((group) => letter === "All" || group.letter === letter),
-    [searched, letter],
+    () => groups.filter((group) => letter === "All" || group.letter === letter),
+    [groups, letter],
   );
 
-  const gamesWithAch = data.games.filter((g) => g.achievements.total > 0);
+  const gamesWithAch = useMemo(
+    () => data.games.filter((game) => game.achievements.total > 0),
+    [data.games],
+  );
 
   return (
     <div className="flex min-h-screen w-full">
@@ -104,45 +107,56 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                 <CardContent className="flex flex-col gap-3 pt-0">
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="achievements-search">Find a game</Label>
-                    <div className="relative">
-                      <Search
-                        className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-                        aria-hidden
-                      />
-                      <Input
+                    <InputGroup className="h-11">
+                      <InputGroupAddon>
+                        <Search className="size-[1.2cap] shrink-0" aria-hidden />
+                      </InputGroupAddon>
+                      <InputGroupInput
                         id="achievements-search"
                         value={query}
-                        onChange={(event) => setQuery(event.target.value)}
+                        onChange={(event) => {
+                          setQuery(event.target.value);
+                          setLetter("All");
+                        }}
                         placeholder="Type a game name…"
-                        className="pl-8"
+                        className="h-11"
                       />
-                    </div>
+                    </InputGroup>
                   </div>
-                  <div className="flex flex-wrap gap-1" role="group" aria-label="Jump to letter">
+                  <div
+                    className="flex min-w-0 items-center gap-2"
+                    role="group"
+                    aria-label="Jump to letter"
+                  >
                     <Button
                       size="xs"
                       variant={letter === "All" ? "default" : "ghost"}
+                      aria-pressed={letter === "All"}
                       onClick={() => setLetter("All")}
+                      className="h-11 min-w-11 shrink-0"
                     >
                       All
                     </Button>
-                    {ALPHABET.map((char) => (
-                      <Button
-                        key={char}
-                        size="xs"
-                        variant={letter === char ? "default" : "ghost"}
-                        disabled={!present.has(char)}
-                        onClick={() => setLetter(char)}
-                        className="min-w-7"
-                      >
-                        {char}
-                      </Button>
-                    ))}
+                    <div className="flex min-w-0 flex-1 snap-x snap-proximity items-center gap-1 overflow-x-auto [scroll-padding-inline:0.5rem] [justify-content:safe_start]">
+                      {ACHIEVEMENT_INDEX_LETTERS.map((char) => (
+                        <Button
+                          key={char}
+                          size="xs"
+                          variant={letter === char ? "default" : "ghost"}
+                          aria-pressed={letter === char}
+                          disabled={!present.has(char)}
+                          onClick={() => setLetter(char)}
+                          className="h-11 min-w-11 shrink-0 snap-start"
+                        >
+                          {char}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <div className="mt-4 flex flex-col gap-4">
+              <div className="mbs-4 flex flex-col gap-4">
                 {sections.map((section) => (
                   <Card key={section.letter}>
                     <CardHeader className="pb-2">
@@ -156,37 +170,38 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                         </CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent className="flex flex-col pt-0">
+                    <CardContent className="flex flex-col pbs-0">
                       {section.games.map((game, i) => (
                         <div key={game.appId} className="flex flex-col">
                           {i !== 0 && <Separator />}
-                          <div className="flex items-center gap-3 py-2.5">
-                            <div className="relative h-9 w-16 shrink-0 overflow-hidden rounded bg-muted">
+                          <div className="flex items-center gap-3 pbs-2.5 pbe-2.5">
+                            <div className="relative aspect-[460/215] w-16 shrink-0 overflow-clip rounded bg-muted outline-1 outline-offset-[-1px] outline-foreground/10">
                               <Image
                                 src={game.image}
                                 alt=""
                                 fill
-                                className="object-cover"
+                                className="h-full w-full object-cover"
                                 sizes="64px"
                               />
                             </div>
-                            <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 flex-1 flex-col gap-1">
                               <Link
                                 href={`/games/${game.appId}`}
-                                className="block truncate text-sm font-medium text-foreground hover:text-primary"
+                                className="block min-w-0 truncate text-sm font-medium text-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                               >
                                 {game.name}
                               </Link>
-                              <span className="mt-1 flex items-center gap-2">
+                              <span className="flex min-w-0 items-center gap-2">
                                 <Progress
                                   value={game.completion}
+                                  aria-label={`${game.completion}% completion for ${game.name}`}
                                   indicatorClassName={
                                     completionTierOf(game.completion).barClassName
                                   }
                                   className="h-1 max-w-40 flex-1"
                                 />
                                 <Tooltip>
-                                  <TooltipTrigger className="text-[11px] tabular-nums text-muted-foreground">
+                                  <TooltipTrigger className="shrink-0 text-xs text-muted-foreground tabular-nums">
                                     {game.achievements.earned}/{game.achievements.total} ·{" "}
                                     <span
                                       className={completionTierOf(game.completion).textClassName}
@@ -201,7 +216,9 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                                 </Tooltip>
                               </span>
                             </div>
-                            {game.completion >= 100 && <Badge className="shrink-0">Perfect</Badge>}
+                            {hasEarnedAllGameAchievements(game) && (
+                              <Badge className="shrink-0">Perfect</Badge>
+                            )}
                           </div>
                         </div>
                       ))}
