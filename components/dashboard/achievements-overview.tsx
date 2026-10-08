@@ -13,17 +13,39 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   buildAlphabetIndex,
   hasEarnedAllGameAchievements,
+  sortAchievementGames,
+  type AchievementGameSort,
 } from "@/src/domain/dashboard-calculations";
 import { completionTierOf } from "@/lib/completion-tiers";
 import type { AchievementsOverview } from "@/src/domain/dashboard";
 
 const ACHIEVEMENT_INDEX_LETTERS = ["#", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
+
+const ACHIEVEMENT_GAME_SORTS = [
+  "name",
+  "remaining",
+  "completion",
+] as const satisfies ReadonlyArray<AchievementGameSort>;
+
+const ACHIEVEMENT_GAME_SORT_LABELS: Record<AchievementGameSort, string> = {
+  name: "Name A–Z",
+  remaining: "Fewest remaining",
+  completion: "Highest completion",
+};
 
 /**
  * Achievements overview as an A–Z index: letter jump bar plus search,
@@ -32,6 +54,7 @@ const ACHIEVEMENT_INDEX_LETTERS = ["#", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"];
 export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
   const [query, setQuery] = useState("");
   const [letter, setLetter] = useState("All");
+  const [sort, setSort] = useState<AchievementGameSort>("name");
 
   const searched = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -45,8 +68,11 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
   const present = useMemo(() => new Set(groups.map((group) => group.letter)), [groups]);
 
   const sections = useMemo(
-    () => groups.filter((group) => letter === "All" || group.letter === letter),
-    [groups, letter],
+    () =>
+      groups
+        .filter((group) => letter === "All" || group.letter === letter)
+        .map((group) => ({ ...group, games: sortAchievementGames(group.games, sort) })),
+    [groups, letter, sort],
   );
 
   const gamesWithAch = useMemo(
@@ -112,23 +138,51 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3 pt-0">
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="achievements-search">Find a game</Label>
-                    <InputGroup className="h-11">
-                      <InputGroupAddon>
-                        <Search className="size-[1.2cap] shrink-0" aria-hidden />
-                      </InputGroupAddon>
-                      <InputGroupInput
-                        id="achievements-search"
-                        value={query}
-                        onChange={(event) => {
-                          setQuery(event.target.value);
-                          setLetter("All");
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div className="flex min-w-[min(100%,16rem)] flex-1 flex-col gap-1.5">
+                      <Label htmlFor="achievements-search">Find a game</Label>
+                      <InputGroup className="h-11">
+                        <InputGroupAddon>
+                          <Search className="size-[1.2cap] shrink-0" aria-hidden />
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          id="achievements-search"
+                          value={query}
+                          onChange={(event) => {
+                            setQuery(event.target.value);
+                            setLetter("All");
+                          }}
+                          placeholder="Type a game name…"
+                          className="h-11"
+                        />
+                      </InputGroup>
+                    </div>
+                    <div className="flex min-w-40 flex-col gap-1.5">
+                      <Label htmlFor="achievements-game-sort">Sort within letter</Label>
+                      <Select
+                        value={sort}
+                        onValueChange={(value) => {
+                          const nextSort = ACHIEVEMENT_GAME_SORTS.find(
+                            (candidate) => candidate === value,
+                          );
+
+                          if (nextSort) setSort(nextSort);
                         }}
-                        placeholder="Type a game name…"
-                        className="h-11"
-                      />
-                    </InputGroup>
+                      >
+                        <SelectTrigger id="achievements-game-sort" className="h-11">
+                          <SelectValue placeholder="Name A–Z" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {ACHIEVEMENT_GAME_SORTS.map((sortOption) => (
+                              <SelectItem key={sortOption} value={sortOption}>
+                                {ACHIEVEMENT_GAME_SORT_LABELS[sortOption]}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div
                     className="flex min-w-0 items-center gap-2"
