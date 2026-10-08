@@ -7,6 +7,7 @@ import {
   hasEarnedAllGameAchievements,
   indexLetterOfName,
   meanGlobalPercent,
+  sortAchievementGames,
 } from "@/src/domain/dashboard-calculations";
 import { DASHBOARD_FILTERS } from "@/lib/types";
 import type { Game, GameAchievement, SteamGlobalAchievement } from "@/lib/types";
@@ -108,6 +109,51 @@ describe("filterAndSortGameAchievements", () => {
       "recent",
       "common",
     ]);
+  });
+});
+
+describe("sortAchievementGames", () => {
+  const games = [
+    makeGame({
+      appId: 1,
+      name: "One remaining",
+      completion: 90,
+      achievements: { earned: 9, total: 10 },
+    }),
+    makeGame({
+      appId: 2,
+      name: "Five remaining",
+      completion: 50,
+      achievements: { earned: 5, total: 10 },
+    }),
+    makeGame({
+      appId: 3,
+      name: "Perfect",
+      completion: 100,
+      achievements: { earned: 10, total: 10 },
+    }),
+  ];
+
+  it("orders by fewest trophies remaining or highest completion", () => {
+    expect(sortAchievementGames(games, "remaining").map((game) => game.name)).toEqual([
+      "Perfect",
+      "One remaining",
+      "Five remaining",
+    ]);
+    expect(sortAchievementGames(games, "completion").map((game) => game.name)).toEqual([
+      "Perfect",
+      "One remaining",
+      "Five remaining",
+    ]);
+  });
+
+  it("orders names alphabetically without mutating the source", () => {
+    expect(sortAchievementGames(games, "name").map((game) => game.name)).toEqual([
+      "Five remaining",
+      "One remaining",
+      "Perfect",
+    ]);
+    expect(games.map((game) => game.name)).toEqual(["One remaining", "Five remaining", "Perfect"]);
   });
 });
 

@@ -78,6 +78,9 @@ export function filterGames(games: ReadonlyArray<Game>, filter: GameFilter): Rea
   }
 }
 
+/** How to order games within each letter group on the achievements overview. */
+export type AchievementGameSort = "name" | "remaining" | "completion";
+
 /** Which achievements to show on a game's detail page. */
 export type GameAchievementFilter = "all" | "unlocked" | "locked";
 
@@ -116,6 +119,33 @@ export function filterAndSortGameAchievements(
 
     if (sort === "recent") {
       return right.unlocktime - left.unlocktime || left.name.localeCompare(right.name);
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+}
+
+/** Sort one letter group by name, trophies remaining, or completion percentage. */
+export function sortAchievementGames(
+  games: ReadonlyArray<Game>,
+  sort: AchievementGameSort,
+): ReadonlyArray<Game> {
+  return games.toSorted((left, right) => {
+    if (sort === "remaining") {
+      const remainingDifference =
+        left.achievements.total -
+        left.achievements.earned -
+        (right.achievements.total - right.achievements.earned);
+
+      return (
+        remainingDifference ||
+        right.completion - left.completion ||
+        left.name.localeCompare(right.name)
+      );
+    }
+
+    if (sort === "completion") {
+      return right.completion - left.completion || left.name.localeCompare(right.name);
     }
 
     return left.name.localeCompare(right.name);
