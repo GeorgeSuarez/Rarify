@@ -132,15 +132,15 @@ export function AchievementList({ data }: { data: GameAchievements }) {
               src={data.gameImage}
               alt=""
               fill
-              className="h-full w-full object-cover"
+              className="z-0 h-full w-full object-cover"
               priority
               sizes="(max-width: 1024px) 100vw, 896px"
             />
             <div
-              className="col-start-1 row-start-1 bg-linear-to-t from-background via-background/30 to-transparent"
+              className="relative z-10 col-start-1 row-start-1 bg-linear-to-t from-background via-background/30 to-transparent"
               aria-hidden
             />
-            <div className="col-start-1 row-start-1 flex min-w-0 flex-col gap-2 self-end justify-self-stretch ps-4 pe-4 pbs-4 pbe-4 sm:ps-6 sm:pe-6 sm:pbs-6 sm:pbe-6">
+            <div className="relative z-20 col-start-1 row-start-1 flex min-w-0 flex-col gap-2 self-end justify-self-stretch ps-4 pe-4 pbs-4 pbe-4 sm:ps-6 sm:pe-6 sm:pbs-6 sm:pbe-6">
               <h1 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold leading-tight text-foreground text-balance wrap-break-word">
                 {data.gameName}
               </h1>
