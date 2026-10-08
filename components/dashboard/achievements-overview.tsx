@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
 import { AlertTriangle, BookMarked, EyeOff, Search } from "lucide-react";
+import { RecentAchievements } from "@/components/dashboard/recent-achievements";
+import { RarestAchievements } from "@/components/dashboard/rarest-achievements";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +99,11 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
             </Alert>
           ) : (
             <>
+              <div className="mbs-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] gap-4">
+                <RecentAchievements achievements={data.recentAchievements} />
+                <RarestAchievements achievements={data.rarestAchievements} />
+              </div>
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">

@@ -1,6 +1,7 @@
+import { useMemo, useState } from "react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
-import { ArrowLeft, Clock, Trophy, Lock, Unlock } from "lucide-react";
+import { ArrowLeft, Clock, Trophy, Lock, Unlock, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Empty,
@@ -10,8 +11,25 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  filterAndSortGameAchievements,
+  type GameAchievementFilter,
+  type GameAchievementSort,
+} from "@/src/domain/dashboard-calculations";
 import { completionTierOf } from "@/lib/completion-tiers";
 import { cn } from "@/lib/utils";
 import type { GameAchievements } from "@/src/domain/dashboard";
@@ -36,6 +54,8 @@ function timeAgo(unix: number): string {
 
   return `${Math.floor(months / 12)}y ago`;
 }
+
+const GAME_ACHIEVEMENT_SORTS: ReadonlyArray<GameAchievementSort> = ["rarity", "recent", "name"];
 
 function AchievementRow({
   achievement,
@@ -109,9 +129,29 @@ function AchievementRow({
 
 export function AchievementList({ data }: { data: GameAchievements }) {
   const { achievements } = data;
+  const [query, setQuery] = useState("");
 
-  const earned = achievements.filter((a) => a.achieved);
-  const locked = achievements.filter((a) => !a.achieved);
+  const [filter, setFilter] = useState<GameAchievementFilter>("all");
+
+  const [sort, setSort] = useState<GameAchievementSort>("rarity");
+
+  const filteredAchievements = useMemo(
+    () => filterAndSortGameAchievements(achievements, filter, query, sort),
+    [achievements, filter, query, sort],
+  );
+
+  const earned = filteredAchievements.filter((achievement) => achievement.achieved);
+
+  const locked = filteredAchievements.filter((achievement) => !achievement.achieved);
+
+  const totalUnlocked = achievements.filter((achievement) => achievement.achieved).length;
+
+  const totalLocked = achievements.length - totalUnlocked;
+
+  const rarestLocked = useMemo(
+    () => filterAndSortGameAchievements(achievements, "locked", "", "rarity")[0] ?? null,
+    [achievements],
+  );
 
   return (
     <div className="flex min-h-screen w-full">
@@ -159,6 +199,17 @@ export function AchievementList({ data }: { data: GameAchievements }) {
                   {data.completion}%
                 </span>
               </div>
+              <div className="flex min-w-0 items-center gap-3">
+                <Progress
+                  value={data.completion}
+                  className="gap-0 bg-foreground/20"
+                  indicatorClassName={completionTierOf(data.completion).barClassName}
+                  aria-label={`${data.completion}% completion for ${data.gameName}`}
+                />
+                <span className="shrink-0 text-xs text-foreground/80 tabular-nums">
+                  {Math.max(data.totalAchievements - data.earnedAchievements, 0)} remaining
+                </span>
+              </div>
             </div>
           </div>
 
@@ -187,40 +238,156 @@ export function AchievementList({ data }: { data: GameAchievements }) {
                     {achievements.length !== 1 ? "s" : ""}
                   </CardTitle>
                   <Badge variant="secondary" className="text-xs tabular-nums">
-                    {earned.length} unlocked &middot; {locked.length} locked
+                    {totalUnlocked} unlocked &middot; {totalLocked} locked
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="flex flex-col gap-4 pbs-4">
-                {earned.length > 0 && (
-                  <section className="flex flex-col gap-2">
-                    <h3 className="text-sm font-medium text-green-400 tabular-nums">
-                      Unlocked ({earned.length})
-                    </h3>
-                    <div className="flex flex-col">
-                      {earned.map((ach, index) => (
-                        <div key={ach.apiname} className="flex flex-col">
-                          {index !== 0 && <Separator />}
-                          <AchievementRow achievement={ach} />
-                        </div>
-                      ))}
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="flex min-w-[min(100%,16rem)] flex-1 flex-col gap-1.5">
+                    <Label htmlFor="game-achievement-search">Search achievements</Label>
+                    <InputGroup className="h-11">
+                      <InputGroupAddon>
+                        <Search className="size-[1.2cap] shrink-0" aria-hidden />
+                      </InputGroupAddon>
+                      <InputGroupInput
+                        id="game-achievement-search"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        placeholder="Name or description…"
+                        className="h-11"
+                      />
+                    </InputGroup>
+                  </div>
+                  <div
+                    className="flex flex-wrap items-center gap-2"
+                    role="group"
+                    aria-label="Filter achievements"
+                  >
+                    <Button
+                      size="xs"
+                      variant={filter === "all" ? "default" : "ghost"}
+                      aria-pressed={filter === "all"}
+                      className="h-11 px-3"
+                      onClick={() => setFilter("all")}
+                    >
+                      All <span className="tabular-nums">{achievements.length}</span>
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant={filter === "unlocked" ? "default" : "ghost"}
+                      aria-pressed={filter === "unlocked"}
+                      className="h-11 px-3"
+                      onClick={() => setFilter("unlocked")}
+                    >
+                      Unlocked <span className="tabular-nums">{totalUnlocked}</span>
+                    </Button>
+                    <Button
+                      size="xs"
+                      variant={filter === "locked" ? "default" : "ghost"}
+                      aria-pressed={filter === "locked"}
+                      className="h-11 px-3"
+                      onClick={() => setFilter("locked")}
+                    >
+                      Locked <span className="tabular-nums">{totalLocked}</span>
+                    </Button>
+                  </div>
+                  <div className="flex min-w-40 flex-col gap-1.5">
+                    <Label htmlFor="game-achievement-sort">Sort by</Label>
+                    <Select
+                      value={sort}
+                      onValueChange={(value) => {
+                        const nextSort = GAME_ACHIEVEMENT_SORTS.find(
+                          (candidate) => candidate === value,
+                        );
+
+                        if (nextSort) setSort(nextSort);
+                      }}
+                    >
+                      <SelectTrigger id="game-achievement-sort" className="h-11">
+                        <SelectValue placeholder="Rarest first" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="rarity">Rarest first</SelectItem>
+                          <SelectItem value="recent">Newest unlock</SelectItem>
+                          <SelectItem value="name">Name A–Z</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground tabular-nums">
+                  Showing {filteredAchievements.length} of {achievements.length} achievements
+                </p>
+
+                {rarestLocked && filter !== "unlocked" && query.trim().length === 0 && (
+                  <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 ps-3 pe-3 pbs-3 pbe-3">
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-amber-300">
+                        Rarest still locked
+                      </p>
+                      <p className="font-semibold text-foreground wrap-break-word">
+                        {rarestLocked.name}
+                      </p>
+                      {rarestLocked.description && (
+                        <p className="text-xs text-muted-foreground wrap-break-word">
+                          {rarestLocked.description}
+                        </p>
+                      )}
                     </div>
-                  </section>
+                    <Badge variant="secondary" className="shrink-0 text-xs tabular-nums">
+                      {rarestLocked.globalPercent.toFixed(1)}% of players
+                    </Badge>
+                  </div>
                 )}
-                {locked.length > 0 && (
-                  <section className="flex flex-col gap-2">
-                    <h3 className="text-sm font-medium text-muted-foreground tabular-nums">
-                      Locked ({locked.length})
-                    </h3>
-                    <div className="flex flex-col">
-                      {locked.map((ach, index) => (
-                        <div key={ach.apiname} className="flex flex-col">
-                          {index !== 0 && <Separator />}
-                          <AchievementRow achievement={ach} />
+
+                {filteredAchievements.length === 0 ? (
+                  <Empty className="border border-border/30 bg-card/50">
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <Search />
+                      </EmptyMedia>
+                      <EmptyTitle>No achievements match these filters</EmptyTitle>
+                      <EmptyDescription>
+                        Try a different search or select another unlock status.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  <>
+                    {earned.length > 0 && (
+                      <section className="flex flex-col gap-2">
+                        <h3 className="text-sm font-medium text-green-400 tabular-nums">
+                          Unlocked ({earned.length})
+                        </h3>
+                        <div className="flex flex-col">
+                          {earned.map((achievement, index) => (
+                            <div key={achievement.apiname} className="flex flex-col">
+                              {index !== 0 && <Separator />}
+                              <AchievementRow achievement={achievement} />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </section>
+                      </section>
+                    )}
+                    {locked.length > 0 && (
+                      <section className="flex flex-col gap-2">
+                        <h3 className="text-sm font-medium text-muted-foreground tabular-nums">
+                          Locked ({locked.length})
+                        </h3>
+                        <div className="flex flex-col">
+                          {locked.map((achievement, index) => (
+                            <div key={achievement.apiname} className="flex flex-col">
+                              {index !== 0 && <Separator />}
+                              <AchievementRow achievement={achievement} />
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
