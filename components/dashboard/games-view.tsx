@@ -232,15 +232,14 @@ export function GamesView({
       <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           {/* Mobile top bar */}
-          <div className="-mx-4 mb-4 flex items-center gap-3 lg:hidden">
+          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar user={user} activeHref="/games" />
-            <h2 className="truncate text-xl font-bold text-foreground">{`Games`}</h2>
           </div>
 
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
             <div className="min-w-0">
-              <h2 className="hidden text-2xl font-bold text-foreground lg:block" aria-hidden>
+              <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
                 Your Library
               </h2>
               <p className="mt-1 text-sm text-muted-foreground tabular-nums">

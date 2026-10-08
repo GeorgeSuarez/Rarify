@@ -47,7 +47,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           className={cn(
-            "transition-[stroke-dashoffset] duration-1000 ease-out motion-reduce:transition-none",
+            "motion-safe:transition-[stroke-dashoffset] motion-safe:duration-300 motion-safe:ease-out",
             tier.textClassName,
           )}
         />
@@ -109,7 +109,7 @@ export function StatsCards({ stats }: { stats: Stats }) {
               ) : (
                 <TrendingDown className="size-[1cap] shrink-0" aria-hidden />
               )}
-              {Math.abs(stats.achievementsEarnedDelta)} this month
+              {Math.abs(stats.achievementsEarnedDelta)} in the last 30 days
             </span>
           ) : (
             <span className="text-muted-foreground">All time total</span>
@@ -139,7 +139,7 @@ export function StatsCards({ stats }: { stats: Stats }) {
                 ) : (
                   <TrendingDown className="size-[1cap] shrink-0" aria-hidden />
                 )}
-                {Math.abs(stats.avgCompletionDelta)}% vs last month
+                {Math.abs(stats.avgCompletionDelta)}% since last snapshot
               </span>
             ) : (
               <span className="mt-auto block pt-1 text-xs text-muted-foreground">
@@ -162,7 +162,7 @@ export function StatsCards({ stats }: { stats: Stats }) {
                 {stats.gamesOwnedDelta >= 0 ? "+" : ""}
                 {stats.gamesOwnedDelta}
               </span>{" "}
-              this month
+              since last snapshot
             </span>
           ) : (
             <span className="text-muted-foreground">In your library</span>

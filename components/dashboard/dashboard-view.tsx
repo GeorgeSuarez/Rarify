@@ -56,13 +56,12 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
           {/* Mobile top bar */}
           <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar user={data.user} activeHref="/" />
-            <h2 className="truncate text-xl font-bold text-foreground">Overview</h2>
           </div>
 
           {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
             <div className="min-w-0">
-              <h2 className="hidden text-2xl font-bold text-foreground lg:block" aria-hidden>
+              <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
                 Overview
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -90,7 +89,7 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
             <Lightbulb className="shrink-0" aria-hidden />
             <AlertTitle className="tabular-nums">
               {data.stats.achievementsEarnedDelta != null && data.stats.achievementsEarnedDelta > 0
-                ? `Great job! You've earned ${data.stats.achievementsEarnedDelta} more achievements this month.`
+                ? `Great job! You've earned ${data.stats.achievementsEarnedDelta} achievements in the last 30 days.`
                 : `You've earned ${data.stats.achievementsEarned.toLocaleString()} achievements total.`}
             </AlertTitle>
             <AlertDescription>Keep playing to beat your community average!</AlertDescription>

@@ -13,31 +13,31 @@ export const COMPLETION_TIERS = [
     min: 1,
     textClassName: "text-red-400",
     barClassName: "bg-red-400",
-    color: "#f87171",
+    color: "var(--color-red-400)",
   },
   {
     min: 25,
     textClassName: "text-orange-400",
     barClassName: "bg-orange-400",
-    color: "#fb923c",
+    color: "var(--color-orange-400)",
   },
   {
     min: 50,
     textClassName: "text-yellow-400",
     barClassName: "bg-yellow-400",
-    color: "#facc15",
+    color: "var(--color-yellow-400)",
   },
   {
     min: 75,
     textClassName: "text-lime-400",
     barClassName: "bg-lime-400",
-    color: "#a3e635",
+    color: "var(--color-lime-400)",
   },
   {
     min: 100,
     textClassName: "text-green-400",
     barClassName: "bg-green-400",
-    color: "#4ade80",
+    color: "var(--color-green-400)",
   },
 ] as const;
 
