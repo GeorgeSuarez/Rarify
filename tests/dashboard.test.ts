@@ -2,13 +2,14 @@ import { describe, it, expect } from "vitest";
 import {
   buildAlphabetIndex,
   computeStats as computeStatsAt,
+  filterAndSortGameAchievements,
   filterGames,
   hasEarnedAllGameAchievements,
   indexLetterOfName,
   meanGlobalPercent,
 } from "@/src/domain/dashboard-calculations";
 import { DASHBOARD_FILTERS } from "@/lib/types";
-import type { Game, SteamGlobalAchievement } from "@/lib/types";
+import type { Game, GameAchievement, SteamGlobalAchievement } from "@/lib/types";
 import {
   globalAchievementsFixture,
   ownedGamesFixture,
@@ -20,6 +21,20 @@ import {
 const NOW = Date.now();
 
 const computeStats = (games: ReadonlyArray<Game>) => computeStatsAt(games, NOW);
+
+function makeAchievement(overrides: Partial<GameAchievement> = {}): GameAchievement {
+  return {
+    apiname: "test-achievement",
+    name: "Test achievement",
+    description: "A test achievement description.",
+    icon: "",
+    icongray: "",
+    achieved: false,
+    unlocktime: 0,
+    globalPercent: 50,
+    ...overrides,
+  };
+}
 
 function makeGame(overrides: Partial<Game> = {}): Game {
   return {
@@ -36,6 +51,65 @@ function makeGame(overrides: Partial<Game> = {}): Game {
     ...overrides,
   };
 }
+
+describe("filterAndSortGameAchievements", () => {
+  const achievements = [
+    makeAchievement({
+      apiname: "rare",
+      name: "Rare secret",
+      description: "Find the hidden path.",
+      globalPercent: 0.5,
+    }),
+    makeAchievement({
+      apiname: "recent",
+      name: "Recent victory",
+      achieved: true,
+      unlocktime: 300,
+      globalPercent: 25,
+    }),
+    makeAchievement({
+      apiname: "common",
+      name: "Common victory",
+      achieved: true,
+      unlocktime: 100,
+      globalPercent: 80,
+    }),
+  ];
+
+  it("filters by status and searches achievement descriptions case-insensitively", () => {
+    expect(
+      filterAndSortGameAchievements(achievements, "locked", "HIDDEN", "rarity").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["rare"]);
+  });
+
+  it("sorts by global rarity percentage from rarest to most common", () => {
+    expect(
+      filterAndSortGameAchievements(achievements, "all", "", "rarity").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["rare", "recent", "common"]);
+  });
+
+  it("sorts by newest unlock or name without mutating the source", () => {
+    expect(
+      filterAndSortGameAchievements(achievements, "unlocked", "", "recent").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["recent", "common"]);
+    expect(
+      filterAndSortGameAchievements(achievements, "all", "", "name").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["common", "rare", "recent"]);
+    expect(achievements.map((achievement) => achievement.apiname)).toEqual([
+      "rare",
+      "recent",
+      "common",
+    ]);
+  });
+});
 
 describe("hasEarnedAllGameAchievements", () => {
   it("checks exact achievement counts rather than rounded completion percent", () => {

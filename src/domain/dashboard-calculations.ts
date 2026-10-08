@@ -1,6 +1,7 @@
 import type { EarnedEntry, GameAchievementCacheEntry } from "./library.ts";
 import type {
   Game,
+  GameAchievement,
   GameFilter,
   RarityTier,
   Stats,
@@ -75,6 +76,50 @@ export function filterGames(games: ReadonlyArray<Game>, filter: GameFilter): Rea
     case "all":
       return games;
   }
+}
+
+/** Which achievements to show on a game's detail page. */
+export type GameAchievementFilter = "all" | "unlocked" | "locked";
+
+/** How to order a game's filtered achievements. */
+export type GameAchievementSort = "rarity" | "name" | "recent";
+
+/**
+ * Search and sort achievements for one game without mutating the source list.
+ * Rarity sorts by ascending Steam global percentage; recent sorts by newest unlock time.
+ */
+export function filterAndSortGameAchievements(
+  achievements: ReadonlyArray<GameAchievement>,
+  filter: GameAchievementFilter,
+  query: string,
+  sort: GameAchievementSort,
+): ReadonlyArray<GameAchievement> {
+  const search = query.trim().toLowerCase();
+
+  const filtered = achievements.filter((achievement) => {
+    if (filter === "unlocked" && !achievement.achieved) return false;
+
+    if (filter === "locked" && achievement.achieved) return false;
+
+    if (!search) return true;
+
+    return (
+      achievement.name.toLowerCase().includes(search) ||
+      achievement.description.toLowerCase().includes(search)
+    );
+  });
+
+  return filtered.toSorted((left, right) => {
+    if (sort === "rarity") {
+      return left.globalPercent - right.globalPercent || left.name.localeCompare(right.name);
+    }
+
+    if (sort === "recent") {
+      return right.unlocktime - left.unlocktime || left.name.localeCompare(right.name);
+    }
+
+    return left.name.localeCompare(right.name);
+  });
 }
 
 /** Check exact achievement counts instead of rounded game completion percentages. */
