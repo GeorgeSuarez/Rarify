@@ -152,9 +152,81 @@ export function sortAchievementGames(
   });
 }
 
+/**
+ * Compact relative time for an unlock timestamp (`just now`, `5m ago`,
+ * `3h ago`, `2d ago`, `4mo ago`, `1y ago`). Pure in `nowMs` so views stay
+ * testable; zero means Steam reported no time.
+ */
+export function timeAgo(unixSeconds: number, nowMs: number = Date.now()): string {
+  if (unixSeconds <= 0) return "";
+
+  const minutes = Math.floor((nowMs - unixSeconds * 1000) / 60000);
+
+  if (minutes < 1) return "just now";
+
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+
+  if (days < 30) return `${days}d ago`;
+
+  const months = Math.floor(days / 30);
+
+  if (months < 12) return `${months}mo ago`;
+
+  return `${Math.floor(months / 12)}y ago`;
+}
+
 /** Check exact achievement counts instead of rounded game completion percentages. */
 export function hasEarnedAllGameAchievements(game: Game): boolean {
   return game.achievements.total > 0 && game.achievements.earned >= game.achievements.total;
+}
+
+/** Rarity label for a Steam global completion percentage. */
+export type RarityLabel = "Ultra Rare" | "Very Rare" | "Rare" | "Uncommon" | "Common";
+
+/** Map a global unlock percentage to its display rarity tier. */
+export function rarityLabelOf(globalPercent: number): RarityLabel {
+  if (globalPercent < 5) return "Ultra Rare";
+
+  if (globalPercent < 10) return "Very Rare";
+
+  if (globalPercent < 25) return "Rare";
+
+  if (globalPercent < 50) return "Uncommon";
+
+  return "Common";
+}
+
+/**
+ * Pick the most actionable in-progress games: started but imperfect, ordered
+ * by fewest trophies remaining, then highest completion, then name.
+ */
+export function selectNextUpGames(games: ReadonlyArray<Game>, limit: number): ReadonlyArray<Game> {
+  return games
+    .filter(
+      (game) =>
+        game.achievements.total > 0 &&
+        game.achievements.earned > 0 &&
+        !hasEarnedAllGameAchievements(game),
+    )
+    .toSorted((left, right) => {
+      const remainingDifference =
+        left.achievements.total -
+        left.achievements.earned -
+        (right.achievements.total - right.achievements.earned);
+
+      return (
+        remainingDifference ||
+        right.completion - left.completion ||
+        left.name.localeCompare(right.name)
+      );
+    })
+    .slice(0, Math.max(limit, 0));
 }
 
 /** Compute aggregate achievement and library statistics at a supplied time. */

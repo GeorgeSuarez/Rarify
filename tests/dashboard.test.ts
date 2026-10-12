@@ -7,7 +7,10 @@ import {
   hasEarnedAllGameAchievements,
   indexLetterOfName,
   meanGlobalPercent,
+  rarityLabelOf,
+  selectNextUpGames,
   sortAchievementGames,
+  timeAgo,
 } from "@/src/domain/dashboard-calculations";
 import { DASHBOARD_FILTERS } from "@/lib/types";
 import type { Game, GameAchievement, SteamGlobalAchievement } from "@/lib/types";
@@ -154,6 +157,78 @@ describe("sortAchievementGames", () => {
       "Perfect",
     ]);
     expect(games.map((game) => game.name)).toEqual(["One remaining", "Five remaining", "Perfect"]);
+  });
+});
+
+describe("timeAgo", () => {
+  const now = 1_700_000_000_000;
+
+  it("handles missing timestamps and sub-minute unlocks", () => {
+    expect(timeAgo(0, now)).toBe("");
+    expect(timeAgo(Math.floor(now / 1000), now)).toBe("just now");
+  });
+
+  it("scales from minutes to years", () => {
+    const second = (seconds: number) => Math.floor(now / 1000) - seconds;
+
+    expect(timeAgo(second(5 * 60), now)).toBe("5m ago");
+    expect(timeAgo(second(3 * 3600), now)).toBe("3h ago");
+    expect(timeAgo(second(9 * 86400), now)).toBe("9d ago");
+    expect(timeAgo(second(60 * 86400), now)).toBe("2mo ago");
+    expect(timeAgo(second(400 * 86400), now)).toBe("1y ago");
+  });
+});
+
+describe("rarityLabelOf", () => {
+  it("labels global percentages from ultra rare to common", () => {
+    expect(rarityLabelOf(0.5)).toBe("Ultra Rare");
+    expect(rarityLabelOf(7)).toBe("Very Rare");
+    expect(rarityLabelOf(15)).toBe("Rare");
+    expect(rarityLabelOf(30)).toBe("Uncommon");
+    expect(rarityLabelOf(80)).toBe("Common");
+  });
+});
+
+describe("selectNextUpGames", () => {
+  it("returns started-but-imperfect games ordered by fewest remaining", () => {
+    const games = [
+      makeGame({
+        appId: 1,
+        name: "Far off",
+        completion: 50,
+        achievements: { earned: 5, total: 10 },
+      }),
+      makeGame({
+        appId: 2,
+        name: "Almost done",
+        completion: 90,
+        achievements: { earned: 9, total: 10 },
+      }),
+      makeGame({
+        appId: 3,
+        name: "Perfect",
+        completion: 100,
+        achievements: { earned: 10, total: 10 },
+      }),
+      makeGame({
+        appId: 4,
+        name: "Untouched",
+        completion: 0,
+        achievements: { earned: 0, total: 10 },
+      }),
+      makeGame({
+        appId: 5,
+        name: "No trophies",
+        completion: 0,
+        achievements: { earned: 0, total: 0 },
+      }),
+    ];
+
+    expect(selectNextUpGames(games, 10).map((game) => game.name)).toEqual([
+      "Almost done",
+      "Far off",
+    ]);
+    expect(selectNextUpGames(games, 1).map((game) => game.name)).toEqual(["Almost done"]);
   });
 });
 
