@@ -154,6 +154,9 @@ function makeRecent(
     appId: game.appId,
     gameName: game.name,
     gameImage: game.image,
+    // Steam achievement icons need a per-achievement hash the fixtures do not
+    // carry, so the game art stands in and the square crop does the rest.
+    icon: game.image,
     name,
     description,
     unlocktime: daysAgo(unlockedDaysAgo),
