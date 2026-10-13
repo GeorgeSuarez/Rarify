@@ -2,18 +2,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function SidebarSkeleton() {
   return (
-    <aside className="hidden w-64 shrink-0 self-start flex-col gap-6 border-r border-sidebar-border bg-sidebar px-4 py-6 lg:sticky lg:inset-bs-0 lg:flex lg:h-dvh lg:overflow-y-auto lg:overscroll-contain">
-      <div className="flex flex-col gap-2 px-2">
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-3 w-20" />
+    <aside className="dashboard-sidebar-skeleton hidden shrink-0 self-start flex-col gap-6 border-r border-sidebar-border bg-sidebar px-2 py-6 lg:sticky lg:inset-bs-0 lg:flex lg:h-dvh">
+      <div className="flex justify-center">
+        <Skeleton className="size-8 rounded-lg" />
       </div>
-      <nav className="mbs-2 flex flex-col gap-1">
+      <nav className="mbs-2 flex flex-col items-center gap-1">
         {Array.from({ length: 7 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full rounded-lg" />
+          <Skeleton key={i} className="size-10 rounded-lg" />
         ))}
       </nav>
-      <div className="mbs-auto">
-        <Skeleton className="h-24 w-full rounded-xl" />
+      <div className="mbs-auto flex w-full flex-col items-center gap-2">
+        <Skeleton className="size-10 rounded-lg" />
+        <Skeleton className="size-9 rounded-full" />
       </div>
     </aside>
   );

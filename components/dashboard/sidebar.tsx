@@ -35,11 +35,6 @@ const navItems: NavItem[] = [
     label: "Insights",
     href: "/insights",
   },
-  {
-    icon: Settings,
-    label: "Settings",
-    href: "/settings",
-  },
 ];
 
 export function SidebarContent({
@@ -50,13 +45,36 @@ export function SidebarContent({
   activeHref?: string;
 }) {
   return (
-    <div className="flex min-h-full flex-col px-4 py-6">
-      <div className="px-2">
-        <h1 className="truncate text-lg font-semibold leading-tight text-foreground">Rarify</h1>
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Dashboard
-        </p>
+    <div className="dashboard-sidebar-content flex min-h-full flex-col px-4 pbs-6 pbe-10">
+      <div className="dashboard-sidebar-brand flex items-center px-2">
+        <span
+          className="dashboard-sidebar-mark hidden size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground"
+          aria-hidden
+        >
+          R
+        </span>
+        <div className="dashboard-sidebar-copy">
+          <h1 className="truncate text-lg font-semibold leading-tight text-foreground">Rarify</h1>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Dashboard
+          </p>
+        </div>
       </div>
+
+      {user && (
+        <div className="dashboard-sidebar-user flex items-center gap-3 px-2 py-5">
+          <Avatar
+            aria-label={user.personaName}
+            className="size-9 shrink-0 border border-sidebar-border"
+          >
+            <AvatarImage src={user.avatar} />
+            <AvatarFallback>{user.personaName.slice(0, 2).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="dashboard-sidebar-copy min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">{user.personaName}</p>
+          </div>
+        </div>
+      )}
 
       <nav aria-label="Primary" className="mbs-8 flex flex-col gap-1">
         {navItems.map((item) => {
@@ -65,15 +83,15 @@ export function SidebarContent({
           return item.disabled ? (
             <span
               key={item.label}
-              className="flex cursor-not-allowed items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/50"
+              className="dashboard-sidebar-link flex cursor-not-allowed items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/50"
               aria-disabled="true"
               title="Coming soon"
             >
-              <span className="flex min-w-0 items-center gap-[0.6em]">
+              <span className="dashboard-sidebar-disabled-main flex min-w-0 items-center gap-[0.6em]">
                 <item.icon className="size-5 shrink-0" aria-hidden />
-                <span className="truncate">{item.label}</span>
+                <span className="dashboard-sidebar-label truncate">{item.label}</span>
               </span>
-              <span className="rounded bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-accent-foreground">
+              <span className="dashboard-sidebar-badge rounded bg-sidebar-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sidebar-accent-foreground">
                 {item.badge}
               </span>
             </span>
@@ -81,42 +99,50 @@ export function SidebarContent({
             <Link
               key={item.label}
               href={item.href}
+              aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
+              title={item.label}
               className={cn(
-                "flex touch-manipulation items-center gap-[0.6em] rounded-lg px-3 py-2.5 text-sm font-medium transition-[background-color,color] select-none motion-reduce:transition-none active:scale-[0.98]",
+                "dashboard-sidebar-link flex touch-manipulation items-center gap-[0.6em] rounded-lg px-3 py-2.5 text-sm font-medium transition-[background-color,color] select-none motion-reduce:transition-none active:scale-[0.98]",
                 isActive
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
                   : "text-sidebar-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:bg-sidebar-accent [@media(hover:hover)_and_(pointer:fine)]:hover:text-sidebar-accent-foreground",
               )}
             >
               <item.icon className="size-5 shrink-0" aria-hidden />
-              <span className="truncate">{item.label}</span>
+              <span className="dashboard-sidebar-label truncate">{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="mbs-auto flex flex-col">
-        <form action="/auth/logout" method="post" className="mbs-2">
+      <div className="mbs-auto flex flex-col gap-1">
+        <Link
+          href="/settings"
+          aria-label="Settings"
+          aria-current={activeHref === "/settings" ? "page" : undefined}
+          title="Settings"
+          className={cn(
+            "dashboard-sidebar-link flex touch-manipulation items-center gap-[0.6em] rounded-lg px-3 py-2.5 text-sm font-medium transition-[background-color,color] select-none motion-reduce:transition-none active:scale-[0.98]",
+            activeHref === "/settings"
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:bg-sidebar-accent [@media(hover:hover)_and_(pointer:fine)]:hover:text-sidebar-accent-foreground",
+          )}
+        >
+          <Settings className="size-5 shrink-0" aria-hidden />
+          <span className="dashboard-sidebar-label truncate">Settings</span>
+        </Link>
+        <form action="/auth/logout" method="post">
           <button
             type="submit"
-            className="flex w-full touch-manipulation items-center gap-[0.6em] rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-[background-color,color] select-none motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:bg-sidebar-accent [@media(hover:hover)_and_(pointer:fine)]:hover:text-sidebar-accent-foreground active:scale-[0.98]"
+            aria-label="Log Out"
+            title="Log Out"
+            className="dashboard-sidebar-link flex w-full touch-manipulation items-center gap-[0.6em] rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-[background-color,color] select-none motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:bg-sidebar-accent [@media(hover:hover)_and_(pointer:fine)]:hover:text-sidebar-accent-foreground active:scale-[0.98]"
           >
             <LogOut className="size-5 shrink-0" aria-hidden />
-            Logout
+            <span className="dashboard-sidebar-label">Logout</span>
           </button>
         </form>
-        {user && (
-          <div className="flex items-center gap-3 px-2 py-5">
-            <Avatar className="size-9 shrink-0 border border-sidebar-border">
-              <AvatarImage src={user.avatar} />
-              <AvatarFallback>{user.personaName.slice(0, 2).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{user.personaName}</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -130,7 +156,7 @@ export function Sidebar({
   activeHref?: string;
 }) {
   return (
-    <aside className="hidden w-64 shrink-0 self-start border-r border-sidebar-border bg-sidebar lg:sticky lg:inset-bs-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-y-auto lg:overscroll-contain">
+    <aside className="dashboard-sidebar hidden shrink-0 self-start lg:sticky lg:inset-bs-0 lg:flex lg:h-dvh">
       <SidebarContent user={user} activeHref={activeHref} />
     </aside>
   );
