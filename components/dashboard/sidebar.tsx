@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "@/src/spa/next-compat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { UserProfile } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
@@ -37,11 +38,44 @@ const navItems: NavItem[] = [
   },
 ];
 
+/** Show the player's avatar and name, linking to Steam when the URL is available. */
+function SidebarUserProfile({ user }: { user: UserProfile }) {
+  const profileContent = (
+    <div className="dashboard-sidebar-user flex items-center gap-3 px-2 py-5">
+      <Avatar
+        aria-label={user.personaName}
+        className="size-9 shrink-0 border border-sidebar-border"
+      >
+        <AvatarImage src={user.avatar} />
+        <AvatarFallback>{user.personaName.slice(0, 2).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="dashboard-sidebar-copy min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-foreground">{user.personaName}</p>
+      </div>
+    </div>
+  );
+
+  return user.profileUrl ? (
+    <a
+      href={user.profileUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`View ${user.personaName}'s Steam profile`}
+      title={`View ${user.personaName}'s Steam profile`}
+      className="dashboard-sidebar-profile-link block rounded-lg [@media(hover:hover)_and_(pointer:fine)]:hover:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+    >
+      {profileContent}
+    </a>
+  ) : (
+    profileContent
+  );
+}
+
 export function SidebarContent({
   user,
   activeHref = "/",
 }: {
-  user?: { personaName: string; avatar: string };
+  user?: UserProfile;
   activeHref?: string;
 }) {
   return (
@@ -61,20 +95,7 @@ export function SidebarContent({
         </div>
       </div>
 
-      {user && (
-        <div className="dashboard-sidebar-user flex items-center gap-3 px-2 py-5">
-          <Avatar
-            aria-label={user.personaName}
-            className="size-9 shrink-0 border border-sidebar-border"
-          >
-            <AvatarImage src={user.avatar} />
-            <AvatarFallback>{user.personaName.slice(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div className="dashboard-sidebar-copy min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">{user.personaName}</p>
-          </div>
-        </div>
-      )}
+      {user && <SidebarUserProfile user={user} />}
 
       <nav aria-label="Primary" className="mbs-8 flex flex-col gap-1">
         {navItems.map((item) => {
@@ -148,13 +169,7 @@ export function SidebarContent({
   );
 }
 
-export function Sidebar({
-  user,
-  activeHref,
-}: {
-  user?: { personaName: string; avatar: string };
-  activeHref?: string;
-}) {
+export function Sidebar({ user, activeHref }: { user?: UserProfile; activeHref?: string }) {
   return (
     <aside className="dashboard-sidebar hidden shrink-0 self-start lg:sticky lg:inset-bs-0 lg:flex lg:h-dvh">
       <SidebarContent user={user} activeHref={activeHref} />

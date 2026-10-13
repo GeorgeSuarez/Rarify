@@ -24,70 +24,14 @@ import { Progress } from "@/components/ui/progress";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { completionTierOf } from "@/lib/completion-tiers";
 import { cn } from "@/lib/utils";
-import type { Game } from "@/lib/types";
+import type { Game, UserProfile } from "@/lib/types";
 
 const SORT_KEYS = ["playtime", "completion", "achievements", "name"] as const;
 
 type SortKey = (typeof SORT_KEYS)[number];
 
-function CompletionRing({
-  value,
-  size = 40,
-  strokeWidth = 4,
-}: {
-  value: number;
-  size?: number;
-  strokeWidth?: number;
-}) {
-  const tier = completionTierOf(value);
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className="relative shrink-0" style={{ width: size, height: size }}>
-      <svg
-        width={size}
-        height={size}
-        className="-rotate-90 transform"
-        role="img"
-        aria-label={`${value}% completion`}
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-muted/30"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          className={cn(
-            "transition-[stroke-dashoffset] duration-500 ease-out motion-reduce:transition-none",
-            tier.textClassName,
-          )}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className={cn("text-[10px] font-semibold tabular-nums", tier.textClassName)}>
-          {value}%
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function GameCard({ game: initialGame }: { game: Game }) {
+  const completionTier = completionTierOf(initialGame.completion);
   const [tracked, setTracked] = useState(initialGame.tracked);
   const [isPending, startTransition] = useTransition();
 
@@ -167,15 +111,23 @@ function GameCard({ game: initialGame }: { game: Game }) {
               )}
             </div>
           </div>
-          {initialGame.achievements.total > 0 && <CompletionRing value={initialGame.completion} />}
         </div>
         {initialGame.achievements.total > 0 && (
-          <div className="mbs-3">
+          <div className="mbs-3 flex items-center gap-3">
             <Progress
               value={initialGame.completion}
-              indicatorClassName={completionTierOf(initialGame.completion).barClassName}
+              className="min-w-0 flex-1"
+              indicatorClassName={completionTier.barClassName}
               aria-label={`${initialGame.completion}% completion`}
             />
+            <span
+              className={cn(
+                "shrink-0 text-xs font-semibold tabular-nums",
+                completionTier.textClassName,
+              )}
+            >
+              {initialGame.completion}%
+            </span>
           </div>
         )}
       </div>
@@ -183,13 +135,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
   );
 }
 
-export function GamesView({
-  games,
-  user,
-}: {
-  games: ReadonlyArray<Game>;
-  user?: { personaName: string; avatar: string };
-}) {
+export function GamesView({ games, user }: { games: ReadonlyArray<Game>; user?: UserProfile }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [sort, setSort] = useState<SortKey>("playtime");

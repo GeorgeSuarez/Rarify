@@ -137,6 +137,7 @@ export type RarityTier = typeof RarityTierSchema.Type;
 export const UserProfileSchema = Schema.Struct({
   personaName: Schema.String,
   avatar: Schema.String,
+  profileUrl: Schema.optionalKey(Schema.String),
 });
 
 /** User profile fields presented in dashboard navigation and cards. */

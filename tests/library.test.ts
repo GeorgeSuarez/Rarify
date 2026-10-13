@@ -712,6 +712,10 @@ describe("DashboardService.getGameAchievements", () => {
         Ref.make<StoreState>({
           ...initialState,
           tracked: [trackedAppId],
+          profile: Option.some({
+            personaName: "Dreadnought",
+            avatar: "https://avatars.steamstatic.com/a1.jpg",
+          }),
         }),
       );
 
@@ -749,11 +753,20 @@ describe("DashboardService.getGameAchievements", () => {
       expect(all.games.find((game) => game.appId === 1245620)?.tracked).toBe(true);
       expect(tracked.games.map((game) => game.appId)).toEqual([1245620]);
       expect(tracked.stats.gamesOwned).toBe(1);
+      expect(all.user?.profileUrl).toBe("https://steamcommunity.com/profiles/76561198000000001");
     });
   });
   describe("DashboardService.getLibrary enrichment failures", () => {
     it("keeps games whose achievement data could not be read", async () => {
-      const state = await Effect.runPromise(Ref.make(initialState));
+      const state = await Effect.runPromise(
+        Ref.make<StoreState>({
+          ...initialState,
+          profile: Option.some({
+            personaName: "Dreadnought",
+            avatar: "https://avatars.steamstatic.com/a1.jpg",
+          }),
+        }),
+      );
 
       const achievementCache = await Effect.runPromise(
         Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
@@ -807,6 +820,7 @@ describe("DashboardService.getGameAchievements", () => {
       expect(unreadable?.achievements).toEqual({ earned: 0, total: 0 });
       expect(unreadable?.completion).toBe(0);
       expect(result.games.find((game) => game.appId === 1245620)?.completion).toBe(67);
+      expect(result.user?.profileUrl).toBe("https://steamcommunity.com/profiles/76561198000000001");
     });
   });
   describe("DashboardService progressive enrichment", () => {

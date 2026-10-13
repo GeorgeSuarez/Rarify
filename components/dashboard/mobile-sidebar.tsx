@@ -3,14 +3,9 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { SidebarContent } from "@/components/dashboard/sidebar";
+import type { UserProfile } from "@/lib/types";
 
-export function MobileSidebar({
-  user,
-  activeHref,
-}: {
-  user?: { personaName: string; avatar: string };
-  activeHref?: string;
-}) {
+export function MobileSidebar({ user, activeHref }: { user?: UserProfile; activeHref?: string }) {
   const [open, setOpen] = useState(false);
 
   return (

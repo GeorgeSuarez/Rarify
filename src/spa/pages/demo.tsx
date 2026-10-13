@@ -31,7 +31,13 @@ const NOW = Date.now();
 
 const daysAgo = (days: number) => Math.floor(NOW / 1000) - Math.round(days * 86400);
 
-const demoUser = { personaName: "Demo Player", avatar: "" };
+const DEMO_USER_STEAM_ID = "76561197988098314";
+
+const demoUser = {
+  personaName: "Demo Player",
+  avatar: "",
+  profileUrl: `https://steamcommunity.com/profiles/${DEMO_USER_STEAM_ID}`,
+};
 
 function makeGame(
   appId: number,

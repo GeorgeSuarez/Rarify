@@ -93,14 +93,19 @@ export const make: Effect.Effect<
     Config.withDefault(DEFAULT_ENRICH_BATCH_SIZE),
   );
 
+  /** Build a public Steam profile URL from its validated account ID. */
+  const steamProfileUrlOf = (steamId: SteamId): string =>
+    `https://steamcommunity.com/profiles/${steamId}`;
+
   const profileOf = (
     profile: Option.Option<UserProfile>,
-  ): { readonly personaName: string; readonly avatar: string } | undefined =>
+    steamId: SteamId,
+  ): UserProfile | undefined =>
     Option.match(profile, {
       onNone: () => undefined,
       onSome: (value) => ({
-        personaName: value.personaName,
-        avatar: value.avatar,
+        ...value,
+        profileUrl: steamProfileUrlOf(steamId),
       }),
     });
 
@@ -421,7 +426,7 @@ export const make: Effect.Effect<
 
   const toLibrarySnapshot = Effect.fn("DashboardService.toLibrarySnapshot")(
     (
-      _steamId: SteamId,
+      steamId: SteamId,
       persisted: Omit<PersistedSnapshot, "version" | "fetchedAtMs">,
       error: DashboardError,
     ) =>
@@ -434,7 +439,10 @@ export const make: Effect.Effect<
               games: persisted.games,
               earnedEntries: persisted.earnedEntries,
               error,
-              user: persisted.user,
+              user: {
+                ...persisted.user,
+                profileUrl: steamProfileUrlOf(steamId),
+              },
             },
       ),
   );
@@ -547,7 +555,7 @@ export const make: Effect.Effect<
       }),
     });
 
-    const user = profileOf(profile);
+    const user = profileOf(profile, steamId);
 
     return user === undefined
       ? ({
@@ -582,7 +590,7 @@ export const make: Effect.Effect<
           rarestAchievements: [],
           rarestPerGame: [],
           error: read.error,
-          user: profileOf(profile),
+          user: profileOf(profile, steamId),
         } satisfies AchievementsOverview;
       }
 
@@ -644,7 +652,7 @@ export const make: Effect.Effect<
           : [{ appId: game.appId, gameName: game.name, achievement }];
       });
 
-      const user = profileOf(profile);
+      const user = profileOf(profile, steamId);
 
       return user === undefined
         ? ({
