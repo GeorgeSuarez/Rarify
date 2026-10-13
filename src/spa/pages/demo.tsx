@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router";
+import { Link, Route, Routes, useParams } from "react-router";
 import { FlaskConical } from "lucide-react";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { GamesView } from "@/components/dashboard/games-view";
@@ -154,6 +154,9 @@ function makeRecent(
     appId: game.appId,
     gameName: game.name,
     gameImage: game.image,
+    // Steam achievement icons need a per-achievement hash the fixtures do not
+    // carry, so the game art stands in and the square crop does the rest.
+    icon: game.image,
     name,
     description,
     unlocktime: daysAgo(unlockedDaysAgo),
@@ -375,5 +378,25 @@ export function DemoSettingsPage() {
       <DemoBanner />
       <SettingsView initialPrefs={{ defaultFilter: "all" }} />
     </>
+  );
+}
+
+/**
+ * Every demo screen behind one component, so `src/App.tsx` needs a single
+ * conditionally imported route and the production build can drop it entirely.
+ * Paths are relative to the `/demo/*` mount point.
+ */
+export function DemoRoutes() {
+  return (
+    <Routes>
+      <Route index element={<DemoOverviewPage />} />
+      <Route path="games" element={<DemoGamesPage />} />
+      <Route path="games/:appId" element={<DemoGameAchievementsPage />} />
+      <Route path="achievements" element={<DemoAchievementsPage />} />
+      <Route path="insights" element={<DemoInsightsPage />} />
+      <Route path="friends" element={<DemoFriendsPage />} />
+      <Route path="settings" element={<DemoSettingsPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 }

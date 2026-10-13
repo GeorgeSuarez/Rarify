@@ -1,3 +1,6 @@
+import { Link } from "@/src/spa/next-compat";
+import { Award, Medal } from "lucide-react";
+import { Image } from "@/src/spa/next-compat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Empty,
@@ -8,42 +11,46 @@ import {
 } from "@/components/ui/empty";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Trophy, Award } from "lucide-react";
-import { Image } from "@/src/spa/next-compat";
+import { Match } from "effect";
+import { rarityLabelOf, timeAgo, type RarityLabel } from "@/src/domain/dashboard-calculations";
+import { cn } from "@/lib/utils";
 import type { RecentAchievement } from "@/lib/types";
 
-function timeAgo(unix: number): string {
-  const diff = Date.now() - unix * 1000;
-  const minutes = Math.floor(diff / 60000);
+const RARITY_TONE = {
+  "Ultra Rare": "bg-amber-500/10 text-amber-300 ring-amber-500/30",
+  "Very Rare": "bg-purple-500/10 text-purple-300 ring-purple-500/30",
+  Rare: "bg-blue-500/10 text-blue-300 ring-blue-500/30",
+  Uncommon: "bg-green-500/10 text-green-300 ring-green-500/30",
+  Common: "bg-muted text-muted-foreground ring-foreground/10",
+} satisfies Record<RarityLabel, string>;
 
-  if (minutes < 1) return "just now";
-
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-
-  if (days < 30) return `${days}d ago`;
-  const months = Math.floor(days / 30);
-
-  if (months < 12) return `${months}mo ago`;
-
-  return `${Math.floor(months / 12)}y ago`;
-}
-
+/**
+ * Rarest unlocks as trophy medals: rank number stacked over the icon,
+ * rarity-tier badge derived from the global unlock percentage, and the
+ * source game linked for context. Top three render as podium medals.
+ */
 export function RarestAchievements({
   achievements,
 }: {
   achievements: ReadonlyArray<RecentAchievement>;
 }) {
+  const rarest = achievements.slice(0, 5);
+
   return (
     <Card className="border-border/50 bg-card">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold">Rarest Achievements</CardTitle>
+        <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
+          <Medal className="size-[1.2cap] shrink-0 text-amber-300" aria-hidden />
+          Rarest trophies
+        </CardTitle>
+        {rarest.length > 0 && (
+          <Badge variant="secondary" className="text-xs tabular-nums">
+            Top {rarest.length}
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="pt-2">
-        {achievements.length === 0 ? (
+        {rarest.length === 0 ? (
           <Empty className="py-8">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -54,56 +61,82 @@ export function RarestAchievements({
             </EmptyHeader>
           </Empty>
         ) : (
-          <ul className="flex flex-col">
-            {achievements.map((ach, i) => (
-              <li key={`${ach.appId}-${ach.name}-${i}`} className="flex items-center gap-4 py-3">
-                <div className="relative aspect-square size-10 shrink-0 overflow-clip rounded-lg bg-muted outline-1 outline-offset-[-1px] outline-foreground/10">
-                  {ach.icon ? (
-                    <Image
-                      src={ach.icon}
-                      alt={ach.name}
-                      fill
-                      className="h-full w-full object-cover"
-                      sizes="40px"
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center">
-                      <Trophy className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-                    </div>
-                  )}
-                </div>
-                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <p className="truncate font-semibold text-foreground">{ach.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{ach.gameName}</p>
-                  {ach.description && (
-                    <p className="line-clamp-1 text-xs text-muted-foreground/70">
-                      {ach.description}
-                    </p>
-                  )}
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1 text-end">
-                  {ach.globalPercent != null && (
+          <ol className="flex flex-col">
+            {rarest.map((ach, i) => {
+              const label = rarityLabelOf(ach.globalPercent ?? 100);
+
+              const rankClassName = Match.value(i).pipe(
+                Match.when(0, () => "text-amber-300"),
+                Match.when(1, () => "text-slate-300"),
+                Match.when(2, () => "text-orange-400"),
+                Match.orElse(() => "text-muted-foreground/60"),
+              );
+
+              return (
+                <li
+                  key={`${ach.appId}-${ach.name}-${i}`}
+                  className="flex items-center gap-4 pbs-3 pbe-3"
+                >
+                  <span
+                    aria-hidden
+                    className={cn(
+                      "w-6 shrink-0 text-center text-sm font-bold tabular-nums",
+                      rankClassName,
+                    )}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="relative aspect-square size-11 shrink-0 grow-0 overflow-clip rounded-full bg-muted outline-1 outline-offset-[-1px] outline-foreground/10">
+                    {ach.icon ? (
+                      <Image
+                        src={ach.icon}
+                        alt=""
+                        fill
+                        className="h-full w-full object-cover"
+                        sizes="44px"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center">
+                        <Award className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <p className="truncate font-semibold text-foreground">{ach.name}</p>
+                    <Link
+                      href={`/games/${ach.appId}`}
+                      className="w-fit max-w-full truncate text-xs text-muted-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    >
+                      {ach.gameName}
+                    </Link>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
                     <Badge
                       variant="secondary"
-                      className="bg-amber-500/10 text-amber-400 tabular-nums"
+                      className={cn(
+                        "text-[10px] tabular-nums ring-1 ring-inset",
+                        RARITY_TONE[label],
+                      )}
                     >
-                      {ach.globalPercent.toFixed(1)}% rare
+                      {ach.globalPercent != null
+                        ? `${ach.globalPercent.toFixed(1)}% · ${label}`
+                        : label}
                     </Badge>
-                  )}
-                  {ach.unlocktime > 0 && (
-                    <Tooltip>
-                      <TooltipTrigger className="text-[10px] text-muted-foreground/60 tabular-nums">
-                        {timeAgo(ach.unlocktime)}
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {new Date(ach.unlocktime * 1000).toLocaleString()}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+                    {ach.unlocktime > 0 && (
+                      <Tooltip>
+                        <TooltipTrigger className="text-[10px] text-muted-foreground/60 tabular-nums">
+                          {timeAgo(ach.unlocktime)}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {new Date(ach.unlocktime * 1000).toLocaleString()}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
         )}
       </CardContent>
     </Card>

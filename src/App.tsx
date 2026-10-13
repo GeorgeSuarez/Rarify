@@ -40,37 +40,18 @@ const SettingsPage = lazy(async () => ({ default: (await loadDashboardPages()).S
  * Seeded demo screens for local development (see `spa/pages/demo.tsx`).
  *
  * They render the real dashboard views with fixed fixtures and sit outside
- * `RequireSession`, so no Steam credentials or API Worker are needed. The
- * routes below are registered only in dev builds; the demo chunk is never
- * requested in production because no route references it there.
+ * `RequireSession`, so no Steam credentials or API Worker are needed.
+ *
+ * The import sits inside the `import.meta.env.DEV` branch so the production
+ * build replaces the whole expression with `null` and tree-shakes the demo
+ * module away. A plain guard around the routes alone still emits the chunk:
+ * the dynamic import stays in the graph, so the fixtures ship even though no
+ * route can request them.
  */
-const loadDemoPages = () => import("./spa/pages/demo.tsx");
-
-const DemoOverviewPage = lazy(async () => ({
-  default: (await loadDemoPages()).DemoOverviewPage,
-}));
-
-const DemoGamesPage = lazy(async () => ({ default: (await loadDemoPages()).DemoGamesPage }));
-
-const DemoGameAchievementsPage = lazy(async () => ({
-  default: (await loadDemoPages()).DemoGameAchievementsPage,
-}));
-
-const DemoAchievementsPage = lazy(async () => ({
-  default: (await loadDemoPages()).DemoAchievementsPage,
-}));
-
-const DemoInsightsPage = lazy(async () => ({
-  default: (await loadDemoPages()).DemoInsightsPage,
-}));
-
-const DemoFriendsPage = lazy(async () => ({
-  default: (await loadDemoPages()).DemoFriendsPage,
-}));
-
-const DemoSettingsPage = lazy(async () => ({
-  default: (await loadDemoPages()).DemoSettingsPage,
-}));
+const DemoRoutes =
+  import.meta.env.DEV === true
+    ? lazy(async () => ({ default: (await import("./spa/pages/demo.tsx")).DemoRoutes }))
+    : null;
 
 /**
  * Route table for the Rarify single-page application.
@@ -94,17 +75,7 @@ export function App() {
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
-          {import.meta.env.DEV ? (
-            <>
-              <Route path="/demo" element={<DemoOverviewPage />} />
-              <Route path="/demo/games" element={<DemoGamesPage />} />
-              <Route path="/demo/games/:appId" element={<DemoGameAchievementsPage />} />
-              <Route path="/demo/achievements" element={<DemoAchievementsPage />} />
-              <Route path="/demo/insights" element={<DemoInsightsPage />} />
-              <Route path="/demo/friends" element={<DemoFriendsPage />} />
-              <Route path="/demo/settings" element={<DemoSettingsPage />} />
-            </>
-          ) : null}
+          {DemoRoutes === null ? null : <Route path="/demo/*" element={<DemoRoutes />} />}
         </Routes>
       </Suspense>
     </BrowserRouter>

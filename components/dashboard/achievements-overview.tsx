@@ -1,74 +1,136 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
-import { AlertTriangle, BookMarked, EyeOff, Search } from "lucide-react";
+import { AlertTriangle, ChevronRight, Crosshair, EyeOff, Flame, LayoutGrid } from "lucide-react";
+import { RecentAchievements } from "@/components/dashboard/recent-achievements";
+import { RarestAchievements } from "@/components/dashboard/rarest-achievements";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { MobileSidebar } from "@/components/dashboard/mobile-sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Empty, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { buildAlphabetIndex } from "@/src/domain/dashboard-calculations";
+import { selectNextUpGames, sortAchievementGames } from "@/src/domain/dashboard-calculations";
 import { completionTierOf } from "@/lib/completion-tiers";
+import { cn } from "@/lib/utils";
+import type { Game } from "@/lib/types";
 import type { AchievementsOverview } from "@/src/domain/dashboard";
 
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+/**
+ * One cabinet tile: artwork with the count remaining over it, then the name,
+ * trophy counts, and a completion bar.
+ */
+function CabinetGameCard({ game }: { game: Game }) {
+  const tier = completionTierOf(game.completion);
+  const remaining = game.achievements.total - game.achievements.earned;
+
+  return (
+    <Card className="border-border/50 bg-card [@media(hover:hover)_and_(pointer:fine)]:hover:border-foreground/20 motion-safe:transition-colors">
+      <Link
+        href={`/games/${game.appId}`}
+        className="flex flex-col gap-2 rounded-xl p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        aria-label={`${game.name}: ${game.achievements.earned} of ${game.achievements.total} achievements unlocked`}
+      >
+        <span className="relative aspect-[460/215] w-full overflow-clip rounded-md bg-muted outline-1 outline-offset-[-1px] outline-foreground/10">
+          <Image
+            src={game.image}
+            alt=""
+            fill
+            className="h-full w-full object-cover"
+            sizes="208px"
+          />
+        </span>
+        <span className="min-w-0 truncate text-sm font-semibold text-foreground">{game.name}</span>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {game.achievements.earned}/{game.achievements.total} · {remaining} left
+        </span>
+        <span className="mt-auto flex items-center gap-2 pt-1">
+          <Progress
+            value={game.completion}
+            aria-hidden
+            indicatorClassName={tier.barClassName}
+            className="h-1 min-w-0 flex-1"
+          />
+          <span className={cn("shrink-0 text-xs font-semibold tabular-nums", tier.textClassName)}>
+            {game.completion}%
+          </span>
+        </span>
+      </Link>
+    </Card>
+  );
+}
 
 /**
- * Achievements overview as an A–Z index: letter jump bar plus search,
- * then letter-grouped game rows with completion progress.
+ * Every trophy game as artwork, ordered by fewest achievements remaining.
+ */
+function TrophyCabinet({ games }: { games: ReadonlyArray<Game> }) {
+  const ordered = useMemo(() => sortAchievementGames(games, "remaining"), [games]);
+
+  return (
+    <section aria-labelledby="trophy-cabinet" className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3
+          id="trophy-cabinet"
+          className="flex items-center gap-[0.5em] text-[clamp(1rem,0.9rem_+_0.6vw,1.125rem)] font-semibold text-foreground"
+        >
+          <LayoutGrid className="size-[1.2cap] shrink-0 text-muted-foreground" aria-hidden />
+          Trophy cabinet
+        </h3>
+        <p className="text-xs text-muted-foreground tabular-nums">{ordered.length} games</p>
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,13rem),1fr))] gap-3">
+        {ordered.map((game) => (
+          <CabinetGameCard key={game.appId} game={game} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Achievements trophy room: an actionable "up next" queue over the trophy
+ * cabinet, beside the recent and rarest showcases in a side rail.
+ *
+ * Layout follows good-css.com: intrinsic grids size every card row so columns
+ * follow the container with no breakpoint ladder; the content/rail split is
+ * one `minmax()` grid that collapses to a single column on narrow screens;
+ * images hold their shape with `aspect-ratio` + `object-fit: cover` plus an
+ * inner outline; icons size in `cap` units; counts use `tabular-nums`; hover
+ * styles only apply where hover exists; overflow is clipped.
  */
 export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
-  const [query, setQuery] = useState("");
-  const [letter, setLetter] = useState("All");
-
-  const searched = useMemo(() => {
-    const q = query.trim().toLowerCase();
-
-    if (!q) return data.games;
-
-    return data.games.filter((game) => game.name.toLowerCase().includes(q));
-  }, [data.games, query]);
-
-  const present = useMemo(
-    () => new Set(buildAlphabetIndex(searched).map((group) => group.letter)),
-    [searched],
+  const trophyGames = useMemo(
+    () => data.games.filter((game) => game.achievements.total > 0),
+    [data.games],
   );
 
-  const sections = useMemo(
-    () =>
-      buildAlphabetIndex(searched).filter((group) => letter === "All" || group.letter === letter),
-    [searched, letter],
-  );
-
-  const gamesWithAch = data.games.filter((g) => g.achievements.total > 0);
+  const nextUp = useMemo(() => selectNextUpGames(trophyGames, 3), [trophyGames]);
 
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar user={data.user} activeHref="/achievements" />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
-        <div className="mx-auto max-w-4xl">
-          {/* Mobile top bar */}
-          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
+      <main className="flex-1 overflow-auto bg-background p-4 motion-safe:scroll-smooth lg:p-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <div className="-ms-4 -me-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar user={data.user} activeHref="/achievements" />
           </div>
 
-          {/* Header */}
-          <div className="pb-6">
-            <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
-              Achievements
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {data.stats.achievementsEarned.toLocaleString()} earned across {gamesWithAch.length}{" "}
-              game
-              {gamesWithAch.length !== 1 ? "s" : ""}
-            </p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Trophy room
+              </p>
+              <h2 className="text-[clamp(1.5rem,1.1rem_+_2vw,2.25rem)] font-bold text-balance text-foreground">
+                Achievements
+              </h2>
+            </div>
+            {data.stats.achievementsEarnedDelta != null &&
+              data.stats.achievementsEarnedDelta > 0 && (
+                <Badge variant="secondary" className="text-xs tabular-nums">
+                  <Flame className="size-[1.2cap] shrink-0 text-orange-400" aria-hidden />+
+                  {data.stats.achievementsEarnedDelta} in the last 30 days
+                </Badge>
+              )}
           </div>
 
           {data.error ? (
@@ -94,136 +156,94 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
             </Alert>
           ) : (
             <>
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    <BookMarked className="size-4" aria-hidden /> A–Z index · {gamesWithAch.length}{" "}
-                    games
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-3 pt-0">
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="achievements-search">Find a game</Label>
-                    <div className="relative">
-                      <Search
-                        className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
-                        aria-hidden
-                      />
-                      <Input
-                        id="achievements-search"
-                        value={query}
-                        onChange={(event) => setQuery(event.target.value)}
-                        placeholder="Type a game name…"
-                        className="pl-8"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1" role="group" aria-label="Jump to letter">
-                    <Button
-                      size="xs"
-                      variant={letter === "All" ? "default" : "ghost"}
-                      onClick={() => setLetter("All")}
-                    >
-                      All
-                    </Button>
-                    {ALPHABET.map((char) => (
-                      <Button
-                        key={char}
-                        size="xs"
-                        variant={letter === char ? "default" : "ghost"}
-                        disabled={!present.has(char)}
-                        onClick={() => setLetter(char)}
-                        className="min-w-7"
-                      >
-                        {char}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="mt-4 flex flex-col gap-4">
-                {sections.map((section) => (
-                  <Card key={section.letter}>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-3">
-                        <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
-                          {section.letter}
-                        </span>
-                        <CardTitle className="text-sm">
-                          {section.games.length} game
-                          {section.games.length === 1 ? "" : "s"}
+              <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
+                <div className="flex min-w-0 flex-col gap-6">
+                  {nextUp.length > 0 && (
+                    <Card className="border-border/50 bg-card">
+                      <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
+                          <Crosshair
+                            className="size-[1.2cap] shrink-0 text-amber-300"
+                            aria-hidden
+                          />
+                          Up next · closest to perfect
                         </CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="flex flex-col pt-0">
-                      {section.games.map((game, i) => (
-                        <div key={game.appId} className="flex flex-col">
-                          {i !== 0 && <Separator />}
-                          <div className="flex items-center gap-3 py-2.5">
-                            <div className="relative h-9 w-16 shrink-0 overflow-hidden rounded bg-muted">
-                              <Image
-                                src={game.image}
-                                alt=""
-                                fill
-                                className="object-cover"
-                                sizes="64px"
-                              />
-                            </div>
-                            <div className="min-w-0 flex-1">
+                      </CardHeader>
+                      <CardContent className="flex flex-col pt-2">
+                        {nextUp.map((game, i) => {
+                          const remaining = game.achievements.total - game.achievements.earned;
+                          const tier = completionTierOf(game.completion);
+
+                          return (
+                            <div key={game.appId} className="flex flex-col">
+                              {i !== 0 && (
+                                <span className="border-t border-border/50" aria-hidden />
+                              )}
                               <Link
                                 href={`/games/${game.appId}`}
-                                className="block truncate text-sm font-medium text-foreground hover:text-primary"
+                                className="flex touch-manipulation items-center gap-4 pbs-3 pbe-3 motion-safe:transition-transform motion-safe:duration-150 motion-safe:ease-out active:scale-[0.99] [@media(hover:hover)_and_(pointer:fine)]:hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                               >
-                                {game.name}
-                              </Link>
-                              <span className="mt-1 flex items-center gap-2">
-                                <Progress
-                                  value={game.completion}
-                                  indicatorClassName={
-                                    completionTierOf(game.completion).barClassName
-                                  }
-                                  className="h-1 max-w-40 flex-1"
-                                />
-                                <Tooltip>
-                                  <TooltipTrigger className="text-[11px] tabular-nums text-muted-foreground">
-                                    {game.achievements.earned}/{game.achievements.total} ·{" "}
+                                <span className="w-6 shrink-0 text-center text-sm font-bold text-muted-foreground tabular-nums">
+                                  {i + 1}
+                                </span>
+                                <span className="relative aspect-[460/215] w-20 shrink-0 grow-0 overflow-clip rounded bg-muted outline-1 outline-offset-[-1px] outline-foreground/10">
+                                  <Image
+                                    src={game.image}
+                                    alt=""
+                                    fill
+                                    className="h-full w-full object-cover"
+                                    sizes="80px"
+                                  />
+                                </span>
+                                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                                  <span className="truncate text-sm font-semibold text-foreground">
+                                    {game.name}
+                                  </span>
+                                  <span className="flex items-center gap-2">
+                                    <Progress
+                                      value={game.completion}
+                                      aria-hidden
+                                      indicatorClassName={tier.barClassName}
+                                      className="h-1 min-w-0 flex-1"
+                                    />
                                     <span
-                                      className={completionTierOf(game.completion).textClassName}
+                                      className={cn(
+                                        "shrink-0 text-xs font-semibold tabular-nums",
+                                        tier.textClassName,
+                                      )}
                                     >
                                       {game.completion}%
                                     </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    {game.hours}h played ·{" "}
-                                    {game.achievements.total - game.achievements.earned} remaining
-                                  </TooltipContent>
-                                </Tooltip>
-                              </span>
+                                  </span>
+                                </span>
+                                <Badge
+                                  variant="secondary"
+                                  className="hidden shrink-0 text-xs tabular-nums sm:inline-flex"
+                                >
+                                  {remaining} left
+                                </Badge>
+                                <ChevronRight
+                                  className="size-[1.2cap] shrink-0 text-muted-foreground"
+                                  aria-hidden
+                                />
+                              </Link>
                             </div>
-                            {game.completion >= 100 && <Badge className="shrink-0">Perfect</Badge>}
-                          </div>
-                        </div>
-                      ))}
-                    </CardContent>
-                  </Card>
-                ))}
-                {sections.length === 0 && (
-                  <Card>
-                    <CardContent className="p-0">
-                      <Empty className="py-10">
-                        <EmptyHeader>
-                          <EmptyMedia variant="icon">
-                            <Search />
-                          </EmptyMedia>
-                          <EmptyTitle>
-                            {query ? `No games match “${query}”` : `No games under “${letter}”`}
-                          </EmptyTitle>
-                        </EmptyHeader>
-                      </Empty>
-                    </CardContent>
-                  </Card>
-                )}
+                          );
+                        })}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  <TrophyCabinet games={trophyGames} />
+                </div>
+
+                <aside
+                  aria-label="Achievement highlights"
+                  className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6"
+                >
+                  <RecentAchievements achievements={data.recentAchievements} />
+                  <RarestAchievements achievements={data.rarestAchievements} />
+                </aside>
               </div>
             </>
           )}

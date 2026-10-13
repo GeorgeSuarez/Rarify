@@ -1,6 +1,7 @@
 import type { EarnedEntry, GameAchievementCacheEntry } from "./library.ts";
 import type {
   Game,
+  GameAchievement,
   GameFilter,
   RarityTier,
   Stats,
@@ -77,6 +78,157 @@ export function filterGames(games: ReadonlyArray<Game>, filter: GameFilter): Rea
   }
 }
 
+/** How to order games within each letter group on the achievements overview. */
+export type AchievementGameSort = "name" | "remaining" | "completion";
+
+/** Which achievements to show on a game's detail page. */
+export type GameAchievementFilter = "all" | "unlocked" | "locked";
+
+/** How to order a game's filtered achievements. */
+export type GameAchievementSort = "rarity" | "name" | "recent";
+
+/**
+ * Search and sort achievements for one game without mutating the source list.
+ * Rarity sorts by ascending Steam global percentage; recent sorts by newest unlock time.
+ */
+export function filterAndSortGameAchievements(
+  achievements: ReadonlyArray<GameAchievement>,
+  filter: GameAchievementFilter,
+  query: string,
+  sort: GameAchievementSort,
+): ReadonlyArray<GameAchievement> {
+  const search = query.trim().toLowerCase();
+
+  const filtered = achievements.filter((achievement) => {
+    if (filter === "unlocked" && !achievement.achieved) return false;
+
+    if (filter === "locked" && achievement.achieved) return false;
+
+    if (!search) return true;
+
+    return (
+      achievement.name.toLowerCase().includes(search) ||
+      achievement.description.toLowerCase().includes(search)
+    );
+  });
+
+  return filtered.toSorted((left, right) => {
+    if (sort === "rarity") {
+      return left.globalPercent - right.globalPercent || left.name.localeCompare(right.name);
+    }
+
+    if (sort === "recent") {
+      return right.unlocktime - left.unlocktime || left.name.localeCompare(right.name);
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+}
+
+/** Sort one letter group by name, trophies remaining, or completion percentage. */
+export function sortAchievementGames(
+  games: ReadonlyArray<Game>,
+  sort: AchievementGameSort,
+): ReadonlyArray<Game> {
+  return games.toSorted((left, right) => {
+    if (sort === "remaining") {
+      const remainingDifference =
+        left.achievements.total -
+        left.achievements.earned -
+        (right.achievements.total - right.achievements.earned);
+
+      return (
+        remainingDifference ||
+        right.completion - left.completion ||
+        left.name.localeCompare(right.name)
+      );
+    }
+
+    if (sort === "completion") {
+      return right.completion - left.completion || left.name.localeCompare(right.name);
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+}
+
+/**
+ * Compact relative time for an unlock timestamp (`just now`, `5m ago`,
+ * `3h ago`, `2d ago`, `4mo ago`, `1y ago`). Pure in `nowMs` so views stay
+ * testable; zero means Steam reported no time.
+ */
+export function timeAgo(unixSeconds: number, nowMs: number = Date.now()): string {
+  if (unixSeconds <= 0) return "";
+
+  const minutes = Math.floor((nowMs - unixSeconds * 1000) / 60000);
+
+  if (minutes < 1) return "just now";
+
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = Math.floor(hours / 24);
+
+  if (days < 30) return `${days}d ago`;
+
+  const months = Math.floor(days / 30);
+
+  if (months < 12) return `${months}mo ago`;
+
+  return `${Math.floor(months / 12)}y ago`;
+}
+
+/** Check exact achievement counts instead of rounded game completion percentages. */
+export function hasEarnedAllGameAchievements(game: Game): boolean {
+  return game.achievements.total > 0 && game.achievements.earned >= game.achievements.total;
+}
+
+/** Rarity label for a Steam global completion percentage. */
+export type RarityLabel = "Ultra Rare" | "Very Rare" | "Rare" | "Uncommon" | "Common";
+
+/** Map a global unlock percentage to its display rarity tier. */
+export function rarityLabelOf(globalPercent: number): RarityLabel {
+  if (globalPercent < 5) return "Ultra Rare";
+
+  if (globalPercent < 10) return "Very Rare";
+
+  if (globalPercent < 25) return "Rare";
+
+  if (globalPercent < 50) return "Uncommon";
+
+  return "Common";
+}
+
+/**
+ * Pick the most actionable in-progress games: started but imperfect, ordered
+ * by fewest trophies remaining, then highest completion, then name.
+ */
+export function selectNextUpGames(games: ReadonlyArray<Game>, limit: number): ReadonlyArray<Game> {
+  return games
+    .filter(
+      (game) =>
+        game.achievements.total > 0 &&
+        game.achievements.earned > 0 &&
+        !hasEarnedAllGameAchievements(game),
+    )
+    .toSorted((left, right) => {
+      const remainingDifference =
+        left.achievements.total -
+        left.achievements.earned -
+        (right.achievements.total - right.achievements.earned);
+
+      return (
+        remainingDifference ||
+        right.completion - left.completion ||
+        left.name.localeCompare(right.name)
+      );
+    })
+    .slice(0, Math.max(limit, 0));
+}
+
 /** Compute aggregate achievement and library statistics at a supplied time. */
 export function computeStats(games: ReadonlyArray<Game>, nowMs: number): Stats {
   const gamesWithAchievements = games.filter((game) => game.achievements.total > 0);
@@ -107,9 +259,7 @@ export function computeStats(games: ReadonlyArray<Game>, nowMs: number): Stats {
     gamesOwned: games.filter((game) => game.owned).length,
     gamesOwnedDelta: null,
     gamesTracked: games.filter((game) => game.tracked).length,
-    perfectGames: games.filter(
-      (game) => game.achievements.total > 0 && game.achievements.earned >= game.achievements.total,
-    ).length,
+    perfectGames: games.filter(hasEarnedAllGameAchievements).length,
   };
 }
 
@@ -158,47 +308,6 @@ export function buildGame(
     tracked: false,
     unlocktimes: [...data.unlocktimes],
   };
-}
-
-/** First index letter for a game name; non A–Z initials group under `#`. */
-export function indexLetterOfName(name: string): string {
-  const first = name.trim().charAt(0).toUpperCase();
-
-  return first >= "A" && first <= "Z" ? first : "#";
-}
-
-/** One letter group in the achievements A–Z index. */
-export interface AlphabetIndexGroup {
-  /** Group key: `A`–`Z`, or `#` for non-alphabetic initials. */
-  readonly letter: string;
-  /** Trophy games in this group, sorted by name. */
-  readonly games: ReadonlyArray<Game>;
-}
-
-/**
- * Build the achievements A–Z index: trophy games sorted by name and grouped
- * by first letter. Games without achievements stay off the index.
- *
- * @param games - Library games from the achievements overview read model.
- * @returns Letter groups sorted alphabetically, each holding sorted games.
- */
-export function buildAlphabetIndex(games: ReadonlyArray<Game>): ReadonlyArray<AlphabetIndexGroup> {
-  const sorted = [...games]
-    .filter((game) => game.achievements.total > 0)
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const groups = new Map<string, Array<Game>>();
-
-  for (const game of sorted) {
-    const letter = indexLetterOfName(game.name);
-    const list = groups.get(letter) ?? [];
-    list.push(game);
-    groups.set(letter, list);
-  }
-
-  return [...groups.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([letter, list]) => ({ letter, games: list }));
 }
 
 const RARITY_TIERS = [

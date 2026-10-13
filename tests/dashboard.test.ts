@@ -1,13 +1,17 @@
 import { describe, it, expect } from "vitest";
 import {
-  buildAlphabetIndex,
   computeStats as computeStatsAt,
+  filterAndSortGameAchievements,
   filterGames,
-  indexLetterOfName,
+  hasEarnedAllGameAchievements,
   meanGlobalPercent,
+  rarityLabelOf,
+  selectNextUpGames,
+  sortAchievementGames,
+  timeAgo,
 } from "@/src/domain/dashboard-calculations";
 import { DASHBOARD_FILTERS } from "@/lib/types";
-import type { Game, SteamGlobalAchievement } from "@/lib/types";
+import type { Game, GameAchievement, SteamGlobalAchievement } from "@/lib/types";
 import {
   globalAchievementsFixture,
   ownedGamesFixture,
@@ -19,6 +23,20 @@ import {
 const NOW = Date.now();
 
 const computeStats = (games: ReadonlyArray<Game>) => computeStatsAt(games, NOW);
+
+function makeAchievement(overrides: Partial<GameAchievement> = {}): GameAchievement {
+  return {
+    apiname: "test-achievement",
+    name: "Test achievement",
+    description: "A test achievement description.",
+    icon: "",
+    icongray: "",
+    achieved: false,
+    unlocktime: 0,
+    globalPercent: 50,
+    ...overrides,
+  };
+}
 
 function makeGame(overrides: Partial<Game> = {}): Game {
   return {
@@ -35,6 +53,200 @@ function makeGame(overrides: Partial<Game> = {}): Game {
     ...overrides,
   };
 }
+
+describe("filterAndSortGameAchievements", () => {
+  const achievements = [
+    makeAchievement({
+      apiname: "rare",
+      name: "Rare secret",
+      description: "Find the hidden path.",
+      globalPercent: 0.5,
+    }),
+    makeAchievement({
+      apiname: "recent",
+      name: "Recent victory",
+      achieved: true,
+      unlocktime: 300,
+      globalPercent: 25,
+    }),
+    makeAchievement({
+      apiname: "common",
+      name: "Common victory",
+      achieved: true,
+      unlocktime: 100,
+      globalPercent: 80,
+    }),
+  ];
+
+  it("filters by status and searches achievement descriptions case-insensitively", () => {
+    expect(
+      filterAndSortGameAchievements(achievements, "locked", "HIDDEN", "rarity").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["rare"]);
+  });
+
+  it("sorts by global rarity percentage from rarest to most common", () => {
+    expect(
+      filterAndSortGameAchievements(achievements, "all", "", "rarity").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["rare", "recent", "common"]);
+  });
+
+  it("sorts by newest unlock or name without mutating the source", () => {
+    expect(
+      filterAndSortGameAchievements(achievements, "unlocked", "", "recent").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["recent", "common"]);
+    expect(
+      filterAndSortGameAchievements(achievements, "all", "", "name").map(
+        (achievement) => achievement.apiname,
+      ),
+    ).toEqual(["common", "rare", "recent"]);
+    expect(achievements.map((achievement) => achievement.apiname)).toEqual([
+      "rare",
+      "recent",
+      "common",
+    ]);
+  });
+});
+
+describe("sortAchievementGames", () => {
+  const games = [
+    makeGame({
+      appId: 1,
+      name: "One remaining",
+      completion: 90,
+      achievements: { earned: 9, total: 10 },
+    }),
+    makeGame({
+      appId: 2,
+      name: "Five remaining",
+      completion: 50,
+      achievements: { earned: 5, total: 10 },
+    }),
+    makeGame({
+      appId: 3,
+      name: "Perfect",
+      completion: 100,
+      achievements: { earned: 10, total: 10 },
+    }),
+  ];
+
+  it("orders by fewest trophies remaining or highest completion", () => {
+    expect(sortAchievementGames(games, "remaining").map((game) => game.name)).toEqual([
+      "Perfect",
+      "One remaining",
+      "Five remaining",
+    ]);
+    expect(sortAchievementGames(games, "completion").map((game) => game.name)).toEqual([
+      "Perfect",
+      "One remaining",
+      "Five remaining",
+    ]);
+  });
+
+  it("orders names alphabetically without mutating the source", () => {
+    expect(sortAchievementGames(games, "name").map((game) => game.name)).toEqual([
+      "Five remaining",
+      "One remaining",
+      "Perfect",
+    ]);
+    expect(games.map((game) => game.name)).toEqual(["One remaining", "Five remaining", "Perfect"]);
+  });
+});
+
+describe("timeAgo", () => {
+  const now = 1_700_000_000_000;
+
+  it("handles missing timestamps and sub-minute unlocks", () => {
+    expect(timeAgo(0, now)).toBe("");
+    expect(timeAgo(Math.floor(now / 1000), now)).toBe("just now");
+  });
+
+  it("scales from minutes to years", () => {
+    const second = (seconds: number) => Math.floor(now / 1000) - seconds;
+
+    expect(timeAgo(second(5 * 60), now)).toBe("5m ago");
+    expect(timeAgo(second(3 * 3600), now)).toBe("3h ago");
+    expect(timeAgo(second(9 * 86400), now)).toBe("9d ago");
+    expect(timeAgo(second(60 * 86400), now)).toBe("2mo ago");
+    expect(timeAgo(second(400 * 86400), now)).toBe("1y ago");
+  });
+});
+
+describe("rarityLabelOf", () => {
+  it("labels global percentages from ultra rare to common", () => {
+    expect(rarityLabelOf(0.5)).toBe("Ultra Rare");
+    expect(rarityLabelOf(7)).toBe("Very Rare");
+    expect(rarityLabelOf(15)).toBe("Rare");
+    expect(rarityLabelOf(30)).toBe("Uncommon");
+    expect(rarityLabelOf(80)).toBe("Common");
+  });
+});
+
+describe("selectNextUpGames", () => {
+  it("returns started-but-imperfect games ordered by fewest remaining", () => {
+    const games = [
+      makeGame({
+        appId: 1,
+        name: "Far off",
+        completion: 50,
+        achievements: { earned: 5, total: 10 },
+      }),
+      makeGame({
+        appId: 2,
+        name: "Almost done",
+        completion: 90,
+        achievements: { earned: 9, total: 10 },
+      }),
+      makeGame({
+        appId: 3,
+        name: "Perfect",
+        completion: 100,
+        achievements: { earned: 10, total: 10 },
+      }),
+      makeGame({
+        appId: 4,
+        name: "Untouched",
+        completion: 0,
+        achievements: { earned: 0, total: 10 },
+      }),
+      makeGame({
+        appId: 5,
+        name: "No trophies",
+        completion: 0,
+        achievements: { earned: 0, total: 0 },
+      }),
+    ];
+
+    expect(selectNextUpGames(games, 10).map((game) => game.name)).toEqual([
+      "Almost done",
+      "Far off",
+    ]);
+    expect(selectNextUpGames(games, 1).map((game) => game.name)).toEqual(["Almost done"]);
+  });
+});
+
+describe("hasEarnedAllGameAchievements", () => {
+  it("checks exact achievement counts rather than rounded completion percent", () => {
+    expect(
+      hasEarnedAllGameAchievements(
+        makeGame({ completion: 100, achievements: { earned: 199, total: 200 } }),
+      ),
+    ).toBe(false);
+    expect(
+      hasEarnedAllGameAchievements(
+        makeGame({ completion: 99, achievements: { earned: 200, total: 200 } }),
+      ),
+    ).toBe(true);
+    expect(hasEarnedAllGameAchievements(makeGame({ achievements: { earned: 0, total: 0 } }))).toBe(
+      false,
+    );
+  });
+});
 
 // --- computeStats ---
 
@@ -267,60 +479,5 @@ describe("computeStats with fixture-derived games", () => {
     expect(stats.perfectGames).toBe(1);
     // 3 of 4 fixture unlocktimes fall within the last 30 days (the 40-day one is outside)
     expect(stats.achievementsEarnedDelta).toBe(3);
-  });
-});
-
-// --- indexLetterOfName ---
-
-describe("indexLetterOfName", () => {
-  it("uppercases alphabetic initials", () => {
-    expect(indexLetterOfName("portal")).toBe("P");
-    expect(indexLetterOfName("Half-Life")).toBe("H");
-  });
-
-  it("groups non-alphabetic initials under #", () => {
-    expect(indexLetterOfName("7 Days to Die")).toBe("#");
-    expect(indexLetterOfName("")).toBe("#");
-    expect(indexLetterOfName("  ")).toBe("#");
-  });
-});
-
-// --- buildAlphabetIndex ---
-
-describe("buildAlphabetIndex", () => {
-  it("sorts trophy games by name and groups them by first letter", () => {
-    const games = [
-      makeGame({ appId: 2, name: "Portal" }),
-      makeGame({ appId: 1, name: "Half-Life" }),
-      makeGame({ appId: 3, name: "Half-Life 2" }),
-    ];
-
-    expect(buildAlphabetIndex(games)).toStrictEqual([
-      {
-        letter: "H",
-        games: [
-          expect.objectContaining({ name: "Half-Life" }),
-          expect.objectContaining({ name: "Half-Life 2" }),
-        ],
-      },
-      { letter: "P", games: [expect.objectContaining({ name: "Portal" })] },
-    ]);
-  });
-
-  it("leaves games without achievements off the index", () => {
-    const games = [
-      makeGame({ name: "No Trophies", achievements: { earned: 0, total: 0 } }),
-      makeGame({ name: "Portal" }),
-    ];
-
-    const index = buildAlphabetIndex(games);
-    expect(index).toHaveLength(1);
-    expect(index[0]?.letter).toBe("P");
-  });
-
-  it("returns an empty index when no game has achievements", () => {
-    expect(buildAlphabetIndex([makeGame({ achievements: { earned: 0, total: 0 } })])).toStrictEqual(
-      [],
-    );
   });
 });
