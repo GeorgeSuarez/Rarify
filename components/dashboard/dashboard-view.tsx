@@ -49,22 +49,22 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
   }
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="dashboard-shell flex w-full">
       <Sidebar user={data.user} activeHref="/" />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8" aria-busy={isPending}>
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8" aria-busy={isPending}>
         <div className="mx-auto max-w-7xl">
           {/* Mobile top bar */}
-          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
+          <div className="-ms-4 -me-4 mbe-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar user={data.user} activeHref="/" />
           </div>
 
           {/* Header */}
-          <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 pbe-6">
             <div className="min-w-0">
-              <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
+              <h2 className="text-[length:var(--text-dashboard-page-title)] font-bold text-foreground">
                 Overview
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mbs-1 text-sm text-muted-foreground">
                 Track your achievements and compare your progress with other players.
               </p>
             </div>
@@ -85,7 +85,7 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
           </div>
 
           {/* Notification banner */}
-          <Alert className="mb-6 border-primary/20 bg-primary/10">
+          <Alert className="mbe-6 border-primary/20 bg-primary/10">
             <Lightbulb className="shrink-0" aria-hidden />
             <AlertTitle className="tabular-nums">
               {data.stats.achievementsEarnedDelta != null && data.stats.achievementsEarnedDelta > 0
@@ -155,7 +155,7 @@ export function DashboardView({ initialData }: { initialData: DashboardData }) {
                 <StatsCards stats={data.stats} />
 
                 {/* Top games */}
-                <div className="mt-6 flex flex-col gap-6">
+                <div className="mbs-6 flex flex-col gap-6">
                   <TopGames games={data.games} onTrackToggle={() => refetch(filter)} />
 
                   {/* Tracked games */}

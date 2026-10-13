@@ -303,7 +303,11 @@ function DemoBanner() {
       </span>
       <nav aria-label="Demo pages" className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {DEMO_LINKS.map((link) => (
-          <Link key={link.href} to={link.href} className="underline-offset-2 hover:underline">
+          <Link
+            key={link.href}
+            to={link.href}
+            className="underline-offset-2 [@media(hover:hover)_and_(pointer:fine)]:hover:underline"
+          >
             {link.label}
           </Link>
         ))}

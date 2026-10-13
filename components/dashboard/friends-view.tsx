@@ -26,24 +26,24 @@ export function FriendsView({
   hiddenCount?: number;
 }) {
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="dashboard-shell flex w-full">
       <Sidebar activeHref="/friends" />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-4xl">
           {/* Mobile top bar */}
-          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
+          <div className="-ms-4 -me-4 mbe-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar activeHref="/friends" />
           </div>
 
           {/* Header */}
-          <div className="pb-6">
-            <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
+          <div className="pbe-6">
+            <h2 className="text-[length:var(--text-dashboard-page-title)] font-bold text-foreground">
               Friends
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mbs-1 text-sm text-muted-foreground">
               {friends.length} friend{friends.length !== 1 ? "s" : ""} with public stats
               {hiddenCount > 0 && (
-                <span className="ml-1.5 text-muted-foreground/60">
+                <span className="ms-1.5 text-muted-foreground/60">
                   &middot; {hiddenCount} hidden (private profile)
                 </span>
               )}
@@ -82,7 +82,7 @@ export function FriendsView({
               {friends.map((friend) => (
                 <Card
                   key={friend.steamId}
-                  className="flex flex-col gap-4 border-border/50 p-4 transition-colors hover:border-border"
+                  className="flex flex-col gap-4 border-border/50 p-4 transition-colors [@media(hover:hover)_and_(pointer:fine)]:hover:border-border"
                 >
                   <CardContent className="flex flex-col gap-4 p-0">
                     <div className="flex items-center gap-4">
@@ -96,7 +96,7 @@ export function FriendsView({
                           href={friend.profileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          className="mbs-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:text-foreground"
                         >
                           View profile
                           <ExternalLink className="size-3" />

@@ -47,7 +47,7 @@ function GameHeader({ game, priority }: { game: Game; priority?: boolean }) {
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-foreground">{game.name}</p>
-        <p className="mt-0.5 flex items-center gap-[0.5em] text-xs text-muted-foreground tabular-nums">
+        <p className="mbs-0.5 flex items-center gap-[0.5em] text-xs text-muted-foreground tabular-nums">
           <Clock className="size-[1cap] shrink-0" aria-hidden /> {game.hours} hrs
         </p>
       </div>
@@ -210,16 +210,16 @@ function TopGameCard({
 }) {
   return (
     <div className="py-4">
-      <Separator className="mb-4" />
+      <Separator className="mbe-4" />
       <div className="flex items-start justify-between gap-3">
         <GameHeader game={game} priority={priority} />
         <TrackButton game={game} onTrackToggle={onTrackToggle} />
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="mbs-3 grid grid-cols-2 gap-3">
         <CompletionBar game={game} />
         <AchievementCount game={game} />
       </div>
-      <div className="mt-3">
+      <div className="mbs-3">
         <Comparison game={game} />
       </div>
     </div>
@@ -237,10 +237,10 @@ export function TopGames({
 
   return (
     <Card className="@container border-border/50 bg-card">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pbe-2">
         <CardTitle className="text-base font-semibold">Top Games</CardTitle>
       </CardHeader>
-      <CardContent className="pt-2">
+      <CardContent className="pbs-2">
         {topGames.length === 0 ? (
           <Empty className="py-8">
             <EmptyHeader>
@@ -259,7 +259,7 @@ export function TopGames({
                   Top games by playtime with completion, achievements, and community comparison
                 </TableCaption>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
+                  <TableRow className="[@media(hover:hover)_and_(pointer:fine)]:hover:bg-transparent">
                     <TableHead>Game</TableHead>
                     <TableHead>Completion</TableHead>
                     <TableHead>Achievements</TableHead>

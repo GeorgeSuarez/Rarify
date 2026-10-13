@@ -134,8 +134,8 @@ export function AchievementList({ data }: { data: GameAchievements }) {
   );
 
   return (
-    <div className="flex min-h-screen w-full">
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+    <div className="dashboard-shell flex w-full">
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
         <div className="mx-auto flex max-w-4xl flex-col gap-6">
           {/* Back link */}
           <Link
@@ -161,7 +161,7 @@ export function AchievementList({ data }: { data: GameAchievements }) {
               aria-hidden
             />
             <div className="relative z-20 col-start-1 row-start-1 flex min-w-0 flex-col gap-2 self-end justify-self-stretch ps-4 pe-4 pbs-4 pbe-4 sm:ps-6 sm:pe-6 sm:pbs-6 sm:pbe-6">
-              <h1 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold leading-tight text-foreground text-balance wrap-break-word">
+              <h1 className="text-[length:var(--text-dashboard-page-title)] font-bold leading-tight text-foreground text-balance wrap-break-word">
                 {data.gameName}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground/80 tabular-nums">

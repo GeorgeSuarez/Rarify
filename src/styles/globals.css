@@ -94,6 +94,9 @@
   --sidebar-border: color-mix(in oklch, white 8%, transparent);
   --sidebar-ring: oklch(0.62 0.19 258);
   --text-hero: clamp(2.25rem, 1.35rem + 5vw, 3.875rem);
+  --text-dashboard-page-title: clamp(1.25rem, 1rem + 1.5vw, 1.5rem);
+  --text-dashboard-section-title: clamp(1.5rem, 1.1rem + 2vw, 2.25rem);
+  --text-dashboard-cabinet-title: clamp(1rem, 0.9rem + 0.6vw, 1.125rem);
   --space-section: clamp(2.5rem, 1.5rem + 4vw, 4rem);
 }
 
@@ -142,6 +145,10 @@
     user-select: none;
     -webkit-user-select: none;
   }
+  a:active,
+  [role="button"]:active {
+    opacity: 0.78;
+  }
   :focus-visible {
     outline: max(2px, 0.08em) solid currentColor;
     outline-offset: 0.25em;
@@ -149,6 +156,9 @@
 }
 
 @layer components {
+  .dashboard-shell {
+    min-block-size: 100svh;
+  }
   .content-grid {
     --gutter: 1.5rem;
     --content: 64rem;
@@ -177,6 +187,19 @@
   }
   .stack > * {
     grid-area: 1 / 1;
+  }
+  .dashboard-stats {
+    container-type: inline-size;
+  }
+  .dashboard-stats-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  }
+  @container (width > 67rem) {
+    .dashboard-stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
   }
 }
 

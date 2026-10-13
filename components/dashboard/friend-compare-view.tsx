@@ -35,21 +35,21 @@ function CompareRow({
 
   return (
     <TableRow>
-      <TableCell className="py-3 pr-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <TableCell className="py-3 pe-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         {label}
       </TableCell>
       <TableCell
-        className={`py-3 text-right ${youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}
+        className={`py-3 text-end ${youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}
       >
         {format === "percent" ? `${yourValue}%` : yourValue}
       </TableCell>
       <TableCell className="w-8 px-2 text-center text-[10px] text-muted-foreground">vs</TableCell>
       <TableCell
-        className={`py-3 text-left ${!tie && !youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}
+        className={`py-3 text-start ${!tie && !youWin ? "font-semibold text-foreground" : "text-muted-foreground/60"}`}
       >
         {format === "percent" ? `${friendValue}%` : friendValue}
       </TableCell>
-      <TableCell className="py-3 pl-4">
+      <TableCell className="py-3 ps-4">
         {!tie && (
           <Badge
             variant="secondary"
@@ -80,13 +80,13 @@ export function FriendCompareView({
 
   if (yourData.error || friendData.error) {
     return (
-      <div className="flex min-h-screen w-full">
+      <div className="dashboard-shell flex w-full">
         <Sidebar activeHref="/friends" />
-        <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+        <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
           <div className="mx-auto max-w-4xl">
             <Link
               href="/friends"
-              className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="mbe-6 inline-flex items-center gap-2 text-sm text-muted-foreground motion-safe:transition-[color,transform] motion-safe:duration-150 motion-safe:ease-out active:scale-[0.98] [@media(hover:hover)_and_(pointer:fine)]:hover:text-foreground"
             >
               <ArrowLeft className="size-4" />
               Back to friends
@@ -125,14 +125,14 @@ export function FriendCompareView({
   const friendStats = friendData.stats;
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="dashboard-shell flex w-full">
       <Sidebar activeHref="/friends" />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-4xl">
           {/* Mobile top bar */}
-          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
+          <div className="-ms-4 -me-4 mbe-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar activeHref="/friends" />
-            <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
+            <h2 className="text-[length:var(--text-dashboard-page-title)] font-bold text-foreground">
               Compare
             </h2>
           </div>
@@ -140,14 +140,14 @@ export function FriendCompareView({
           {/* Back link */}
           <Link
             href="/friends"
-            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mbe-6 inline-flex items-center gap-2 text-sm text-muted-foreground motion-safe:transition-[color,transform] motion-safe:duration-150 motion-safe:ease-out active:scale-[0.98] [@media(hover:hover)_and_(pointer:fine)]:hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
             Back to friends
           </Link>
 
           {/* VS header */}
-          <div className="mb-6 flex items-center justify-center gap-6">
+          <div className="mbe-6 flex items-center justify-center gap-6">
             <div className="flex flex-col items-center gap-2">
               <Avatar className="size-16 border-2 border-primary">
                 {yourData.user?.avatar && <AvatarImage src={yourData.user.avatar} />}
@@ -169,20 +169,20 @@ export function FriendCompareView({
 
           {/* Unified comparison chart */}
           <Card className="border-border/50 bg-card">
-            <CardHeader className="pb-2">
+            <CardHeader className="pbe-2">
               <CardTitle className="text-sm font-semibold">Stats Comparison</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pbs-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent">
+                  <TableRow className="[@media(hover:hover)_and_(pointer:fine)]:hover:bg-transparent">
                     <TableHead>Stat</TableHead>
-                    <TableHead className="text-right">
+                    <TableHead className="text-end">
                       {yourData.user?.personaName ?? "You"}
                     </TableHead>
                     <TableHead className="w-8 px-2" />
                     <TableHead>{friendName}</TableHead>
-                    <TableHead className="pl-4">Leader</TableHead>
+                    <TableHead className="ps-4">Leader</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

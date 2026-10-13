@@ -56,7 +56,7 @@ function CabinetGameCard({ game }: { game: Game }) {
         <span className="text-xs text-muted-foreground tabular-nums">
           {game.achievements.earned}/{game.achievements.total} · {remaining} left
         </span>
-        <span className="mt-auto flex items-center gap-2 pt-1">
+        <span className="mbs-auto flex items-center gap-2 pbs-1">
           <Progress
             value={game.completion}
             aria-hidden
@@ -90,7 +90,7 @@ function TrophyCabinet({ games }: { games: ReadonlyArray<Game> }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3
           id="trophy-cabinet"
-          className="flex items-center gap-[0.5em] text-[clamp(1rem,0.9rem_+_0.6vw,1.125rem)] font-semibold text-foreground"
+          className="flex items-center gap-[0.5em] text-[length:var(--text-dashboard-cabinet-title)] font-semibold text-foreground"
         >
           <LayoutGrid className="size-[1.2cap] shrink-0 text-muted-foreground" aria-hidden />
           Trophy cabinet
@@ -150,9 +150,9 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
   const nextUp = useMemo(() => selectNextUpGames(trophyGames, 3), [trophyGames]);
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="dashboard-shell flex w-full">
       <Sidebar user={data.user} activeHref="/achievements" />
-      <main className="flex-1 overflow-auto bg-background p-4 motion-safe:scroll-smooth lg:p-8">
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
           <div className="-ms-4 -me-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar user={data.user} activeHref="/achievements" />
@@ -163,7 +163,7 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Trophy room
               </p>
-              <h2 className="text-[clamp(1.5rem,1.1rem_+_2vw,2.25rem)] font-bold text-balance text-foreground">
+              <h2 className="text-[length:var(--text-dashboard-section-title)] font-bold text-balance text-foreground">
                 Achievements
               </h2>
             </div>
@@ -203,7 +203,7 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                 <div className="flex min-w-0 flex-col gap-6">
                   {nextUp.length > 0 && (
                     <Card className="border-border/50 bg-card">
-                      <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardHeader className="flex flex-row items-center justify-between pbe-2">
                         <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
                           <Crosshair
                             className="size-[1.2cap] shrink-0 text-amber-300"
@@ -212,7 +212,7 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
                           Up next · closest to perfect
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="flex flex-col pt-2">
+                      <CardContent className="flex flex-col pbs-2">
                         {nextUp.map((game, i) => {
                           const remaining = game.achievements.total - game.achievements.earned;
                           const tier = completionTierOf(game.completion);
@@ -282,7 +282,7 @@ export function AchievementsOverview({ data }: { data: AchievementsOverview }) {
 
                 <aside
                   aria-label="Achievement highlights"
-                  className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6"
+                  className="flex min-w-0 flex-col gap-4 lg:sticky lg:inset-bs-6"
                 >
                   <RecentAchievements achievements={data.recentAchievements} />
                   <RarestAchievements achievements={data.rarestAchievements} />

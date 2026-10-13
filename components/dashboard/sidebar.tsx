@@ -50,7 +50,7 @@ export function SidebarContent({
   activeHref?: string;
 }) {
   return (
-    <div className="flex flex-col px-4 py-6">
+    <div className="flex min-h-full flex-col px-4 py-6">
       <div className="px-2">
         <h1 className="truncate text-lg font-semibold leading-tight text-foreground">Rarify</h1>
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -58,7 +58,7 @@ export function SidebarContent({
         </p>
       </div>
 
-      <nav aria-label="Primary" className="mt-8 flex flex-col gap-1">
+      <nav aria-label="Primary" className="mbs-8 flex flex-col gap-1">
         {navItems.map((item) => {
           const isActive = !item.disabled && item.href === activeHref;
 
@@ -96,8 +96,8 @@ export function SidebarContent({
         })}
       </nav>
 
-      <div className="mt-auto flex flex-col">
-        <form action="/auth/logout" method="post" className="mt-2">
+      <div className="mbs-auto flex flex-col">
+        <form action="/auth/logout" method="post" className="mbs-2">
           <button
             type="submit"
             className="flex w-full touch-manipulation items-center gap-[0.6em] rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-[background-color,color] select-none motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:bg-sidebar-accent [@media(hover:hover)_and_(pointer:fine)]:hover:text-sidebar-accent-foreground active:scale-[0.98]"
@@ -130,7 +130,7 @@ export function Sidebar({
   activeHref?: string;
 }) {
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:flex lg:flex-col">
+    <aside className="hidden w-64 shrink-0 self-start border-r border-sidebar-border bg-sidebar lg:sticky lg:inset-bs-0 lg:flex lg:h-dvh lg:flex-col lg:overflow-y-auto lg:overscroll-contain">
       <SidebarContent user={user} activeHref={activeHref} />
     </aside>
   );

@@ -38,7 +38,7 @@ export function RarestAchievements({
 
   return (
     <Card className="border-border/50 bg-card">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pbe-2">
         <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
           <Medal className="size-[1.2cap] shrink-0 text-amber-300" aria-hidden />
           Rarest trophies
@@ -49,7 +49,7 @@ export function RarestAchievements({
           </Badge>
         )}
       </CardHeader>
-      <CardContent className="pt-2">
+      <CardContent className="pbs-2">
         {rarest.length === 0 ? (
           <Empty className="py-8">
             <EmptyHeader>

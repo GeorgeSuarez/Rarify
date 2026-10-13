@@ -133,7 +133,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
           <span className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
         </span>
       </Link>
-      <div className="absolute top-2 end-2 z-[1]">
+      <div className="absolute inset-bs-2 end-2 z-[1]">
         <Button
           variant="ghost"
           size="icon"
@@ -154,7 +154,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-sm font-semibold text-foreground">{initialGame.name}</h3>
-            <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
+            <div className="mbs-1.5 flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
               <span className="flex items-center gap-[0.35em]">
                 <Clock className="size-[1cap] shrink-0" aria-hidden />
                 {initialGame.hours}h
@@ -170,7 +170,7 @@ function GameCard({ game: initialGame }: { game: Game }) {
           {initialGame.achievements.total > 0 && <CompletionRing value={initialGame.completion} />}
         </div>
         {initialGame.achievements.total > 0 && (
-          <div className="mt-3">
+          <div className="mbs-3">
             <Progress
               value={initialGame.completion}
               indicatorClassName={completionTierOf(initialGame.completion).barClassName}
@@ -227,29 +227,29 @@ export function GamesView({
   }, [games, search, filter, sort]);
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="dashboard-shell flex w-full">
       <Sidebar user={user} activeHref="/games" />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           {/* Mobile top bar */}
-          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
+          <div className="-ms-4 -me-4 mbe-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar user={user} activeHref="/games" />
           </div>
 
           {/* Header */}
-          <div className="flex flex-wrap items-start justify-between gap-4 pb-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 pbe-6">
             <div className="min-w-0">
-              <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
+              <h2 className="text-[length:var(--text-dashboard-page-title)] font-bold text-foreground">
                 Your Library
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+              <p className="mbs-1 text-sm text-muted-foreground tabular-nums">
                 {games.length} game{games.length !== 1 ? "s" : ""} in your Steam library
               </p>
             </div>
           </div>
 
           {/* Controls */}
-          <div className="flex flex-wrap items-center gap-3 pb-6">
+          <div className="flex flex-wrap items-center gap-3 pbe-6">
             <InputGroup className="min-w-[min(100%,16rem)] flex-1 bg-card">
               <InputGroupAddon>
                 <Search />

@@ -24,13 +24,13 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
 
   return (
     <Card className="border-border/50 bg-card">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pbe-2">
         <CardTitle className="text-base font-semibold">Tracked Games</CardTitle>
         <span className="text-xs text-muted-foreground tabular-nums">
           {tracked.length} game{tracked.length !== 1 ? "s" : ""}
         </span>
       </CardHeader>
-      <CardContent className="flex flex-col pt-2">
+      <CardContent className="flex flex-col pbs-2">
         {tracked.length === 0 ? (
           <Empty className="py-8">
             <EmptyHeader>
@@ -64,7 +64,7 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold text-foreground">{game.name}</p>
-                      <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
+                      <div className="mbs-1 flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
                         <span className="flex items-center gap-[0.35em]">
                           <Clock className="size-[1cap] shrink-0" aria-hidden />
                           {game.hours}h
@@ -84,7 +84,7 @@ export function TrackedGamesList({ games }: { games: ReadonlyArray<Game> }) {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 px-4">
+                  <div className="mbs-2 px-4">
                     <Progress
                       value={game.completion}
                       indicatorClassName={completionTierOf(game.completion).barClassName}

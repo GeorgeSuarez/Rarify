@@ -28,7 +28,7 @@ export function RecentAchievements({
 
   return (
     <Card className="border-border/50 bg-card">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pbe-2">
         <CardTitle className="text-base font-semibold">Latest unlocks</CardTitle>
         {latest.length > 0 && (
           <Badge variant="secondary" className="text-xs tabular-nums">
@@ -36,7 +36,7 @@ export function RecentAchievements({
           </Badge>
         )}
       </CardHeader>
-      <CardContent className="pt-2">
+      <CardContent className="pbs-2">
         {latest.length === 0 ? (
           <Empty className="py-8">
             <EmptyHeader>

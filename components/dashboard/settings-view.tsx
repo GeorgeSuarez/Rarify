@@ -43,29 +43,31 @@ export function SettingsView({ initialPrefs }: { initialPrefs: UserPreferences }
   }
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="dashboard-shell flex w-full">
       <Sidebar activeHref="/settings" />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-3xl">
           {/* Mobile top bar */}
-          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
+          <div className="-ms-4 -me-4 mbe-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar activeHref="/settings" />
           </div>
 
           {/* Header */}
-          <div className="pb-6">
-            <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
+          <div className="pbe-6">
+            <h2 className="text-[length:var(--text-dashboard-page-title)] font-bold text-foreground">
               Settings
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">Manage your dashboard preferences.</p>
+            <p className="mbs-1 text-sm text-muted-foreground">
+              Manage your dashboard preferences.
+            </p>
           </div>
 
           {/* Dashboard defaults */}
           <Card className="border-border/50 bg-card">
-            <CardHeader className="pb-2">
+            <CardHeader className="pbe-2">
               <CardTitle className="text-base font-semibold">Dashboard Defaults</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pbs-0">
               <FieldGroup>
                 <Field>
                   <FieldLabel className="text-xs font-medium uppercase tracking-wider text-muted-foreground">

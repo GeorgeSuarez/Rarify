@@ -49,13 +49,13 @@ function PlaytimeSection({ data }: { data: DashboardData }) {
 
   return (
     <Card className="border-border/50 bg-card">
-      <CardHeader className="pb-2">
+      <CardHeader className="pbe-2">
         <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
           <Clock className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Playtime Overview
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 pt-0">
+      <CardContent className="flex flex-col gap-4 pbs-0">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">
             {totalHours.toLocaleString()}
@@ -107,13 +107,13 @@ function RaritySection({ data }: { data: DashboardData }) {
 
   return (
     <Card className="border-border/50 bg-card">
-      <CardHeader className="pb-2">
+      <CardHeader className="pbe-2">
         <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
           <Trophy className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Rarity Distribution
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 pt-0">
+      <CardContent className="flex flex-col gap-4 pbs-0">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">
             {totalEarned.toLocaleString()}
@@ -150,13 +150,13 @@ function CompletionSection({ data }: { data: DashboardData }) {
 
   return (
     <Card className="border-border/50 bg-card">
-      <CardHeader className="pb-2">
+      <CardHeader className="pbe-2">
         <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
           <Gamepad2 className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Completion Overview
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 pt-0">
+      <CardContent className="flex flex-col gap-4 pbs-0">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">
             {data.stats.avgCompletion}%
@@ -432,13 +432,13 @@ function VelocitySection({ data }: { data: DashboardData }) {
 
   return (
     <Card className="border-border/50 bg-card">
-      <CardHeader className="pb-2">
+      <CardHeader className="pbe-2">
         <CardTitle className="flex items-center gap-[0.5em] text-base font-semibold">
           <TrendingUp className="size-[1cap] shrink-0 text-muted-foreground" aria-hidden />
           Unlock Velocity
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 pt-0">
+      <CardContent className="flex flex-col gap-4 pbs-0">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold text-foreground tabular-nums">{weeklyTotal}</span>
           <span className="text-sm text-muted-foreground">last 12 weeks</span>

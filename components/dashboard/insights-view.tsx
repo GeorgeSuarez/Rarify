@@ -9,21 +9,21 @@ export function InsightsView({ initialData }: { initialData: DashboardData }) {
   const data = initialData;
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="dashboard-shell flex w-full">
       <Sidebar user={data.user} activeHref="/insights" />
-      <main className="flex-1 overflow-auto bg-background p-4 lg:p-8">
+      <main className="min-w-0 flex-1 bg-background p-4 lg:p-8">
         <div className="mx-auto max-w-7xl">
           {/* Mobile top bar */}
-          <div className="-ms-4 -me-4 mb-4 flex items-center gap-3 px-4 lg:hidden">
+          <div className="-ms-4 -me-4 mbe-4 flex items-center gap-3 px-4 lg:hidden">
             <MobileSidebar user={data.user} activeHref="/insights" />
           </div>
 
           {/* Header */}
-          <div className="pb-6">
-            <h2 className="text-[clamp(1.25rem,1rem_+_1.5vw,1.5rem)] font-bold text-foreground">
+          <div className="pbe-6">
+            <h2 className="text-[length:var(--text-dashboard-page-title)] font-bold text-foreground">
               Insights
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mbs-1 text-sm text-muted-foreground">
               Detailed achievement progress and trends over time.
             </p>
           </div>
