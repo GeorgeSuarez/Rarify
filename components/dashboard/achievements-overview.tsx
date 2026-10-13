@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Image } from "@/src/spa/next-compat";
 import { Link } from "@/src/spa/next-compat";
 import { AlertTriangle, ChevronRight, Crosshair, EyeOff, Flame, LayoutGrid } from "lucide-react";
@@ -10,7 +10,19 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { selectNextUpGames, sortAchievementGames } from "@/src/domain/dashboard-calculations";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  selectNextUpGames,
+  sortAchievementGames,
+  type AchievementGameSort,
+} from "@/src/domain/dashboard-calculations";
 import { completionTierOf } from "@/lib/completion-tiers";
 import { cn } from "@/lib/utils";
 import type { Game } from "@/lib/types";
@@ -60,15 +72,22 @@ function CabinetGameCard({ game }: { game: Game }) {
   );
 }
 
+const CABINET_SORTS = [
+  "remaining",
+  "completion",
+  "name",
+] as const satisfies ReadonlyArray<AchievementGameSort>;
+
 /**
- * Every trophy game as artwork, ordered by fewest achievements remaining.
+ * Every trophy game as artwork, sortable from a drop down menu.
  */
 function TrophyCabinet({ games }: { games: ReadonlyArray<Game> }) {
-  const ordered = useMemo(() => sortAchievementGames(games, "remaining"), [games]);
+  const [sort, setSort] = useState<AchievementGameSort>("remaining");
+  const ordered = useMemo(() => sortAchievementGames(games, sort), [games, sort]);
 
   return (
     <section aria-labelledby="trophy-cabinet" className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h3
           id="trophy-cabinet"
           className="flex items-center gap-[0.5em] text-[clamp(1rem,0.9rem_+_0.6vw,1.125rem)] font-semibold text-foreground"
@@ -76,7 +95,31 @@ function TrophyCabinet({ games }: { games: ReadonlyArray<Game> }) {
           <LayoutGrid className="size-[1.2cap] shrink-0 text-muted-foreground" aria-hidden />
           Trophy cabinet
         </h3>
-        <p className="text-xs text-muted-foreground tabular-nums">{ordered.length} games</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs text-muted-foreground tabular-nums">{ordered.length} games</p>
+          <Select
+            value={sort}
+            onValueChange={(value) => {
+              const next = CABINET_SORTS.find((candidate) => candidate === value);
+
+              if (next) setSort(next);
+            }}
+          >
+            <SelectTrigger
+              aria-label="Sort trophy cabinet"
+              className="h-8 w-40 border-border/50 bg-card text-xs"
+            >
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="remaining">Fewest remaining</SelectItem>
+                <SelectItem value="completion">Highest completion</SelectItem>
+                <SelectItem value="name">Name A–Z</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,13rem),1fr))] gap-3">
         {ordered.map((game) => (
