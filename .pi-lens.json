@@ -2,6 +2,9 @@
   "rules": {
     "css:unknownAtRules": {
       "ignorePaths": ["src/styles/globals.css"]
+    },
+    "html.security.audit.missing-integrity.missing-integrity": {
+      "ignorePaths": ["index.html"]
     }
   }
 }

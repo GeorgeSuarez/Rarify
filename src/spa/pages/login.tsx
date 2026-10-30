@@ -49,24 +49,8 @@ const PREVIEW_GAMES = [
   },
 ] as const;
 
-const CAPABILITIES = [
-  {
-    title: "Completion",
-    detail: "Every game in your library, scored and ranked.",
-  },
-  {
-    title: "Rarity",
-    detail: "Each unlock measured against every player who owns it.",
-  },
-  {
-    title: "Perfect games",
-    detail: "Every achievement in a game, earned.",
-  },
-  {
-    title: "Friends",
-    detail: "Your collection beside the people you play with.",
-  },
-] as const;
+const LOGIN_CTA_CLASS =
+  "w-full justify-center rounded-[3px] bg-vault-paper px-6 py-3.5 text-[15px] text-[#0a0d14] focus-visible:outline-vault-brass sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-vault-paper/90";
 
 const ERROR_MESSAGES = new Map<string, string>([
   ["auth_failed", "Steam could not verify your sign-in. Please try again."],
@@ -83,6 +67,25 @@ function VaultMark() {
     >
       R
     </span>
+  );
+}
+
+/** Brass-framed product screenshot used by the feature tour. */
+function ProductPlate({
+  src,
+  alt,
+  width,
+  height,
+}: {
+  readonly src: string;
+  readonly alt: string;
+  readonly width: number;
+  readonly height: number;
+}) {
+  return (
+    <div className="login-plate">
+      <img src={src} alt={alt} width={width} height={height} loading="eager" decoding="async" />
+    </div>
   );
 }
 
@@ -138,7 +141,7 @@ export function LoginPage() {
                   {errorMessage}
                 </div>
               )}
-              <SignInButton className="w-full justify-center rounded-[3px] bg-vault-paper px-6 py-3.5 text-[15px] text-[#0a0d14] focus-visible:outline-vault-brass sm:w-auto [@media(hover:hover)_and_(pointer:fine)]:hover:bg-vault-paper/90" />
+              <SignInButton className={LOGIN_CTA_CLASS} />
               <p className="mt-4 flex max-w-[42ch] items-start gap-2 text-xs leading-relaxed text-vault-fog">
                 <Lock className="mt-[0.2em] size-3 shrink-0" aria-hidden />
                 Steam handles the sign-in. Rarify reads public profile data and never sees your
@@ -261,24 +264,93 @@ export function LoginPage() {
           </section>
         </div>
 
-        <section
-          aria-labelledby="capabilities-title"
-          className="mt-auto border-t border-vault-line pb-8 pt-7 lg:pb-10"
-        >
-          <h2 id="capabilities-title" className="sr-only">
-            What Rarify shows you
-          </h2>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-7 lg:grid-cols-4 lg:gap-x-10">
-            {CAPABILITIES.map((capability) => (
-              <div key={capability.title}>
-                <h3 className="font-display text-xl leading-tight text-vault-paper">
-                  {capability.title}
-                </h3>
-                <p className="mt-1.5 max-w-[26ch] text-xs leading-relaxed text-vault-fog">
-                  {capability.detail}
+        <section aria-labelledby="tour-title" className="border-t border-vault-line py-14 lg:py-20">
+          <div className="grid gap-5 lg:grid-cols-2 lg:items-end lg:gap-12">
+            <h2
+              id="tour-title"
+              className="max-w-[14ch] font-display text-[clamp(2.25rem,4.2vw,3.5rem)] font-medium leading-[0.98] tracking-[-0.025em] text-vault-paper"
+            >
+              A closer look inside the vault.
+            </h2>
+            <p className="max-w-[48ch] text-sm leading-[1.75] text-vault-fog lg:justify-self-end lg:pb-1">
+              Real dashboard screens, populated with example data. Sign in to see the same views
+              with your own library.
+            </p>
+          </div>
+
+          <figure className="mt-12 lg:mt-16">
+            <ProductPlate
+              src="/product/overview.webp"
+              alt="The Overview screen: achievements earned, average completion, games owned, and games tracked above top games with completion and community comparison."
+              width={1360}
+              height={790}
+            />
+            <figcaption className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] sm:gap-8 lg:mt-6">
+              <h3 className="font-display text-[1.75rem] leading-[1.05] tracking-[-0.015em] text-vault-paper">
+                Everything you own, scored.
+              </h3>
+              <div className="max-w-[58ch]">
+                <p className="text-sm leading-[1.75] text-vault-fog">
+                  Your completion, perfect games, tracked titles, and the next trophy to chase.
+                  Every game also carries its community comparison, so you know whether you&apos;re
+                  ahead or behind.
+                </p>
+                <p className="mt-3 text-xs leading-relaxed text-vault-fog">
+                  Snapshots over time, friend comparisons, and filters for all, owned, or tracked
+                  games.
                 </p>
               </div>
-            ))}
+            </figcaption>
+          </figure>
+
+          <div className="mt-14 grid gap-12 lg:mt-20 xl:grid-cols-2 xl:gap-8">
+            <figure>
+              <ProductPlate
+                src="/product/achievements.webp"
+                alt="The Achievements screen: games closest to perfect, the trophy cabinet with completion bars, latest unlocks, and rarest trophies."
+                width={1360}
+                height={850}
+              />
+              <figcaption className="mt-4">
+                <h3 className="font-display text-[1.6rem] leading-tight tracking-[-0.01em] text-vault-paper">
+                  Rarity, on every trophy.
+                </h3>
+                <p className="mt-2 max-w-[46ch] text-sm leading-[1.7] text-vault-fog">
+                  The trophy cabinet sorts every game by what&apos;s closest to finished, while
+                  global unlock rates mark the achievements almost nobody has.
+                </p>
+              </figcaption>
+            </figure>
+
+            <figure>
+              <ProductPlate
+                src="/product/insights.webp"
+                alt="The Insights screen: achievement portfolio, closest to perfect, recent unlocks, tracked game health, playtime distribution, and rarity distribution."
+                width={1360}
+                height={850}
+              />
+              <figcaption className="mt-4">
+                <h3 className="font-display text-[1.6rem] leading-tight tracking-[-0.01em] text-vault-paper">
+                  The shape of your collection.
+                </h3>
+                <p className="mt-2 max-w-[46ch] text-sm leading-[1.7] text-vault-fog">
+                  Weighted completion, backlog, playtime bands, unlock velocity, and rarity
+                  distribution. Insights shows where the collection is growing and where it stalled.
+                </p>
+              </figcaption>
+            </figure>
+          </div>
+
+          <div className="mt-14 flex flex-col gap-5 border-t border-vault-line pt-8 sm:flex-row sm:items-center sm:justify-between lg:mt-20">
+            <div>
+              <h3 className="font-display text-2xl leading-tight text-vault-paper">
+                See your own vault.
+              </h3>
+              <p className="mt-1 text-sm text-vault-fog">
+                Sign in with Steam and the dashboard fills with your library.
+              </p>
+            </div>
+            <SignInButton className={LOGIN_CTA_CLASS} />
           </div>
         </section>
       </main>
