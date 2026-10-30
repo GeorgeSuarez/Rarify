@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "css:unknownAtRules": {
+      "ignorePaths": ["src/styles/globals.css"]
+    }
+  }
+}

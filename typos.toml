@@ -1,0 +1,11 @@
+# Project typos config. A project config replaces pi-lens's bundled default, so
+# the two bundled identifiers are repeated here alongside the font-range rule.
+
+[default]
+# Unicode ranges in @font-face rules contain hex endpoints such as U+0100-02BA;
+# "BA" is not prose.
+extend-ignore-re = ["U\\+[0-9A-Fa-f]+-[0-9A-Fa-f]+"]
+
+[default.extend-identifiers]
+dito = "dito"
+unparseable = "unparseable"

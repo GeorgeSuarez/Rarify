@@ -1,5 +1,6 @@
 import { useTransition } from "react";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function SteamIcon({ className }: { className?: string }) {
   return (
@@ -9,7 +10,7 @@ function SteamIcon({ className }: { className?: string }) {
   );
 }
 
-export function SignInButton() {
+export function SignInButton({ className }: { readonly className?: string }) {
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -20,10 +21,11 @@ export function SignInButton() {
           startTransition(() => {});
         }
       }}
-      className={
-        "inline-flex touch-manipulation items-center gap-[0.6em] rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-[transform,background-color] duration-160 ease-out select-none motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:bg-foreground/85 active:scale-[0.97]" +
-        (isPending ? " pointer-events-none opacity-60" : "")
-      }
+      className={cn(
+        "inline-flex touch-manipulation items-center gap-[0.6em] rounded-lg bg-foreground px-6 py-3 text-sm font-semibold text-background transition-[transform,background-color] duration-160 ease-out select-none motion-reduce:transition-none [@media(hover:hover)_and_(pointer:fine)]:hover:bg-foreground/85 active:scale-[0.97]",
+        isPending && "pointer-events-none opacity-60",
+        className,
+      )}
     >
       {isPending ? (
         <>

@@ -16,6 +16,9 @@
     <!-- The only publicly reachable screen is /login; the dashboard routes
          redirect anonymous visitors there. Keep this in step with
          public/sitemap.xml if a public route is ever added. -->
+    <!-- Canonical URLs declare the preferred page URL; they do not fetch a
+         subresource, so SRI does not apply. -->
+    <!-- nosemgrep: html.security.audit.missing-integrity.missing-integrity -->
     <link rel="canonical" href="https://rarify.georgejsuarez.com/login" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
 
@@ -84,12 +87,6 @@
         ]
       }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body class="min-h-full">
     <div id="root"></div>
