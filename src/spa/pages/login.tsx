@@ -121,8 +121,7 @@ export function LoginPage() {
         <div className="grid grid-cols-1 items-start gap-12 pb-14 pt-10 sm:pt-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16 lg:pb-20 lg:pt-16 xl:gap-20">
           <section className="min-w-0 max-w-[35rem] lg:pt-5">
             <h1 className="font-display text-[clamp(2.75rem,5.6vw,4.9rem)] font-medium leading-[0.94] tracking-[-0.03em] text-vault-paper">
-              Find your
-              <br />
+              Find your <br />
               rarest trophies.
             </h1>
             <p className="mt-6 max-w-[46ch] text-[15px] leading-[1.75] text-vault-fog sm:text-base">
