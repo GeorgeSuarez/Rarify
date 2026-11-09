@@ -78,14 +78,18 @@ describe("Rarify HTTP API", () => {
   let handler: (request: Request, context: Context.Context<never>) => Promise<Response>;
   let dispose: () => Promise<void>;
   let context: Context.Context<never>;
+  let apiRateLimitAllowed: boolean;
 
   beforeAll(() => {
+    apiRateLimitAllowed = true;
+
     const built = HttpRouter.toWebHandler(
       handlersLayer({
         session: sessionService,
         dashboard: dashboardService,
         preferences: preferencesService,
         trackedGames: trackedGamesService,
+        consumeApiRateLimit: () => Effect.succeed(apiRateLimitAllowed),
       }),
       { disableLogger: true },
     );
@@ -214,5 +218,34 @@ describe("Rarify HTTP API", () => {
     );
 
     expect(response.status).toBe(400);
+  });
+
+  it("answers 429 when the caller's API budget is exhausted", async () => {
+    apiRateLimitAllowed = false;
+
+    try {
+      const response = await handler(
+        new Request("http://rarify.test/api/dashboard", {
+          headers: { cookie: "rarify_session=test-token" },
+        }),
+        context,
+      );
+
+      expect(response.status).toBe(429);
+    } finally {
+      apiRateLimitAllowed = true;
+    }
+  });
+
+  it("leaves the session probe unmetered so the SPA can always bootstrap", async () => {
+    apiRateLimitAllowed = false;
+
+    try {
+      const response = await handler(new Request("http://rarify.test/api/session"), context);
+
+      expect(response.status).toBe(200);
+    } finally {
+      apiRateLimitAllowed = true;
+    }
   });
 });

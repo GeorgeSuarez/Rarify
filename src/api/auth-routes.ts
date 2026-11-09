@@ -3,6 +3,8 @@ import * as Result from "effect/Result";
 import * as HttpRouter from "effect/http/HttpRouter";
 import * as HttpServerResponse from "effect/http/HttpServerResponse";
 import * as SteamLogin from "../services/steam-login.ts";
+import { clientKeyOf } from "../services/rate-limit.ts";
+import type * as RateLimit from "../services/rate-limit.ts";
 import { clearSessionCookie, withSessionCookie } from "./session-cookie.ts";
 
 const STEAM_OPENID_URL = "https://steamcommunity.com/openid/login";
@@ -37,10 +39,12 @@ const noStore = (response: HttpServerResponse.HttpServerResponse) =>
  * @param services - Login application service and public URL configuration.
  * @returns A router layer serving `/auth/*`.
  */
-export const authRoutesLayer = (services: {
+export const authRoutesLayer = <R = never>(services: {
   readonly steamLogin: SteamLogin.Interface;
   readonly publicAppUrl: string;
   readonly secureCookies: boolean;
+  /** Spends one unit of the caller's sign-in budget; `true` means allowed. */
+  readonly consumeAuthRateLimit: RateLimit.Consume<R>;
 }) =>
   HttpRouter.use((router) =>
     Effect.gen(function* () {
@@ -63,6 +67,20 @@ export const authRoutesLayer = (services: {
 
       yield* router.add("GET", "/auth/steam/callback", (request) =>
         Effect.gen(function* () {
+          // Keyed by network address: no session exists yet, and this is the
+          // endpoint that spends a Steam round-trip and mints a session cookie.
+          const allowed = yield* services.consumeAuthRateLimit(
+            `auth-callback:${clientKeyOf(request)}`,
+          );
+
+          if (!allowed) {
+            yield* Effect.logWarning("Steam sign-in attempt was rate limited");
+
+            return noStore(
+              HttpServerResponse.redirect(`${services.publicAppUrl}/login?error=rate_limited`),
+            );
+          }
+
           const outcome = yield* services.steamLogin
             .completeLogin(assertionFrom(request.url))
             .pipe(Effect.result);

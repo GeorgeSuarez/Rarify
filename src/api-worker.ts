@@ -6,6 +6,7 @@ import * as Option from "effect/Option";
 import * as HttpRouter from "effect/http/HttpRouter";
 import * as HttpServerResponse from "effect/http/HttpServerResponse";
 import { layerForD1 } from "./adapters/d1-store.ts";
+import { consumeFrom } from "./adapters/rate-limit.ts";
 import { layerWithoutDependencies as dashboardServiceLayer } from "./adapters/dashboard-service.ts";
 import { layerWithoutDependencies as preferencesServiceLayer } from "./adapters/preferences-service.ts";
 import { layer as sessionTokenLayer } from "./adapters/session-jwt.ts";
@@ -117,6 +118,19 @@ export default Cloudflare.Worker(
       Effect.provide(steamOpenIdLayer(publicAppUrl)),
     );
 
+    // Two fixed-window buckets. The callback is keyed by network address
+    // because no session exists yet; the API is keyed by the verified Steam ID
+    // so one account cannot spend another's allowance behind a shared NAT.
+    const authThrottle = yield* Cloudflare.Workers.RateLimit("AUTH_THROTTLE", {
+      namespaceId: 1001,
+      simple: { limit: 20, period: 60 },
+    });
+
+    const apiThrottle = yield* Cloudflare.Workers.RateLimit("API_THROTTLE", {
+      namespaceId: 1002,
+      simple: { limit: 120, period: 60 },
+    });
+
     const steamLogin = yield* SteamLogin.Service.pipe(
       Effect.provide(
         steamLoginLayer.pipe(
@@ -163,8 +177,20 @@ export default Cloudflare.Worker(
       ),
     );
 
-    const api = handlersLayer({ session, dashboard, preferences, trackedGames });
-    const auth = authRoutesLayer({ steamLogin, publicAppUrl, secureCookies });
+    const api = handlersLayer({
+      session,
+      dashboard,
+      preferences,
+      trackedGames,
+      consumeApiRateLimit: consumeFrom(apiThrottle),
+    });
+
+    const auth = authRoutesLayer({
+      steamLogin,
+      publicAppUrl,
+      secureCookies,
+      consumeAuthRateLimit: consumeFrom(authThrottle),
+    });
 
     return {
       fetch: (yield* HttpRouter.toHttpEffect(Layer.mergeAll(api, auth))).pipe(
@@ -172,6 +198,10 @@ export default Cloudflare.Worker(
       ),
     };
   }).pipe(
-    Effect.provide([Cloudflare.D1.QueryDatabaseBinding, Cloudflare.Workers.CronEventSourceLive]),
+    Effect.provide([
+      Cloudflare.D1.QueryDatabaseBinding,
+      Cloudflare.Workers.CronEventSourceLive,
+      Cloudflare.Workers.RateLimitBinding,
+    ]),
   ),
 );

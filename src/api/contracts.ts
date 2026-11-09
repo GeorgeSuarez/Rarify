@@ -36,6 +36,12 @@ export class NotFoundError extends Schema.TaggedError<NotFoundError>()("NotFound
   message: Schema.String,
 }) {}
 
+/** HTTP 429 error returned when a caller exceeds its request budget. */
+export class TooManyRequestsError extends Schema.TaggedError<TooManyRequestsError>()(
+  "TooManyRequestsError",
+  { message: Schema.String },
+) {}
+
 /** HTTP 500 error returned when an application operation cannot be completed. */
 export class ApiFailure extends Schema.TaggedError<ApiFailure>()("ApiFailure", {
   message: Schema.String,
@@ -56,6 +62,7 @@ const standardErrors = [
   HttpApiSchema.status(401)(UnauthorizedError),
   HttpApiSchema.status(400)(InvalidRequestError),
   HttpApiSchema.status(404)(NotFoundError),
+  HttpApiSchema.status(429)(TooManyRequestsError),
   HttpApiSchema.status(500)(ApiFailure),
 ] as const;
 
