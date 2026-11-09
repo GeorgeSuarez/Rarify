@@ -56,6 +56,7 @@ const ERROR_MESSAGES = new Map<string, string>([
   ["auth_failed", "Steam could not verify your sign-in. Please try again."],
   ["no_steamid", "We couldn't read your Steam ID. Please try again."],
   ["db_error", "We couldn't save your profile. Your session still works."],
+  ["rate_limited", "Too many sign-in attempts. Wait a minute and try again."],
 ]);
 
 /** Monogram stamp, matching the sidebar's letter mark in the login palette. */

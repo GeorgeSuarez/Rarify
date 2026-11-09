@@ -12,7 +12,14 @@ import * as DashboardService from "../services/dashboard.ts";
 import * as PreferencesService from "../services/preferences.ts";
 import * as SessionService from "../services/session.ts";
 import * as TrackedGamesService from "../services/tracked-games.ts";
-import { ApiFailure, NotFoundError, RarifyApi, UnauthorizedError } from "./contracts.ts";
+import {
+  ApiFailure,
+  NotFoundError,
+  RarifyApi,
+  TooManyRequestsError,
+  UnauthorizedError,
+} from "./contracts.ts";
+import type * as RateLimit from "../services/rate-limit.ts";
 import { createSessionReader } from "./session-cookie.ts";
 
 /**
@@ -53,11 +60,16 @@ const failRequest = (
 const toApiFailure = <A, R>(
   effect: Effect.Effect<
     A,
-    PersistenceError | SteamApiError | SessionError | UnauthorizedError | NotFoundError,
+    | PersistenceError
+    | SteamApiError
+    | SessionError
+    | UnauthorizedError
+    | NotFoundError
+    | TooManyRequestsError,
     R
   >,
   operation: string,
-): Effect.Effect<A, ApiFailure | UnauthorizedError | NotFoundError, R> =>
+): Effect.Effect<A, ApiFailure | UnauthorizedError | NotFoundError | TooManyRequestsError, R> =>
   effect.pipe(
     Effect.catchTag("PersistenceError", (error) =>
       failRequest(operation, "The request could not be completed", error),
@@ -77,13 +89,33 @@ const toApiFailure = <A, R>(
  * @param services - Application capabilities resolved during Worker init.
  * @returns A layer that provides the API's group handler services.
  */
-export const handlersLayer = (services: {
+export const handlersLayer = <R = never>(services: {
   readonly session: SessionService.Interface;
   readonly dashboard: DashboardService.Interface;
   readonly preferences: PreferencesService.Interface;
   readonly trackedGames: TrackedGamesService.Interface;
+  /** Spends one unit of the caller's API budget; `true` means allowed. */
+  readonly consumeApiRateLimit: RateLimit.Consume<R>;
 }) => {
   const { require: requireSession } = createSessionReader(services.session);
+
+  // `/api/session` stays unmetered so the SPA's bootstrap probe always answers;
+  // every data endpoint spends one unit of the caller's budget instead.
+  const limitedSession = requireSession.pipe(
+    Effect.flatMap((session) =>
+      services.consumeApiRateLimit(`api:${session.steamId}`).pipe(
+        Effect.flatMap((allowed) =>
+          allowed
+            ? Effect.succeed(session)
+            : Effect.fail(
+                new TooManyRequestsError({
+                  message: "Too many requests. Wait a moment and try again.",
+                }),
+              ),
+        ),
+      ),
+    ),
+  );
 
   const groups = Layer.mergeAll(
     HttpApiBuilder.group(RarifyApi, "Session", (handlers) =>
@@ -98,7 +130,7 @@ export const handlersLayer = (services: {
     HttpApiBuilder.group(RarifyApi, "Dashboard", (handlers) =>
       handlers.handle("getDashboard", ({ query }) =>
         toApiFailure(
-          requireSession.pipe(
+          limitedSession.pipe(
             Effect.flatMap((session) =>
               services.dashboard.getDashboard(session.steamId, query.filter ?? "all"),
             ),
@@ -112,7 +144,7 @@ export const handlersLayer = (services: {
       handlers
         .handle("getGames", () =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) => services.dashboard.getLibrary(session.steamId)),
             ),
             "getGames",
@@ -120,7 +152,7 @@ export const handlersLayer = (services: {
         )
         .handle("getGameAchievements", ({ params }) =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) =>
                 services.dashboard.getGameAchievements(session.steamId, params.appId),
               ),
@@ -133,7 +165,7 @@ export const handlersLayer = (services: {
     HttpApiBuilder.group(RarifyApi, "Achievements", (handlers) =>
       handlers.handle("getAchievementsOverview", () =>
         toApiFailure(
-          requireSession.pipe(
+          limitedSession.pipe(
             Effect.flatMap((session) =>
               services.dashboard.getAchievementsOverview(session.steamId),
             ),
@@ -147,7 +179,7 @@ export const handlersLayer = (services: {
       handlers
         .handle("getFriends", () =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) => services.dashboard.getFriends(session.steamId)),
             ),
             "getFriends",
@@ -155,7 +187,7 @@ export const handlersLayer = (services: {
         )
         .handle("getFriendComparison", ({ params }) =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) =>
                 services.dashboard.getFriendComparison(session.steamId, params.steamId),
               ),
@@ -175,7 +207,7 @@ export const handlersLayer = (services: {
       handlers
         .handle("getPreferences", () =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) => services.preferences.get(session.steamId)),
             ),
             "getPreferences",
@@ -183,7 +215,7 @@ export const handlersLayer = (services: {
         )
         .handle("savePreferences", ({ payload }) =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) =>
                 services.preferences.save(
                   session.steamId,
@@ -202,7 +234,7 @@ export const handlersLayer = (services: {
       handlers
         .handle("trackGame", ({ payload }) =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) =>
                 services.trackedGames.track(session.steamId, payload.appId),
               ),
@@ -213,7 +245,7 @@ export const handlersLayer = (services: {
         )
         .handle("untrackGame", ({ query }) =>
           toApiFailure(
-            requireSession.pipe(
+            limitedSession.pipe(
               Effect.flatMap((session) =>
                 services.trackedGames.untrack(session.steamId, query.appId),
               ),

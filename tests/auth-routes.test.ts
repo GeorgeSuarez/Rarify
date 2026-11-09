@@ -8,6 +8,7 @@ import { authRoutesLayer } from "@/src/api/auth-routes";
 import { SESSION_COOKIE } from "@/src/api/session-cookie";
 import * as SteamLogin from "@/src/services/steam-login";
 import * as SteamOpenId from "@/src/services/steam-openid";
+import type * as RateLimit from "@/src/services/rate-limit";
 
 const STEAM_ID = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000001");
 
@@ -29,12 +30,16 @@ const failingLogin = makeSteamLogin(() =>
 
 const succeedingLogin = makeSteamLogin(() => Effect.succeed(Redacted.make("issued-token")));
 
-const buildHandler = (steamLogin: SteamLogin.Interface) =>
+const buildHandler = (
+  steamLogin: SteamLogin.Interface,
+  consumeAuthRateLimit: RateLimit.Consume = () => Effect.succeed(true),
+) =>
   HttpRouter.toWebHandler(
     authRoutesLayer({
       steamLogin,
       publicAppUrl: PUBLIC_APP_URL,
       secureCookies: true,
+      consumeAuthRateLimit,
     }),
     { disableLogger: true },
   );
@@ -120,6 +125,7 @@ describe("Steam auth routes", () => {
         steamLogin: succeedingLogin,
         publicAppUrl: "http://localhost:5173",
         secureCookies: false,
+        consumeAuthRateLimit: () => Effect.succeed(true),
       }),
       { disableLogger: true },
     );
@@ -132,6 +138,47 @@ describe("Steam auth routes", () => {
       const setCookie = response.headers.get("set-cookie") ?? "";
       expect(setCookie).toContain(`${SESSION_COOKIE}=issued-token`);
       expect(setCookie).not.toContain("Secure");
+    } finally {
+      await built.dispose();
+    }
+  });
+
+  it("keys the sign-in budget by the caller's network address", async () => {
+    const keys: Array<string> = [];
+
+    const built = buildHandler(succeedingLogin, (key) => {
+      keys.push(key);
+
+      return Effect.succeed(true);
+    });
+
+    try {
+      await built.handler(
+        new Request(`${PUBLIC_APP_URL}/auth/steam/callback?openid.mode=id_res`, {
+          headers: { "cf-connecting-ip": "203.0.113.9" },
+        }),
+      );
+
+      expect(keys).toEqual(["auth-callback:203.0.113.9"]);
+    } finally {
+      await built.dispose();
+    }
+  });
+
+  it("redirects to the login page without issuing a session when the budget is spent", async () => {
+    const built = buildHandler(succeedingLogin, () => Effect.succeed(false));
+
+    try {
+      const response = await built.handler(
+        new Request(`${PUBLIC_APP_URL}/auth/steam/callback?openid.mode=id_res`, {
+          headers: { "cf-connecting-ip": "203.0.113.9" },
+        }),
+      );
+
+      expect(response.status).toBe(302);
+      expect(response.headers.get("location")).toBe(`${PUBLIC_APP_URL}/login?error=rate_limited`);
+      // The limiter runs before the assertion is verified, so no session is minted.
+      expect(response.headers.get("set-cookie")).toBeNull();
     } finally {
       await built.dispose();
     }

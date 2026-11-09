@@ -80,6 +80,25 @@ framing policy; `src/api-worker.ts` applies its own set to every `/api/*` and
 `/auth/*` response, including `cache-control: no-store` so the Steam callback
 URL is never cached.
 
+## Rate limiting
+
+Two Cloudflare Rate Limiting bindings (`AUTH_THROTTLE`, `API_THROTTLE`) are
+declared in `src/api-worker.ts` and adapted by `src/adapters/rate-limit.ts` into
+`src/services/rate-limit.ts`'s `Consume` shape. Both use a 60-second fixed
+window.
+
+- `/auth/steam/callback` is keyed by `CF-Connecting-IP` (20/min) because no
+  session exists yet. Exceeding it redirects to `/login?error=rate_limited`
+  before the assertion is verified, so no session cookie is minted.
+- Every `/api/*` data endpoint is keyed by the verified Steam ID (120/min) so one
+  account cannot spend another's allowance behind a shared NAT.
+  `GET /api/session` is deliberately unmetered so the SPA can always bootstrap.
+
+`Consume` never fails: a binding error is logged and treated as allowed, because
+rate limiting is defence in depth and an edge hiccup must not lock everyone out
+of sign-in. Cloudflare counts per location, so these are approximate global
+limits — enough for burst abuse, not an exact quota.
+
 ## Snapshot cron
 
 - `Cloudflare.Workers.cron("0 0 * * *", ...)` in `src/api-worker.ts` runs the daily snapshot job; there is no public HTTP cron endpoint.
