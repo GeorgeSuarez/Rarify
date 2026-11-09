@@ -31,6 +31,11 @@ export class InvalidRequestError extends Schema.TaggedError<InvalidRequestError>
   { message: Schema.String },
 ) {}
 
+/** HTTP 404 error returned when a resource is outside the caller's scope. */
+export class NotFoundError extends Schema.TaggedError<NotFoundError>()("NotFoundError", {
+  message: Schema.String,
+}) {}
+
 /** HTTP 500 error returned when an application operation cannot be completed. */
 export class ApiFailure extends Schema.TaggedError<ApiFailure>()("ApiFailure", {
   message: Schema.String,
@@ -50,6 +55,7 @@ export const SessionStatusSchema = Schema.Struct({
 const standardErrors = [
   HttpApiSchema.status(401)(UnauthorizedError),
   HttpApiSchema.status(400)(InvalidRequestError),
+  HttpApiSchema.status(404)(NotFoundError),
   HttpApiSchema.status(500)(ApiFailure),
 ] as const;
 

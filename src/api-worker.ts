@@ -4,6 +4,7 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
 import * as HttpRouter from "effect/http/HttpRouter";
+import * as HttpServerResponse from "effect/http/HttpServerResponse";
 import { layerForD1 } from "./adapters/d1-store.ts";
 import { layerWithoutDependencies as dashboardServiceLayer } from "./adapters/dashboard-service.ts";
 import { layerWithoutDependencies as preferencesServiceLayer } from "./adapters/preferences-service.ts";
@@ -25,6 +26,28 @@ import * as SteamClient from "./services/steam-client.ts";
 import * as SteamLogin from "./services/steam-login.ts";
 import * as SteamOpenId from "./services/steam-openid.ts";
 import * as TrackedGamesService from "./services/tracked-games.ts";
+
+/**
+ * Response headers applied to every API response.
+ *
+ * The API only ever returns JSON, redirects, and cookies, so it can forbid
+ * framing and sniffing outright. `no-store` keeps per-user payloads and the
+ * session cookie out of any shared cache.
+ */
+const SECURITY_HEADERS = {
+  "cache-control": "no-store",
+  "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-resource-policy": "same-origin",
+  "permissions-policy": "camera=(), geolocation=(), microphone=()",
+  "referrer-policy": "no-referrer",
+  "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+} as const;
+
+/** Apply the Worker's fixed security headers to an outgoing API response. */
+const withSecurityHeaders = HttpServerResponse.setHeaders(SECURITY_HEADERS);
 
 /**
  * Effect-native API Worker for Steam authentication, dashboard APIs, and the
@@ -86,9 +109,13 @@ export default Cloudflare.Worker(
       Effect.provide(trackedGamesServiceLayer.pipe(Layer.provide(storeLayer))),
     );
 
-    const session = yield* SessionService.Service.pipe(Effect.provide(sessionTokenLayer));
+    const session = yield* SessionService.Service.pipe(
+      Effect.provide(sessionTokenLayer(publicAppUrl)),
+    );
 
-    const steamOpenId = yield* SteamOpenId.Service.pipe(Effect.provide(steamOpenIdLayer));
+    const steamOpenId = yield* SteamOpenId.Service.pipe(
+      Effect.provide(steamOpenIdLayer(publicAppUrl)),
+    );
 
     const steamLogin = yield* SteamLogin.Service.pipe(
       Effect.provide(
@@ -140,7 +167,9 @@ export default Cloudflare.Worker(
     const auth = authRoutesLayer({ steamLogin, publicAppUrl, secureCookies });
 
     return {
-      fetch: yield* HttpRouter.toHttpEffect(Layer.mergeAll(api, auth)),
+      fetch: (yield* HttpRouter.toHttpEffect(Layer.mergeAll(api, auth))).pipe(
+        Effect.map(withSecurityHeaders),
+      ),
     };
   }).pipe(
     Effect.provide([Cloudflare.D1.QueryDatabaseBinding, Cloudflare.Workers.CronEventSourceLive]),

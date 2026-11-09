@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import * as Cause from "effect/Cause";
 import * as Effect from "effect/Effect";
-import { UnauthorizedError } from "../api/contracts.ts";
+import { NotFoundError, UnauthorizedError } from "../api/contracts.ts";
 
 /** Lifecycle of a client-side API read. */
 export type ApiState<A> =
@@ -22,7 +22,7 @@ export type ApiState<A> =
  * @returns The current API state for the page.
  */
 export function useApi<A, E>(
-  load: () => Effect.Effect<A, E | UnauthorizedError>,
+  load: () => Effect.Effect<A, E | UnauthorizedError | NotFoundError>,
   deps: ReadonlyArray<unknown>,
 ): ApiState<A> {
   const [state, setState] = useState<ApiState<A>>({ status: "loading" });

@@ -17,6 +17,13 @@ export interface ProfileSummary {
   readonly avatar: string;
   readonly avatarFull: string;
   readonly profileUrl: string;
+  /**
+   * Steam profile visibility: 1 private, 2 friends-only, 3 public.
+   *
+   * Read from the same summaries call as the rest of the profile, so callers
+   * can judge library accessibility without one request per friend.
+   */
+  readonly communityVisibilityState: number | undefined;
 }
 
 /** Typed failure from Steam Web API transport, status, or response decoding. */

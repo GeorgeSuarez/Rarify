@@ -247,6 +247,7 @@ const make = Effect.gen(function* () {
                 avatar: player.avatar,
                 avatarFull: player.avatarfull,
                 profileUrl: player.profileurl,
+                communityVisibilityState: player.communityvisibilitystate,
               }) satisfies SteamClient.ProfileSummary,
           ),
         ),

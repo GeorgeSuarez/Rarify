@@ -45,6 +45,9 @@ import * as SteamClient from "../services/steam-client.ts";
 
 const DETAIL_CONCURRENCY = 5;
 
+/** Steam's `communityvisibilitystate` value for a fully public profile. */
+const PUBLIC_PROFILE_VISIBILITY = 3;
+
 const RECENT_ACHIEVEMENT_COUNT = 5;
 
 /**
@@ -748,28 +751,15 @@ export const make: Effect.Effect<
       return { friends: [], error: null, hiddenCount: 0 } satisfies FriendsData;
     }
 
+    // Profile visibility arrives with the summaries, so the cost stays at two
+    // Steam subrequests no matter how many friends the account has. Probing
+    // each friend's library instead would exceed the Worker's subrequest
+    // budget for anyone with more than a few dozen friends.
     const summaries = yield* steam.getPlayerSummaries(friendIds);
 
-    const accessibility = yield* Effect.forEach(
-      friendIds,
-      (friendId) =>
-        steam.getOwnedGames(friendId).pipe(
-          Effect.map((result) => Option.some({ friendId, accessible: result.ok })),
-          Effect.catchTag("SteamApiError", () =>
-            Effect.succeed(Option.none<{ friendId: SteamId; accessible: boolean }>()),
-          ),
-        ),
-      { concurrency: DETAIL_CONCURRENCY },
-    );
-
-    const accessibleIds = new Set(
-      accessibility.flatMap((result) =>
-        Option.isSome(result) && result.value.accessible ? [result.value.friendId] : [],
-      ),
-    );
-
     const friends: ReadonlyArray<FriendSummary> = summaries.flatMap((summary) =>
-      accessibleIds.has(summary.steamId)
+      summary.communityVisibilityState === undefined ||
+      summary.communityVisibilityState === PUBLIC_PROFILE_VISIBILITY
         ? [
             {
               steamId: summary.steamId,
@@ -791,16 +781,44 @@ export const make: Effect.Effect<
 
   const getFriendComparison = Effect.fn("DashboardService.getFriendComparison")(
     function* (steamId, friendSteamId) {
-      const [yourData, friendData, friends] = yield* Effect.all(
-        [getDashboard(steamId, "all"), getDashboard(friendSteamId, "all"), getFriends(steamId)],
+      // Authorize against the caller's own friend list before reading anything
+      // about the target. Without this check any signed-in user could read an
+      // arbitrary Steam account through Rarify's API key and cache its library
+      // in D1.
+      const friendIds = yield* steam.getFriendIds(steamId);
+
+      if (!friendIds.includes(friendSteamId)) {
+        return yield* Effect.fail(
+          new Dashboard.FriendNotAccessibleError({
+            message: "Rarify can only compare you with one of your Steam friends",
+          }),
+        );
+      }
+
+      const [yourData, friendData, summaries] = yield* Effect.all(
+        [
+          getDashboard(steamId, "all"),
+          getDashboard(friendSteamId, "all"),
+          steam.getPlayerSummaries([friendSteamId]),
+        ],
         { concurrency: "unbounded" },
       );
 
-      const friendInfo = friends.friends.find((friend) => friend.steamId === friendSteamId);
+      const summary = summaries.find((player) => player.steamId === friendSteamId);
 
-      return friendInfo === undefined
+      return summary === undefined
         ? ({ yourData, friendData } satisfies FriendComparison)
-        : ({ yourData, friendData, friendInfo } satisfies FriendComparison);
+        : ({
+            yourData,
+            friendData,
+            friendInfo: {
+              steamId: summary.steamId,
+              name: summary.personaName,
+              avatar: summary.avatar,
+              avatarFull: summary.avatarFull,
+              profileUrl: summary.profileUrl,
+            },
+          } satisfies FriendComparison);
     },
   );
 

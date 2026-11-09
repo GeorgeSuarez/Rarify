@@ -54,6 +54,32 @@ Alchemy reads Cloudflare credentials from its own profile store (`alchemy profil
 3. Steam redirects to `GET /auth/steam/callback` → the Worker verifies the assertion with Steam, upserts the user profile in D1 (best-effort), signs a 30-day session JWT, and sets the HTTP-only `rarify_session` cookie.
 4. Logout: `POST /auth/logout` (form post from the sidebar) → expires the cookie and redirects to `/login`.
 
+`src/adapters/steam-openid.ts` binds each assertion to this deployment before
+spending a Steam round-trip: `openid.mode` must be `id_res`, `openid.op_endpoint`
+must be Steam, and `openid.return_to` must equal `${PUBLIC_APP_URL}/auth/steam/callback`.
+Steam's `check_authentication` only proves the assertion is signed, so without
+these checks a valid assertion issued to any other Steam OpenID relying party
+would be accepted and the callback URL would act as a bearer credential.
+
+The session JWT carries `iss: rarify` and `aud: <PUBLIC_APP_URL>`, and
+`src/adapters/session-jwt.ts` pins `HS256` on verify. Preview and production
+deploy with the same `AUTH_SECRET`, so the audience claim is what keeps their
+sessions from being interchangeable.
+
+## Authorization
+
+Every `/api/*` handler derives the Steam ID from the verified session, never
+from the request. `GET /api/friends/:steamId` additionally checks the target
+against the caller's own `getFriendIds` list and answers `404` otherwise, so an
+arbitrary Steam account cannot be read through Rarify's API key or cached in D1.
+
+## Response headers
+
+`public/_headers` is uploaded with the built assets and applies the SPA's CSP and
+framing policy; `src/api-worker.ts` applies its own set to every `/api/*` and
+`/auth/*` response, including `cache-control: no-store` so the Steam callback
+URL is never cached.
+
 ## Snapshot cron
 
 - `Cloudflare.Workers.cron("0 0 * * *", ...)` in `src/api-worker.ts` runs the daily snapshot job; there is no public HTTP cron endpoint.

@@ -254,6 +254,8 @@ export const SteamPlayerSummarySchema = Schema.Struct({
   avatarmedium: Schema.String,
   avatarfull: Schema.String,
   profileurl: Schema.String,
+  /** 1 private, 2 friends-only, 3 public. */
+  communityvisibilitystate: Schema.optionalKey(Schema.Number),
 });
 
 /** Runtime schema for Steam's player-summaries response envelope. */
