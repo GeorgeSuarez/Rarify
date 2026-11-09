@@ -147,7 +147,11 @@ export function FriendComparePage() {
     () =>
       steamId === null
         ? Effect.succeed(null)
-        : apiGroups.friends.getFriendComparison({ params: { steamId } }),
+        : apiGroups.friends.getFriendComparison({ params: { steamId } }).pipe(
+            // The API reports a Steam account outside the caller's friend list as
+            // 404; render the same not-found screen as an unroutable id.
+            Effect.catchTag("NotFoundError", () => Effect.succeed(null)),
+          ),
     [steamId],
   );
 

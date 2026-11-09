@@ -14,9 +14,18 @@ const STEAM_ID = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000001");
 
 const SECRET = "test-auth-secret";
 
-const runWithSession = <A, E>(effect: Effect.Effect<A, E, Session.Service>) =>
+/** Public origin the token layer is bound to. */
+const AUDIENCE = "https://rarify.test";
+
+/** A different stage's origin, sharing the same AUTH_SECRET. */
+const OTHER_AUDIENCE = "https://preview-rarify.test";
+
+const runWithSession = <A, E>(
+  effect: Effect.Effect<A, E, Session.Service>,
+  audience: string = AUDIENCE,
+) =>
   effect.pipe(
-    Effect.provide(sessionTokenLayer),
+    Effect.provide(sessionTokenLayer(audience)),
     Effect.provide(ConfigProvider.layer(ConfigProvider.fromUnknown({ AUTH_SECRET: SECRET }))),
   );
 
@@ -60,7 +69,7 @@ describe("SessionService", () => {
 
         return yield* service.create(STEAM_ID);
       }).pipe(
-        Effect.provide(sessionTokenLayer),
+        Effect.provide(sessionTokenLayer(AUDIENCE)),
         Effect.provide(
           ConfigProvider.layer(ConfigProvider.fromUnknown({ AUTH_SECRET: "a-different-secret" })),
         ),
@@ -80,6 +89,33 @@ describe("SessionService", () => {
     expect(Option.isNone(verified)).toBe(true);
   });
 
+  it("rejects a token minted for another stage sharing the same secret", async () => {
+    // Preview and production deploy with the same AUTH_SECRET, so the audience
+    // claim is what keeps their sessions from being interchangeable.
+    const previewToken = await Effect.runPromise(
+      runWithSession(
+        Effect.gen(function* () {
+          const service = yield* Session.Service;
+
+          return yield* service.create(STEAM_ID);
+        }),
+        OTHER_AUDIENCE,
+      ),
+    );
+
+    const verified = await Effect.runPromise(
+      runWithSession(
+        Effect.gen(function* () {
+          const service = yield* Session.Service;
+
+          return yield* service.verify(previewToken);
+        }),
+      ),
+    );
+
+    expect(Option.isNone(verified)).toBe(true);
+  });
+
   it("fails with a typed error when AUTH_SECRET is missing", async () => {
     const result = await Effect.runPromise(
       Effect.gen(function* () {
@@ -87,7 +123,7 @@ describe("SessionService", () => {
 
         return yield* service.create(STEAM_ID);
       }).pipe(
-        Effect.provide(sessionTokenLayer),
+        Effect.provide(sessionTokenLayer(AUDIENCE)),
         Effect.provide(ConfigProvider.layer(ConfigProvider.fromUnknown({}))),
         Effect.result,
       ),
@@ -97,7 +133,7 @@ describe("SessionService", () => {
   });
 
   it("shares one Layer build across both methods", async () => {
-    const layer = sessionTokenLayer;
+    const layer = sessionTokenLayer(AUDIENCE);
 
     const services = await Effect.runPromise(
       Effect.gen(function* () {
@@ -116,6 +152,7 @@ describe("SessionService", () => {
 });
 
 /** Ensures the Layer type stays usable from the Worker composition root. */
-const layerUsable: Layer.Layer<Session.Service, ConfigError.ConfigError> = sessionTokenLayer;
+const layerUsable: Layer.Layer<Session.Service, ConfigError.ConfigError> =
+  sessionTokenLayer(AUDIENCE);
 
 void layerUsable;

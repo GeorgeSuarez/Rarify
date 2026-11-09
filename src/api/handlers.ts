@@ -12,7 +12,7 @@ import * as DashboardService from "../services/dashboard.ts";
 import * as PreferencesService from "../services/preferences.ts";
 import * as SessionService from "../services/session.ts";
 import * as TrackedGamesService from "../services/tracked-games.ts";
-import { ApiFailure, RarifyApi, UnauthorizedError } from "./contracts.ts";
+import { ApiFailure, NotFoundError, RarifyApi, UnauthorizedError } from "./contracts.ts";
 import { createSessionReader } from "./session-cookie.ts";
 
 /**
@@ -51,9 +51,13 @@ const failRequest = (
  * @returns The same success value with `ApiFailure` in the error channel.
  */
 const toApiFailure = <A, R>(
-  effect: Effect.Effect<A, PersistenceError | SteamApiError | SessionError | UnauthorizedError, R>,
+  effect: Effect.Effect<
+    A,
+    PersistenceError | SteamApiError | SessionError | UnauthorizedError | NotFoundError,
+    R
+  >,
   operation: string,
-): Effect.Effect<A, ApiFailure | UnauthorizedError, R> =>
+): Effect.Effect<A, ApiFailure | UnauthorizedError | NotFoundError, R> =>
   effect.pipe(
     Effect.catchTag("PersistenceError", (error) =>
       failRequest(operation, "The request could not be completed", error),
@@ -154,6 +158,12 @@ export const handlersLayer = (services: {
             requireSession.pipe(
               Effect.flatMap((session) =>
                 services.dashboard.getFriendComparison(session.steamId, params.steamId),
+              ),
+              // A target outside the caller's friend list is reported as absent
+              // rather than forbidden, so the endpoint never confirms whether an
+              // arbitrary Steam account exists in Rarify.
+              Effect.catchTag("FriendNotAccessibleError", (error) =>
+                Effect.fail(new NotFoundError({ message: error.message })),
               ),
             ),
             "getFriendComparison",

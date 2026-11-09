@@ -1,5 +1,6 @@
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
+import * as Schema from "effect/Schema";
 import type { AppId, DashboardData, GameFilter, SteamId } from "../../lib/types.ts";
 import type {
   AchievementsOverview,
@@ -13,6 +14,17 @@ import type { SteamApiError } from "./steam-client.ts";
 
 /** Expected failures while loading dashboard data from D1 or Steam. */
 export type DashboardServiceError = PersistenceError | SteamApiError;
+
+/**
+ * Failure when a comparison target is not in the caller's Steam friend list.
+ *
+ * Kept separate from `DashboardServiceError` so the API layer can answer 404
+ * without conflating it with an upstream failure.
+ */
+export class FriendNotAccessibleError extends Schema.TaggedError<FriendNotAccessibleError>()(
+  "FriendNotAccessibleError",
+  { message: Schema.String },
+) {}
 
 /** Caller-facing dashboard read operations. */
 export interface Interface {
@@ -38,12 +50,11 @@ export interface Interface {
 
   /** Load visible Steam friends and their privacy summary. */
   readonly getFriends: (steamId: SteamId) => Effect.Effect<FriendsData, DashboardServiceError>;
-
-  /** Load an authenticated player's comparison with one Steam account. */
+  /** Load an authenticated player's comparison with one of their Steam friends. */
   readonly getFriendComparison: (
     steamId: SteamId,
     friendSteamId: SteamId,
-  ) => Effect.Effect<FriendComparison, DashboardServiceError>;
+  ) => Effect.Effect<FriendComparison, DashboardServiceError | FriendNotAccessibleError>;
 }
 
 /**

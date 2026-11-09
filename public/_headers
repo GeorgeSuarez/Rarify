@@ -1,0 +1,21 @@
+# Response headers applied to the built SPA by Cloudflare's asset layer.
+#
+# The dashboard is a static client-rendered app, so it can deny framing and
+# object embedding outright. `style-src` needs 'unsafe-inline' because React
+# writes inline style attributes; scripts are bundled and need no allowance.
+# Steam serves game artwork and avatars from its own CDN, which is the only
+# third-party origin the app renders.
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://cdn.cloudflare.steamstatic.com https://avatars.steamstatic.com https://shared.akamai.steamstatic.com; connect-src 'self'; manifest-src 'self'; upgrade-insecure-requests
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+
+# The Steam callback is served by the API Worker, never by this asset layer,
+# but keep any stray asset from being cached with credentials attached.
+/_headers
+  Cache-Control: no-store

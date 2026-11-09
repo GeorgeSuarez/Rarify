@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Option from "effect/Option";
+import * as Predicate from "effect/Predicate";
 import * as Ref from "effect/Ref";
 import * as Schema from "effect/Schema";
 import * as TestClock from "effect/testing/TestClock";
@@ -321,6 +322,7 @@ const makeSteamLayer = (
               avatar: "https://avatars.steamstatic.com/a1.jpg",
               avatarFull: "https://avatars.steamstatic.com/a1_full.jpg",
               profileUrl: "https://steamcommunity.com/id/dreadnought",
+              communityVisibilityState: 3,
             },
           ]),
         ),
@@ -1114,5 +1116,79 @@ describe("DashboardService achievements overview batching", () => {
 
     expect(schemaCalls).toHaveLength(20);
     expect(new Set(schemaCalls).size).toBe(20);
+  });
+});
+
+describe("DashboardService.getFriendComparison", () => {
+  /** A valid Steam account that is deliberately not in the caller's friends. */
+  const STRANGER_STEAM_ID = Schema.decodeUnknownSync(SteamIdSchema)("76561198000000099");
+
+  it("rejects a comparison target that is not in the caller's friend list", async () => {
+    const state = await Effect.runPromise(Ref.make(initialState));
+
+    const achievementCache = await Effect.runPromise(
+      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+    );
+
+    const config = await Effect.runPromise(
+      Ref.make<{
+        ownedGames: SteamClient.OwnedGamesResult;
+        calls: ReadonlyArray<string>;
+      }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
+    );
+
+    const result = await Effect.runPromise(
+      runWithServices(
+        Effect.gen(function* () {
+          const service = yield* DashboardService.Service;
+
+          return yield* service.getFriendComparison(STEAM_ID, STRANGER_STEAM_ID);
+        }),
+        state,
+        config,
+        achievementCache,
+      ).pipe(Effect.result),
+    );
+
+    expect(result._tag).toBe("Failure");
+
+    if (Predicate.isTagged("Failure")(result)) {
+      expect(result.failure._tag).toBe("FriendNotAccessibleError");
+    }
+
+    // The rejected account is never read from Steam, so an arbitrary id cannot
+    // use Rarify's API key or grow the D1 cache.
+    expect((await Effect.runPromise(Ref.get(config))).calls).toEqual([]);
+  });
+
+  it("compares against a confirmed friend", async () => {
+    const state = await Effect.runPromise(Ref.make(initialState));
+
+    const achievementCache = await Effect.runPromise(
+      Ref.make<ReadonlyMap<number, RarifyStore.GameAchievementCacheRead>>(new Map()),
+    );
+
+    const config = await Effect.runPromise(
+      Ref.make<{
+        ownedGames: SteamClient.OwnedGamesResult;
+        calls: ReadonlyArray<string>;
+      }>({ ownedGames: { ok: true, games: OWNED_GAMES }, calls: [] }),
+    );
+
+    const result = await Effect.runPromise(
+      runWithServices(
+        Effect.gen(function* () {
+          const service = yield* DashboardService.Service;
+
+          return yield* service.getFriendComparison(STEAM_ID, OTHER_STEAM_ID);
+        }),
+        state,
+        config,
+        achievementCache,
+      ),
+    );
+
+    expect(result.friendData.error).toBeNull();
+    expect(result.yourData.error).toBeNull();
   });
 });

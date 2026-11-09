@@ -20,6 +20,15 @@ function assertionFrom(url: string) {
 }
 
 /**
+ * Mark an auth response uncacheable.
+ *
+ * The Steam callback URL carries the signed assertion, so caching it anywhere
+ * would turn a one-time redirect into a replayable credential.
+ */
+const noStore = (response: HttpServerResponse.HttpServerResponse) =>
+  HttpServerResponse.setHeader(response, "cache-control", "no-store");
+
+/**
  * Build the redirect-style Steam authentication routes.
  *
  * These routes stay outside the JSON API because they redirect the browser and
@@ -48,7 +57,7 @@ export const authRoutesLayer = (services: {
         });
 
         return Effect.succeed(
-          HttpServerResponse.redirect(`${STEAM_OPENID_URL}?${parameters.toString()}`),
+          noStore(HttpServerResponse.redirect(`${STEAM_OPENID_URL}?${parameters.toString()}`)),
         );
       });
 
@@ -63,11 +72,13 @@ export const authRoutesLayer = (services: {
               Effect.annotateLogs({ errorTag: outcome.failure._tag }),
             );
 
-            return HttpServerResponse.redirect(`${services.publicAppUrl}/login?error=auth_failed`);
+            return noStore(
+              HttpServerResponse.redirect(`${services.publicAppUrl}/login?error=auth_failed`),
+            );
           }
 
           return yield* withSessionCookie(
-            HttpServerResponse.redirect(`${services.publicAppUrl}/`),
+            noStore(HttpServerResponse.redirect(`${services.publicAppUrl}/`)),
             outcome.success,
             services.secureCookies,
           );
@@ -76,12 +87,10 @@ export const authRoutesLayer = (services: {
 
       yield* router.add("POST", "/auth/logout", () =>
         Effect.gen(function* () {
-          const cleared = yield* clearSessionCookie(
-            HttpServerResponse.redirect(`${services.publicAppUrl}/login`),
+          return yield* clearSessionCookie(
+            noStore(HttpServerResponse.redirect(`${services.publicAppUrl}/login`)),
             services.secureCookies,
           );
-
-          return HttpServerResponse.setHeader(cleared, "cache-control", "no-store");
         }),
       );
     }),
