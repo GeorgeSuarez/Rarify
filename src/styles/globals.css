@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "shadcn-variants.css";
 
 /* Self-hosted Latin web fonts; sources and OFL licenses in public/fonts/. */
 @font-face {

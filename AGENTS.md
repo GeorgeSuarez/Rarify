@@ -44,6 +44,7 @@ Alchemy reads Cloudflare credentials from its own profile store (`alchemy profil
 - `scripts/generate-og-image.mts`, `tools/og/` — source templates for the social preview card and Apple touch icon, rendered with headless Chrome.
 - `lib/types.ts` — shared Effect schemas and types (domain + Steam API wire shapes).
 - `components/dashboard/`, `components/ui/` — props-driven React views and shadcn/ui primitives.
+- `src/styles/shadcn-variants.css` — the Tailwind custom variants (`data-open`, `data-closed`, `data-checked`, `data-disabled`, `data-active`, `data-horizontal`, `data-vertical`) that the Base UI primitives rely on, vendored from `shadcn/tailwind.css`. The `shadcn` package is deliberately not a dependency (its `deepmerge` transitive has an unpatched advisory); run `npx shadcn@latest add <component>` to add components, and extend this file if a new component needs a variant it does not define.
 - `tests/` — Vitest unit, HTTP API, and service tests with Steam fixtures.
 
 ## Auth flow
