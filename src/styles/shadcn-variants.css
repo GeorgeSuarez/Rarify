@@ -1,0 +1,66 @@
+/*
+ * Tailwind custom variants vendored from shadcn/ui.
+ *
+ * Upstream: `shadcn/tailwind.css` (npm `shadcn@4.23.0`, dist/tailwind.css).
+ * Only the variants this project's Base UI components actually use are kept.
+ * The upstream file also ships `no-scrollbar`, `scroll-fade*`, `shimmer*`
+ * utilities and accordion keyframes; none are referenced here, so they are
+ * deliberately omitted.
+ *
+ * Vendoring keeps `shadcn` out of the dependency graph, which in turn removes
+ * its `deepmerge` transitive dependency. `deepmerge` has an open prototype
+ * poisoning advisory (GHSA-gcqx-w48m-w2h4) with no patched release, so it
+ * cannot be resolved by upgrading.
+ *
+ * Re-check this file when adding shadcn components that use new variants.
+ * See UPSTREAM.md for the anti-slop plugins, which follow the same pattern.
+ */
+
+/* Base UI marks open/closed state with `data-open` / `data-closed` attributes
+   (and Radix-style `data-state`), not Tailwind's default `data-*` semantics. */
+@custom-variant data-open {
+  &:where([data-state="open"]),
+  &:where([data-open]:not([data-open="false"])) {
+    @slot;
+  }
+}
+
+@custom-variant data-closed {
+  &:where([data-state="closed"]),
+  &:where([data-closed]:not([data-closed="false"])) {
+    @slot;
+  }
+}
+
+@custom-variant data-checked {
+  &:where([data-state="checked"]),
+  &:where([data-checked]:not([data-checked="false"])) {
+    @slot;
+  }
+}
+
+@custom-variant data-disabled {
+  &:where([data-disabled="true"]),
+  &:where([data-disabled]:not([data-disabled="false"])) {
+    @slot;
+  }
+}
+
+@custom-variant data-active {
+  &:where([data-state="active"]),
+  &:where([data-active]:not([data-active="false"])) {
+    @slot;
+  }
+}
+
+@custom-variant data-horizontal {
+  &:where([data-orientation="horizontal"]) {
+    @slot;
+  }
+}
+
+@custom-variant data-vertical {
+  &:where([data-orientation="vertical"]) {
+    @slot;
+  }
+}

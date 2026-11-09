@@ -1,5 +1,5 @@
-import * as Cloudflare from "alchemy/Cloudflare";
-import * as SQL from "alchemy/SQL/D1";
+import * as Cloudflare from "@alchemy.run/cloudflare";
+import * as SQL from "@alchemy.run/cloudflare/D1/SQL";
 import * as Clock from "effect/Clock";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -429,19 +429,20 @@ const make = Effect.gen(function* () {
 
     saveGameAchievementCache: Effect.fn("RarifyStore.saveGameAchievementCache")(
       function* (steamId, entries) {
-        if (entries.length === 0) return;
-
         // `sql.insert` compiles the whole column/value clause, so the record keys
-        // are the physical column names.
-        const encoded = entries.map(({ appId, entry, fetchedAtMs }) => ({
+        // are the physical column names. Destructuring proves the row list is
+        // non-empty, which `sql.insert` requires.
+        const [first, ...rest] = entries.map(({ appId, entry, fetchedAtMs }) => ({
           steam_id: steamId,
           app_id: appId,
           payload: Schema.encodeSync(Schema.fromJsonString(GameAchievementCacheEntrySchema))(entry),
           fetched_at: fetchedAtMs,
         }));
 
+        if (first === undefined) return;
+
         yield* sql`
-        INSERT INTO game_achievements ${sql.insert(encoded)}
+        INSERT INTO game_achievements ${sql.insert([first, ...rest])}
         ON CONFLICT (steam_id, app_id) DO UPDATE SET
           payload = excluded.payload,
           fetched_at = excluded.fetched_at
@@ -511,18 +512,19 @@ const make = Effect.gen(function* () {
     }),
 
     saveGameSchemaCache: Effect.fn("RarifyStore.saveGameSchemaCache")(function* (entries) {
-      if (entries.length === 0) return;
-
       // `sql.insert` compiles the whole column/value clause, so the record
-      // keys are the physical column names.
-      const encoded = entries.map(({ appId, schema, fetchedAtMs }) => ({
+      // keys are the physical column names. Destructuring proves the row list
+      // is non-empty, which `sql.insert` requires.
+      const [first, ...rest] = entries.map(({ appId, schema, fetchedAtMs }) => ({
         app_id: appId,
         payload: Schema.encodeSync(Schema.fromJsonString(GameAchievementSchemaMapSchema))(schema),
         fetched_at: fetchedAtMs,
       }));
 
+      if (first === undefined) return;
+
       yield* sql`
-          INSERT INTO game_schemas ${sql.insert(encoded)}
+          INSERT INTO game_schemas ${sql.insert([first, ...rest])}
           ON CONFLICT (app_id) DO UPDATE SET
             payload = excluded.payload,
             fetched_at = excluded.fetched_at
