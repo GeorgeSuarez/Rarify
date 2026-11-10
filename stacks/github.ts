@@ -18,9 +18,9 @@ const REPOSITORY = "Rarify";
  * tokens (Global API Key + email):
  *
  * ```sh
- * npx alchemy profile create admin
- * npx alchemy profile edit --profile admin --add Cloudflare
- * npx alchemy deploy --config stacks/github.ts --profile admin --yes
+ * pnpm exec alchemy profile create admin
+ * pnpm exec alchemy profile edit --profile admin --add Cloudflare
+ * pnpm exec alchemy deploy --config stacks/github.ts --profile admin --yes
  * ```
  *
  * Re-run it to rotate the token or change its permissions.

@@ -24,55 +24,56 @@ A Steam-style achievement dashboard. Track your Steam achievements, compare prog
 
 ### Prerequisites
 
-- Node.js 22+
+- Node.js 24+
+- pnpm 12 (install with `npm i -g pnpm`, or let `pnpm/action-setup` handle CI)
 - A [Steam Web API key](https://steamcommunity.com/dev/apikey)
 - A Cloudflare account with the `georgejsuarez.com` zone (for preview/production deploys)
 
 ### Setup
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env.local   # then fill in the values
 ```
 
 Alchemy stores Cloudflare credentials in its own profile store; authenticate once with:
 
 ```bash
-npx alchemy profile edit --add Cloudflare
+pnpm exec alchemy profile edit --add Cloudflare
 ```
 
 ### Environment variables
 
-| Variable            | Required  | Description                                                                                                                                      |
-| ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `STEAM_API_KEY`     | Yes       | Steam Web API key                                                                                                                                |
-| `AUTH_SECRET`       | Yes       | Random secret for signing session JWTs (`openssl rand -base64 32`)                                                                               |
-| `PUBLIC_APP_URL`    | Local dev | Base URL for local `npm run dev` + `alchemy dev` (e.g. `http://localhost:5173`). Deploys derive the public URL from `PUBLIC_APP_DOMAIN` instead. |
-| `PUBLIC_APP_DOMAIN` | Deploys   | Hostname served by the stack (`rarify.georgejsuarez.com`); omit for local `alchemy dev`                                                          |
-| `ENRICH_BATCH_SIZE` | No        | Games enriched per request (default 20). Raise it on the Workers Paid plan.                                                                      |
+| Variable            | Required  | Description                                                                                                                                       |
+| ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `STEAM_API_KEY`     | Yes       | Steam Web API key                                                                                                                                 |
+| `AUTH_SECRET`       | Yes       | Random secret for signing session JWTs (`openssl rand -base64 32`)                                                                                |
+| `PUBLIC_APP_URL`    | Local dev | Base URL for local `pnpm run dev` + `alchemy dev` (e.g. `http://localhost:5173`). Deploys derive the public URL from `PUBLIC_APP_DOMAIN` instead. |
+| `PUBLIC_APP_DOMAIN` | Deploys   | Hostname served by the stack (`rarify.georgejsuarez.com`); omit for local `alchemy dev`                                                           |
+| `ENRICH_BATCH_SIZE` | No        | Games enriched per request (default 20). Raise it on the Workers Paid plan.                                                                       |
 
 ### Commands
 
 ```bash
-npm run dev             # Vite dev server for the SPA (http://localhost:5173)
-npm run alchemy:dev     # whole stack locally: API Worker (:8787) + Vite website (:5173)
-npm run build           # production build of the SPA
-npm run alchemy:plan    # preview infrastructure changes
-npm run alchemy:deploy  # deploy with PUBLIC_APP_DOMAIN set in the environment
-npm run alchemy:preview  # deploy the preview stage (preview-rarify.georgejsuarez.com)
-npm run alchemy:release  # deploy the production stage (rarify.georgejsuarez.com)
-npm run alchemy:destroy  # tear down the stack (pass `-- --stage preview` for preview only)
-npm run lint            # Oxlint (includes the custom anti-slop plugin)
-npm run typecheck       # tsc --noEmit
-npm run test            # unit, service, and HTTP API tests (Vitest)
-npm run test:watch      # tests in watch mode
+pnpm run dev             # Vite dev server for the SPA (http://localhost:5173)
+pnpm run alchemy:dev     # whole stack locally: API Worker (:8787) + Vite website (:5173)
+pnpm run build           # production build of the SPA
+pnpm run alchemy:plan    # preview infrastructure changes
+pnpm run alchemy:deploy  # deploy with PUBLIC_APP_DOMAIN set in the environment
+pnpm run alchemy:preview  # deploy the preview stage (preview-rarify.georgejsuarez.com)
+pnpm run alchemy:release  # deploy the production stage (rarify.georgejsuarez.com)
+pnpm run alchemy:destroy  # tear down the stack (pass `--stage preview` for preview only)
+pnpm run lint            # Oxlint (includes the custom anti-slop plugin)
+pnpm run typecheck       # tsc --noEmit
+pnpm run test            # unit, service, and HTTP API tests (Vitest)
+pnpm run test:watch      # tests in watch mode
 ```
 
 Local development runs the API in workerd with a local D1 simulator, so no cloud resources are needed.
 
 ## Architecture
 
-```
+```text
 alchemy.run.ts               # Alchemy Stack: D1 + website Worker + API Worker
 src/
 ├── api-worker.ts            # API Worker composition root (services, routes, cron)
@@ -121,8 +122,8 @@ tests/                       # Unit, service, HTTP API, and schema tests
 ### Testing
 
 ```bash
-npm run test            # all suites (unit, service, HTTP API, D1 schema)
-npm run test:watch      # watch mode
+pnpm run test            # all suites (unit, service, HTTP API, D1 schema)
+pnpm run test:watch      # watch mode
 ```
 
 Coverage by area:
@@ -141,9 +142,9 @@ Tests exercise real interfaces with faithful implementations — no module mocks
 Authenticate once, then deploy a preview stage before the production cutover:
 
 ```bash
-npx alchemy profile edit --add Cloudflare   # browser OAuth; or set CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID
-npm run alchemy:preview                     # preview-rarify.georgejsuarez.com (stage: preview)
-npm run alchemy:release                     # rarify.georgejsuarez.com (stage: prod)
+pnpm exec alchemy profile edit --add Cloudflare   # browser OAuth; or set CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID
+pnpm run alchemy:preview                     # preview-rarify.georgejsuarez.com (stage: preview)
+pnpm run alchemy:release                     # rarify.georgejsuarez.com (stage: prod)
 ```
 
 `alchemy:deploy` (with `PUBLIC_APP_DOMAIN` set) attaches the website Worker to the custom domain and routes `/api/*` and `/auth/*` to the API Worker on the same hostname. D1 migrations in `migrations/` are applied during deploy, and the daily Cron Trigger is registered with the Worker. No Turso data is imported: D1 starts empty and users sign in again.
@@ -167,9 +168,9 @@ Required repository secrets (`Settings → Secrets and variables → Actions`):
 `stacks/github.ts` is a one-shot bootstrap stack that mints the scoped CI token and pushes the Cloudflare secrets to GitHub. It needs an `admin` profile that can create tokens (Global API Key + email). Run once from your laptop:
 
 ```bash
-npx alchemy profile create admin
-npx alchemy profile edit --profile admin --add Cloudflare
-npx alchemy deploy --config stacks/github.ts --profile admin --yes
+pnpm exec alchemy profile create admin
+pnpm exec alchemy profile edit --profile admin --add Cloudflare
+pnpm exec alchemy deploy --config stacks/github.ts --profile admin --yes
 ```
 
 Re-run it to rotate the token or change its permissions.
@@ -178,7 +179,7 @@ Re-run it to rotate the token or change its permissions.
 
 - **Library loads but achievements are all zero** — the Steam account's **Game details** privacy must be Public (Steam → Profile → Edit Profile → Privacy Settings). The API returns `403 Profile is not public` otherwise, and the app keeps a basic row for each affected game.
 - **Newly enriched games appear over several loads** — each request enriches at most `ENRICH_BATCH_SIZE` games so one Worker invocation stays inside Cloudflare's subrequest budget (50 on the free plan). Later loads continue filling the D1 cache; raise the batch size on Workers Paid.
-- **Deploy asks for Cloudflare auth** — run `npx alchemy profile edit --add Cloudflare` (OAuth) or set `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
+- **Deploy asks for Cloudflare auth** — run `pnpm exec alchemy profile edit --add Cloudflare` (OAuth) or set `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.
 
 ## License
 

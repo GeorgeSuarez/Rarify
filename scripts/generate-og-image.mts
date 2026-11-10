@@ -2,8 +2,8 @@
  * Renders the social-preview card and the Apple touch icon with headless Chrome.
  *
  * `tools/og/og-image.html` and `tools/og/apple-touch-icon.html` are the sources
- * of truth for the two images. Run `npm run generate:og` after editing either
- * one, and `npm run generate:og:check` to verify the committed PNGs exist and
+ * of truth for the two images. Run `pnpm run generate:og` after editing either
+ * one, and `pnpm run generate:og:check` to verify the committed PNGs exist and
  * are correctly sized. The check only reads PNG headers, so it stays runnable
  * in CI without a browser installed.
  *
@@ -150,7 +150,7 @@ function relativePath(filePath: string): string {
 /** Verifies one committed PNG exists and matches the size its template renders at. */
 function checkTarget(target: RenderTarget): number {
   if (!existsSync(target.outputPath)) {
-    console.error(`Missing ${relativePath(target.outputPath)}. Run: npm run generate:og`);
+    console.error(`Missing ${relativePath(target.outputPath)}. Run: pnpm run generate:og`);
 
     return 1;
   }

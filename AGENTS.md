@@ -4,20 +4,22 @@ A Steam-style achievement dashboard: Vite + React 19 SPA, Effect-native Cloudfla
 
 ## Commands
 
-- `npm run dev` — start the SPA dev server (Vite, http://localhost:5173)
-- `npm run alchemy:dev` — run the whole Cloudflare stack locally (API Worker on http://localhost:8787, Vite website on http://localhost:5173)
-- `npm run build` — production build of the SPA
-- `npm run generate:og` — render `public/og-image.png` and `public/apple-touch-icon.png` from `tools/og/*.html` with headless Chrome (probed locally, or set `CHROME_PATH`)
-- `npm run generate:og:check` — verify the committed images exist and are correctly sized; reads PNG headers only, so it needs no browser
-- `npm run alchemy:deploy` — deploy the Cloudflare stack (Worker, D1, Cron Trigger, custom domain routes)
-- `npm run lint` — run Oxlint (includes the vendored `anti-slop` and `anti-slop-effect` plugins in `tools/oxlint/anti-slop/`; see its `UPSTREAM.md` for provenance and `oxlint.config.ts` for enabled rules)
-- `npm run format` — format the repository with Oxfmt (config: `.oxfmtrc.json`)
-- `npm run format:check` — verify formatting without rewriting files
-- `npm run typecheck` — `tsc --noEmit`
-- `npm run test` — run unit tests once (Vitest)
-- `npm run test:watch` — run tests in watch mode
+- `pnpm run dev` — start the SPA dev server (Vite, http://localhost:5173)
+- `pnpm run alchemy:dev` — run the whole Cloudflare stack locally (API Worker on http://localhost:8787, Vite website on http://localhost:5173)
+- `pnpm run build` — production build of the SPA
+- `pnpm run generate:og` — render `public/og-image.png` and `public/apple-touch-icon.png` from `tools/og/*.html` with headless Chrome (probed locally, or set `CHROME_PATH`)
+- `pnpm run generate:og:check` — verify the committed images exist and are correctly sized; reads PNG headers only, so it needs no browser
+- `pnpm run alchemy:deploy` — deploy the Cloudflare stack (Worker, D1, Cron Trigger, custom domain routes)
+- `pnpm run lint` — run Oxlint (includes the vendored `anti-slop` and `anti-slop-effect` plugins in `tools/oxlint/anti-slop/`; see its `UPSTREAM.md` for provenance and `oxlint.config.ts` for enabled rules)
+- `pnpm run format` — format the repository with Oxfmt (config: `.oxfmtrc.json`)
+- `pnpm run format:check` — verify formatting without rewriting files
+- `pnpm run typecheck` — `tsc --noEmit`
+- `pnpm run test` — run unit tests once (Vitest)
+- `pnpm run test:watch` — run tests in watch mode
 
-Always run `npm run lint`, `npm run format:check`, `npm run typecheck`, `npm run test`, and `npm run build` after making changes.
+Always run `pnpm run lint`, `pnpm run format:check`, `pnpm run typecheck`, `pnpm run test`, and `pnpm run build` after making changes.
+
+The package manager is pnpm (`pnpm-lock.yaml`); `pnpm/action-setup` pins `packageManager` in CI. Never run `npm install`/`npm ci` — a `package-lock.json` must not reappear. pnpm blocks dependency build scripts by default, so approve one with `pnpm approve-builds <pkg>`, which records it under `allowBuilds` in `pnpm-workspace.yaml`.
 
 ## Environment
 
@@ -44,7 +46,7 @@ Alchemy reads Cloudflare credentials from its own profile store (`alchemy profil
 - `scripts/generate-og-image.mts`, `tools/og/` — source templates for the social preview card and Apple touch icon, rendered with headless Chrome.
 - `lib/types.ts` — shared Effect schemas and types (domain + Steam API wire shapes).
 - `components/dashboard/`, `components/ui/` — props-driven React views and shadcn/ui primitives.
-- `src/styles/shadcn-variants.css` — the Tailwind custom variants (`data-open`, `data-closed`, `data-checked`, `data-disabled`, `data-active`, `data-horizontal`, `data-vertical`) that the Base UI primitives rely on, vendored from `shadcn/tailwind.css`. The `shadcn` package is deliberately not a dependency (its `deepmerge` transitive has an unpatched advisory); run `npx shadcn@latest add <component>` to add components, and extend this file if a new component needs a variant it does not define.
+- `src/styles/shadcn-variants.css` — the Tailwind custom variants (`data-open`, `data-closed`, `data-checked`, `data-disabled`, `data-active`, `data-horizontal`, `data-vertical`) that the Base UI primitives rely on, vendored from `shadcn/tailwind.css`. The `shadcn` package is deliberately not a dependency (its `deepmerge` transitive has an unpatched advisory); run `pnpm dlx shadcn@latest add <component>` to add components, and extend this file if a new component needs a variant it does not define.
 - `tests/` — Vitest unit, HTTP API, and service tests with Steam fixtures.
 
 ## Auth flow
