@@ -1,2 +1,10 @@
 allowBuilds:
   workerd: true
+
+# oxfmt and oxlint ship a platform binding per OS/CPU, so the toolchain is
+# exempted by name and scope rather than one package at a time.
+minimumReleaseAgeExclude:
+  - oxfmt
+  - oxlint
+  - "@oxfmt/*"
+  - "@oxlint/*"
