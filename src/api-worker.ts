@@ -1,4 +1,5 @@
 import * as Cloudflare from "@alchemy.run/cloudflare";
+import { Stage } from "alchemy";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -18,6 +19,7 @@ import { layerWithoutDependencies as trackedGamesServiceLayer } from "./adapters
 import { authRoutesLayer } from "./api/auth-routes.ts";
 import { handlersLayer } from "./api/handlers.ts";
 import { Database } from "./database.ts";
+import { rateLimitNamespaces } from "./rate-limit-namespaces.ts";
 import { apiRoutePatterns } from "./deployment-routes.ts";
 import * as DashboardService from "./services/dashboard.ts";
 import * as PreferencesService from "./services/preferences.ts";
@@ -121,13 +123,17 @@ export default Cloudflare.Worker(
     // Two fixed-window buckets. The callback is keyed by network address
     // because no session exists yet; the API is keyed by the verified Steam ID
     // so one account cannot spend another's allowance behind a shared NAT.
+    // Namespace ids are per stage because Cloudflare shares counters for a
+    // namespace across the whole account, including across Workers.
+    const namespaces = rateLimitNamespaces(yield* Stage);
+
     const authThrottle = yield* Cloudflare.Workers.RateLimit("AUTH_THROTTLE", {
-      namespaceId: 1001,
+      namespaceId: namespaces.auth,
       simple: { limit: 20, period: 60 },
     });
 
     const apiThrottle = yield* Cloudflare.Workers.RateLimit("API_THROTTLE", {
-      namespaceId: 1002,
+      namespaceId: namespaces.api,
       simple: { limit: 120, period: 60 },
     });
 
